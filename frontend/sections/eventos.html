@@ -1,0 +1,22 @@
+<section id="section-eventos" class="section p-6 hidden">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold">Eventos</h2>
+    <button onclick="abrirModalEvento()" class="btn-primary">
+      <i class="fa-solid fa-plus mr-1"></i> Novo Evento
+    </button>
+  </div>
+  <div class="card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="border-b border-slate-700 text-slate-400">
+        <th class="text-left py-2 px-3">Nome</th>
+        <th class="text-left py-2 px-3">Data Início</th>
+        <th class="text-left py-2 px-3">Tipo</th>
+        <th class="text-left py-2 px-3">Público</th>
+        <th class="text-left py-2 px-3">Inscritos/Cap.</th>
+        <th class="text-left py-2 px-3">Biblioteca</th>
+        <th class="text-left py-2 px-3">Acções</th>
+      </tr></thead>
+      <tbody id="tabela-eventos"></tbody>
+    </table>
+  </div>
+</section>

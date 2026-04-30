@@ -1,0 +1,39 @@
+<section id="section-leitores" class="section p-6 hidden">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold">Leitores</h2>
+    <button onclick="abrirModalLeitor()" class="btn-primary">
+      <i class="fa-solid fa-plus mr-1"></i> Novo Leitor
+    </button>
+  </div>
+  <div class="flex gap-3 mb-4 flex-wrap">
+    <div class="relative">
+      <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+      <input id="filtro-leitor-q" type="text" placeholder="Pesquisar nome…" oninput="carregarLeitores()" class="input-dark pl-8 w-56"/>
+    </div>
+    <select id="filtro-leitor-tipo" onchange="carregarLeitores()" class="input-dark">
+      <option value="">Todos os tipos</option>
+      <option value="ADULTO">Adulto</option>
+      <option value="CRIANCA">Criança</option>
+      <option value="PROFESSOR">Professor</option>
+    </select>
+    <select id="filtro-leitor-estado" onchange="carregarLeitores()" class="input-dark">
+      <option value="">Todos os estados</option>
+      <option value="ATIVO">Activo</option>
+      <option value="SUSPENSO">Suspenso</option>
+      <option value="INATIVO">Inactivo</option>
+    </select>
+  </div>
+  <div class="card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="border-b border-slate-700 text-slate-400">
+        <th class="text-left py-2 px-3">Cartão</th>
+        <th class="text-left py-2 px-3">Nome</th>
+        <th class="text-left py-2 px-3">Tipo</th>
+        <th class="text-left py-2 px-3">Contacto</th>
+        <th class="text-left py-2 px-3">Estado</th>
+        <th class="text-left py-2 px-3">Acções</th>
+      </tr></thead>
+      <tbody id="tabela-leitores"></tbody>
+    </table>
+  </div>
+</section>

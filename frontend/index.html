@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Saber Comunitário — Gestão de Bibliotecas Comunitárias</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+<!-- login injectado via main.js → sections/login.html -->
+
+<!-- ═══════════════════════════ APP ═══════════════════════════ -->
+<div id="app" class="hidden min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-slate-800 border-r border-slate-700 flex flex-col flex-shrink-0">
+    <div class="p-5 border-b border-slate-700">
+      <div class="flex items-center gap-3">
+        <img src="/resources/imgs/Logo.png" alt="Logo" class="w-9 h-9 object-contain rounded"/>
+        <div>
+          <div class="font-bold text-white text-sm">Saber Comunitário</div>
+          <div id="sidebar-user" class="text-xs text-slate-400 truncate max-w-[140px]"></div>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 p-3 space-y-1">
+      <a href="#dashboard"    class="nav-link" data-section="dashboard">   <i class="fa-solid fa-chart-bar w-4 text-center"></i> Dashboard</a>
+      <a href="#leitores"     class="nav-link" data-section="leitores">    <i class="fa-solid fa-users w-4 text-center"></i> Leitores</a>
+      <a href="#materiais"    class="nav-link" data-section="materiais">   <i class="fa-solid fa-book w-4 text-center"></i> Materiais</a>
+      <a href="#emprestimos"  class="nav-link" data-section="emprestimos"> <i class="fa-solid fa-arrow-right-arrow-left w-4 text-center"></i> Empréstimos</a>
+      <a href="#funcionarios" class="nav-link" data-section="funcionarios"><i class="fa-solid fa-user-tie w-4 text-center"></i> Funcionários</a>
+      <a href="#eventos"      class="nav-link" data-section="eventos">     <i class="fa-solid fa-calendar-days w-4 text-center"></i> Eventos</a>
+      <a href="#doacoes"      class="nav-link" data-section="doacoes">     <i class="fa-solid fa-hand-holding-heart w-4 text-center"></i> Doações</a>
+    </nav>
+    <div class="p-3 border-t border-slate-700">
+      <button id="btn-logout"
+        class="w-full text-left px-3 py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-900/20 transition-colors text-sm flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i> Terminar Sessão
+      </button>
+    </div>
+  </aside>
+
+  <!-- Conteúdo principal — preenchido dinamicamente -->
+  <main id="main-content" class="flex-1 overflow-auto"></main>
+
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

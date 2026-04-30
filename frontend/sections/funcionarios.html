@@ -1,0 +1,21 @@
+<section id="section-funcionarios" class="section p-6 hidden">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold">Funcionários</h2>
+    <button onclick="abrirModalFuncionario()" class="btn-primary">
+      <i class="fa-solid fa-user-plus mr-1"></i> Novo Funcionário
+    </button>
+  </div>
+  <div class="card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="border-b border-slate-700 text-slate-400">
+        <th class="text-left py-2 px-3">ID</th>
+        <th class="text-left py-2 px-3">Nome</th>
+        <th class="text-left py-2 px-3">Email</th>
+        <th class="text-left py-2 px-3">Função</th>
+        <th class="text-left py-2 px-3">Biblioteca</th>
+        <th class="text-left py-2 px-3">Acções</th>
+      </tr></thead>
+      <tbody id="tabela-funcionarios"></tbody>
+    </table>
+  </div>
+</section>

@@ -1,0 +1,35 @@
+<div id="login-screen" class="min-h-screen flex items-center justify-center">
+  <div class="bg-slate-800 border border-slate-700 rounded-2xl p-10 w-full max-w-md shadow-2xl">
+    <div class="text-center mb-8">
+      <img src="/resources/imgs/Logo.png" alt="Saber Comunitário" class="w-20 h-20 object-contain mx-auto mb-4"/>
+      <h1 class="text-2xl font-bold text-white">Saber Comunitário</h1>
+      <p class="text-slate-400 text-sm mt-1">Sistema de Gestão de Bibliotecas Comunitárias</p>
+    </div>
+    <div id="login-erro" class="hidden bg-red-900/50 border border-red-500 text-red-300 rounded-lg p-3 mb-4 text-sm flex items-center gap-2">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="login-erro-msg"></span>
+    </div>
+    <form id="login-form" class="space-y-4">
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">Email</label>
+        <div class="relative">
+          <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+          <input id="login-email" type="email" placeholder="email@biblioteca.mz"
+            class="w-full bg-slate-700 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500"/>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">Senha</label>
+        <div class="relative">
+          <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+          <input id="login-senha" type="password" placeholder="••••••••"
+            class="w-full bg-slate-700 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500"/>
+        </div>
+      </div>
+      <button type="submit"
+        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg py-2.5 transition-colors flex items-center justify-center gap-2">
+        <i class="fa-solid fa-right-to-bracket"></i> Entrar
+      </button>
+    </form>
+  </div>
+</div>

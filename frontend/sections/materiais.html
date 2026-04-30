@@ -1,0 +1,45 @@
+<section id="section-materiais" class="section p-6 hidden">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold">Materiais Bibliográficos</h2>
+    <button onclick="abrirModalMaterial()" class="btn-primary">
+      <i class="fa-solid fa-plus mr-1"></i> Novo Material
+    </button>
+  </div>
+  <div class="flex gap-3 mb-4 flex-wrap">
+    <div class="relative">
+      <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+      <input id="filtro-mat-q" type="text" placeholder="Título ou autor…" oninput="carregarMateriais()" class="input-dark pl-8 w-56"/>
+    </div>
+    <select id="filtro-mat-tipo" onchange="carregarMateriais()" class="input-dark">
+      <option value="">Todos os tipos</option>
+      <option value="LIVRO_FISICO">Livro Físico</option>
+      <option value="EBOOK">Ebook</option>
+      <option value="PERIODICO">Periódico</option>
+    </select>
+    <select id="filtro-mat-conservacao" onchange="carregarMateriais()" class="input-dark">
+      <option value="">Todos (conservação)</option>
+      <option value="Bom">Bom</option>
+      <option value="Razoável">Razoável</option>
+      <option value="Mau">Mau</option>
+      <option value="Indisponivel">Indisponível</option>
+    </select>
+    <select id="filtro-mat-disponivel" onchange="carregarMateriais()" class="input-dark">
+      <option value="">Todas (disponibilidade)</option>
+      <option value="S">Disponível</option>
+      <option value="N">Emprestado/Indisponível</option>
+    </select>
+  </div>
+  <div class="card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="border-b border-slate-700 text-slate-400">
+        <th class="text-left py-2 px-3">ID</th>
+        <th class="text-left py-2 px-3">Título</th>
+        <th class="text-left py-2 px-3">Autor</th>
+        <th class="text-left py-2 px-3">Tipo</th>
+        <th class="text-left py-2 px-3">Estado</th>
+        <th class="text-left py-2 px-3">Acções</th>
+      </tr></thead>
+      <tbody id="tabela-materiais"></tbody>
+    </table>
+  </div>
+</section>

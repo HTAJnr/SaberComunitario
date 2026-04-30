@@ -1,0 +1,68 @@
+<section id="section-doacoes" class="section p-6 hidden">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold">Doações</h2>
+    <button onclick="abrirModalDoacao()" class="btn-primary">
+      <i class="fa-solid fa-plus mr-1"></i> Nova Doação
+    </button>
+  </div>
+  <div class="flex gap-2 mb-4">
+    <button id="tab-doacoes-btn"      onclick="switchTabDoacoes('doacoes')"      class="tab-btn tab-active">
+      <i class="fa-solid fa-hand-holding-heart mr-1"></i> Doações
+    </button>
+    <button id="tab-doadores-btn"     onclick="switchTabDoacoes('doadores')"     class="tab-btn">
+      <i class="fa-solid fa-people-group mr-1"></i> Doadores
+    </button>
+    <button id="tab-certificados-btn" onclick="switchTabDoacoes('certificados')" class="tab-btn">
+      <i class="fa-solid fa-certificate mr-1"></i> Certificados
+    </button>
+  </div>
+
+  <!-- Sub-tab: Doações -->
+  <div id="sub-doacoes" class="card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="border-b border-slate-700 text-slate-400">
+        <th class="text-left py-2 px-3">ID</th>
+        <th class="text-left py-2 px-3">Doador</th>
+        <th class="text-left py-2 px-3">Data</th>
+        <th class="text-left py-2 px-3">Valor Total</th>
+        <th class="text-left py-2 px-3">Biblioteca</th>
+      </tr></thead>
+      <tbody id="tabela-doacoes"></tbody>
+    </table>
+  </div>
+
+  <!-- Sub-tab: Doadores -->
+  <div id="sub-doadores" class="hidden">
+    <div class="flex justify-end mb-3">
+      <button onclick="abrirModalDoador()" class="btn-secondary text-sm">
+        <i class="fa-solid fa-user-plus mr-1"></i> Novo Doador
+      </button>
+    </div>
+    <div class="card overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="border-b border-slate-700 text-slate-400">
+          <th class="text-left py-2 px-3">ID</th>
+          <th class="text-left py-2 px-3">Nome</th>
+          <th class="text-left py-2 px-3">Tipo</th>
+          <th class="text-left py-2 px-3">Contacto</th>
+          <th class="text-left py-2 px-3">Email</th>
+        </tr></thead>
+        <tbody id="tabela-doadores"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sub-tab: Certificados -->
+  <div id="sub-certificados" class="card overflow-x-auto hidden">
+    <table class="w-full text-sm">
+      <thead><tr class="border-b border-slate-700 text-slate-400">
+        <th class="text-left py-2 px-3">ID</th>
+        <th class="text-left py-2 px-3">Nº Série</th>
+        <th class="text-left py-2 px-3">Doador</th>
+        <th class="text-left py-2 px-3">Data Emissão</th>
+        <th class="text-left py-2 px-3">Acções</th>
+      </tr></thead>
+      <tbody id="tabela-certificados"></tbody>
+    </table>
+  </div>
+</section>
