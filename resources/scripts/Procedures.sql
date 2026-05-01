@@ -1,56 +1,47 @@
+-- ============================================================
+-- PROCEDURES.SQL — Sistema Saber Comunitario
+-- Sessao 6: procedures limpas, sem logica de negocio duplicada
+-- Logica de negocio (multas, limites, validacoes) → backend
+-- BD responsavel por: integridade, auto-incremento, proteccao
+-- ============================================================
+
 -- PROCEDURE: registrar_doacao_completa
--- OBJETIVO: Registrar uma doação e seus itens, com emissão automática de certificado (RN08)
+-- Regista uma doacao e os seus itens; certificado gerado pelo trigger gera_certificado_automatico
 CREATE OR REPLACE PROCEDURE registrar_doacao_completa (
     p_id_doador         IN  NUMBER,
     p_data              IN  DATE,
     p_itens             IN  SYS_REFCURSOR,
     p_id_doacao         OUT NUMBER,
     p_num_certificado   OUT VARCHAR2
-)
-AS
-    v_id_biblioteca    NUMBER;
-    v_qtd              NUMBER;
-    v_valor            NUMBER;
-    v_obs              VARCHAR2(200);
+) AS
+    v_cod_biblioteca  NUMBER;
+    v_qtd            NUMBER;
+    v_valor          NUMBER;
+    v_obs            VARCHAR2(200);
 BEGIN
-    -- 1. Criar a doação (ID gerado pelo trigger) e obter o ID gerado
     INSERT INTO DOACAO (id_doador, data_doacao)
     VALUES (p_id_doador, NVL(p_data, SYSDATE))
     RETURNING id_doacao INTO p_id_doacao;
 
-    -- 2. Inserir cada item
     LOOP
-        FETCH p_itens INTO v_id_biblioteca, v_qtd, v_valor, v_obs;
+        FETCH p_itens INTO v_cod_biblioteca, v_qtd, v_valor, v_obs;
         EXIT WHEN p_itens%NOTFOUND;
 
-        -- CORREÇÃO: Removida a inserção manual do ID do item.
-        -- O trigger 'trg_itemdoado_id' já usa a sequência 'SEQ_ITEMDOADO' para isso.
         INSERT INTO ITEM_DOACAO (
-            id_doacao,
-            id_biblioteca,
-            quantidade,
-            valor_estimado,
-            observacoes
+            id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes
         ) VALUES (
-            p_id_doacao,
-            v_id_biblioteca,
-            v_qtd,
-            v_valor,
-            v_obs
+            p_id_doacao, v_cod_biblioteca, v_qtd, v_valor, v_obs
         );
     END LOOP;
     CLOSE p_itens;
-    
-    -- 3. Buscar número de certificado (se o trigger 'gera_certificado_automatico' tiver sido disparado)
+
     BEGIN
         SELECT num_certificado
           INTO p_num_certificado
           FROM CERTIFICADO_DOACAO
-         WHERE id_doacao = p_id_doacao
-           AND ROWNUM = 1;
+         WHERE id_doacao = p_id_doacao AND ROWNUM = 1;
     EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            p_num_certificado := NULL;
+        WHEN NO_DATA_FOUND THEN p_num_certificado := NULL;
     END;
 
     COMMIT;
@@ -62,46 +53,29 @@ END;
 /
 
 -- PROCEDURE: reemitir_certificado
--- OBJETIVO: Reemitir certificado de uma doação existente
+-- Reemite certificado de uma doacao existente
 CREATE OR REPLACE PROCEDURE reemitir_certificado (
     p_id_doacao     IN  NUMBER,
     p_motivo        IN  VARCHAR2,
     p_numero_novo   OUT VARCHAR2
-)
-AS
+) AS
     v_numero_antigo  VARCHAR2(30);
     v_seq            NUMBER;
 BEGIN
-    -- 1. Verificar se a doação tem certificado original
     SELECT num_certificado
       INTO v_numero_antigo
       FROM CERTIFICADO_DOACAO
-     WHERE id_doacao = p_id_doacao
-       AND tipo_certificado = 'Original'
-       AND ROWNUM = 1;
+     WHERE id_doacao = p_id_doacao AND tipo_certificado = 'Original' AND ROWNUM = 1;
 
-    -- 2. Gerar novo número sequencial
     SELECT seq_certificado.NEXTVAL INTO v_seq FROM dual;
-
     p_numero_novo := 'CERT-' || TO_CHAR(SYSDATE, 'YYYY') || '-' || LPAD(v_seq, 4, '0');
 
-    -- 3. Inserir novo certificado de reemissão
     INSERT INTO CERTIFICADO_DOACAO (
-        id_certificado,
-        id_doacao,
-        num_certificado,
-        tipo_certificado,
-        data_emissao,
-        observacoes,
-        original_numero
+        id_certificado, id_doacao, num_certificado,
+        tipo_certificado, data_emissao, observacoes, original_numero
     ) VALUES (
-        seq_certificado.NEXTVAL,
-        p_id_doacao,
-        p_numero_novo,
-        'Reemissao',
-        SYSDATE,
-        p_motivo,
-        v_numero_antigo
+        seq_certificado.NEXTVAL, p_id_doacao, p_numero_novo,
+        'Reemissao', SYSDATE, p_motivo, v_numero_antigo
     );
 
     COMMIT;
@@ -115,287 +89,244 @@ END;
 /
 
 -- PROCEDURE: cadastrar_biblioteca
--- OBJETIVO: Reemitir certificado de uma doação existente
-CREATE OR REPLACE PROCEDURE cadastrar_biblioteca(
-  p_nome IN VARCHAR2,
-  p_localizacao IN VARCHAR2,
-  p_contacto IN VARCHAR2,
-  p_id_coordenador IN NUMBER
+-- Regista nova biblioteca; usa sequencia para ID
+CREATE OR REPLACE PROCEDURE cadastrar_biblioteca (
+    p_nome           IN VARCHAR2,
+    p_localizacao    IN VARCHAR2,
+    p_contacto       IN VARCHAR2,
+    p_id_coordenador IN NUMBER
 ) AS
-  v_id_biblioteca NUMBER;
 BEGIN
-  -- Gerar novo ID
-  SELECT NVL(MAX(id_biblioteca), 0) + 1 INTO v_id_biblioteca
-  FROM BIBLIOTECA;
-  
-  -- Inserir biblioteca
-  INSERT INTO BIBLIOTECA (id_biblioteca, nome_biblioteca, localizacao, contacto_biblioteca, id_responsavel)
-  VALUES (v_id_biblioteca, p_nome, p_localizacao, p_contacto, p_id_coordenador);
-  COMMIT;
+    INSERT INTO BIBLIOTECA (cod_biblioteca, nome_biblioteca, localizacao, contacto_biblioteca, id_responsavel)
+    VALUES (SEQ_BIBLIOTECA.NEXTVAL, p_nome, p_localizacao, p_contacto, p_id_coordenador);
+    COMMIT;
 END;
 /
 
-
-CREATE OR REPLACE PROCEDURE inserir_leitor(
-    p_num_cartao          IN VARCHAR2,
-    p_nome_completo       IN VARCHAR2,
-    p_data_nasc           IN DATE,
-    p_genero              IN VARCHAR2,
-    p_nivel_escolar       IN VARCHAR2,
-    p_localizacao_leitor  IN VARCHAR2,
-    p_contacto            IN VARCHAR2
-)
-IS
+-- PROCEDURE: inserir_leitor
+-- Insere leitor + cod_biblioteca (obrigatorio); formatacao de contacto feita no backend
+CREATE OR REPLACE PROCEDURE inserir_leitor (
+    p_num_cartao         IN VARCHAR2,
+    p_nome_completo      IN VARCHAR2,
+    p_data_nasc          IN DATE,
+    p_genero             IN VARCHAR2,
+    p_nivel_escolar      IN VARCHAR2,
+    p_localizacao_leitor IN VARCHAR2,
+    p_contacto           IN VARCHAR2,
+    p_cod_biblioteca      IN NUMBER
+) AS
 BEGIN
-    INSERT INTO LEITOR (num_cartao, nome_completo, data_nasc, genero, nivel_escolar, localizacao_leitor, contacto)
-    VALUES (p_num_cartao, p_nome_completo, p_data_nasc, p_genero, p_nivel_escolar, p_localizacao_leitor, p_contacto);
-END inserir_leitor;
+    INSERT INTO LEITOR (
+        num_cartao, nome_completo, data_nasc, genero,
+        nivel_escolar, localizacao_leitor, contacto, cod_biblioteca
+    ) VALUES (
+        p_num_cartao, p_nome_completo, p_data_nasc, p_genero,
+        p_nivel_escolar, p_localizacao_leitor, p_contacto, p_cod_biblioteca
+    );
+END;
 /
 
+-- PROCEDURE: inserir_emprestimo
+-- Insere emprestimo; verificacoes de disponibilidade e limites feitas no backend antes de chamar
 CREATE OR REPLACE PROCEDURE inserir_emprestimo (
-    p_num_cartao            IN VARCHAR2,
-    p_id_funcionario        IN NUMBER,
-    p_id_material           IN NUMBER,
-    p_dias_prazo            IN NUMBER,
-    p_estado_saida          IN VARCHAR2
+    p_num_cartao     IN VARCHAR2,
+    p_cod_funcionario IN NUMBER,
+    p_cod_material    IN NUMBER,
+    p_dias_prazo     IN NUMBER,
+    p_estado_saida   IN VARCHAR2
 ) AS
 BEGIN
     INSERT INTO EMPRESTIMO (
-        id_emprestimo,
-        num_cartao,
-        id_funcionario,
-        id_material,
-        data_retirada,
-        prazo_devolucao,
-        estado_material_saida,
-        multa_paga
+        id_emprestimo, num_cartao, cod_funcionario, cod_material,
+        data_retirada, prazo_devolucao, estado_material_saida, multa_paga
     ) VALUES (
-        SEQ_EMPRESTIMO.NEXTVAL,
-        p_num_cartao,
-        p_id_funcionario,
-        p_id_material,
-        SYSDATE,
-        SYSDATE + p_dias_prazo,
-        p_estado_saida,
-        'N'
+        SEQ_EMPRESTIMO.NEXTVAL, p_num_cartao, p_cod_funcionario, p_cod_material,
+        SYSDATE, SYSDATE + p_dias_prazo, p_estado_saida, 'N'
     );
-
-    DBMS_OUTPUT.PUT_LINE('Emprestimo inserido com sucesso para o leitor ' || p_num_cartao);
-END inserir_emprestimo;
+END;
 /
---inserir novo empréstimo
---EXEC inserir_emprestimo('L001', 5, 210, 10, 'Bom');
 
-CREATE OR REPLACE PROCEDURE atualizar_devolucao (
-    p_id_emprestimo IN NUMBER,
-    p_estado_retorno IN VARCHAR2,
-    p_observacoes IN VARCHAR2
-) AS
-    v_prazo DATE;
-    v_data_retirada DATE;
-    v_data_devolucao DATE := SYSDATE;
-    v_multa NUMBER;
-BEGIN
-    SELECT prazo_devolucao, data_retirada INTO v_prazo, v_data_retirada
-    FROM EMPRESTIMO
-    WHERE id_emprestimo = p_id_emprestimo;
-
-    v_multa := calcular_multa(v_prazo, v_data_devolucao);
-
-    UPDATE EMPRESTIMO
-    SET data_devolucao = v_data_devolucao,
-        estado_material_retorno = p_estado_retorno,
-        observacoes_devolucao = NVL(p_observacoes, 'Devolvido'),
-        multa_valor = v_multa,
-        multa_paga = CASE WHEN v_multa = 0 THEN 'S' ELSE 'N' END,
-        data_pagamento_multa = CASE WHEN v_multa = 0 THEN SYSDATE ELSE NULL END
-    WHERE id_emprestimo = p_id_emprestimo;
-
-    DBMS_OUTPUT.PUT_LINE('Devolucao atualizada. Multa: ' || NVL(v_multa, 0) || ' MT');
-END atualizar_devolucao;
-/
---atualizar devolução e aplicar multa (usa a função acima)
---EXEC atualizar_devolucao(101, 'Bom', 'Devolvido dentro do prazo');
-
+-- PROCEDURE: processar_devolucao
+-- Regista devolucao com multa calculada pelo backend (p_multa_valor)
+-- Actualiza estado do material se DEGRADADO ou PERDIDO
 CREATE OR REPLACE PROCEDURE processar_devolucao (
-    p_id_emprestimo          IN  EMPRESTIMO.id_emprestimo%TYPE,
-    p_estado_material_retorno IN VARCHAR2,
-    p_observacoes             IN VARCHAR2,
-    p_sucesso                 OUT VARCHAR2,
-    p_valor_multa             OUT NUMBER
-) IS
-    v_data_devolucao_atual    DATE := SYSDATE;
-    v_valor_material    NUMBER := 0;
-    v_valor_multa_final NUMBER := 0;
-    v_atraso_dias       NUMBER := 0;
-    v_id_material       EMPRESTIMO.id_material%TYPE;
-    v_prazo_devolucao   DATE;
+    p_id_emprestimo           IN  EMPRESTIMO.id_emprestimo%TYPE,
+    p_estado_material_retorno IN  VARCHAR2,
+    p_observacoes             IN  VARCHAR2,
+    p_multa_valor             IN  NUMBER,
+    p_sucesso                 OUT VARCHAR2
+) AS
+    v_cod_material            EMPRESTIMO.cod_material%TYPE;
     v_data_devolucao_existente DATE;
 BEGIN
-    -- CORREÇÃO: Adicionado JOIN com ITEM_DOACAO para obter o 'valor_estimado'
-    SELECT e.id_material, e.prazo_devolucao, e.data_devolucao, i.valor_estimado
-      INTO v_id_material, v_prazo_devolucao, v_data_devolucao_existente, v_valor_material
-      FROM EMPRESTIMO e
-      JOIN MATERIAL_BIBLIOGRAFICO m ON e.id_material = m.id_material
-      JOIN ITEM_DOACAO i ON m.id_itemDoado = i.id_itemDoado
-     WHERE e.id_emprestimo = p_id_emprestimo;
-
-    IF v_data_devolucao_existente IS NOT NULL THEN
-        p_sucesso := 'Erro: Emprestimo ja devolvido anteriormente.';
-        p_valor_multa := NULL;
-        RETURN;
-    END IF;
-
-    -- CORREÇÃO: Trocado 'observacoes' por 'observacoes_devolucao'
-    UPDATE EMPRESTIMO
-       SET data_devolucao = v_data_devolucao_atual,
-           estado_material_retorno = p_estado_material_retorno,
-           observacoes_devolucao = p_observacoes
-     WHERE id_emprestimo = p_id_emprestimo;
-
-    -- CORREÇÃO: Trocado 'valor_multa' por 'multa_valor'
-    SELECT NVL(multa_valor, 0)
-      INTO v_valor_multa_final
+    SELECT cod_material, data_devolucao
+      INTO v_cod_material, v_data_devolucao_existente
       FROM EMPRESTIMO
      WHERE id_emprestimo = p_id_emprestimo;
 
-    IF v_data_devolucao_atual > v_prazo_devolucao THEN
-        v_atraso_dias := TRUNC(v_data_devolucao_atual - v_prazo_devolucao);
+    IF v_data_devolucao_existente IS NOT NULL THEN
+        p_sucesso := 'Erro: Emprestimo ja devolvido anteriormente.';
+        RETURN;
     END IF;
 
-    -- CORREÇÃO: Trocado 'estado_conservacao' por 'estado_material_conservacao'
-    IF UPPER(p_estado_material_retorno) = 'DEGRADADO' THEN
-        v_valor_multa_final := v_valor_multa_final + (NVL(v_valor_material, 0) * 0.20);
-        UPDATE MATERIAL_BIBLIOGRAFICO SET estado_material_conservacao = 'Degradado' WHERE id_material = v_id_material;
-
-    ELSIF UPPER(p_estado_material_retorno) = 'PERDIDO' OR v_atraso_dias > 60 THEN
-        v_valor_multa_final := v_valor_multa_final + (NVL(v_valor_material, 0) * 1.50) + 50;
-        UPDATE MATERIAL_BIBLIOGRAFICO SET estado_material_conservacao = 'Indisponivel' WHERE id_material = v_id_material;
-    END IF;
-
-    -- CORREÇÃO: Trocado 'valor_multa' por 'multa_valor'
     UPDATE EMPRESTIMO
-       SET multa_valor = v_valor_multa_final
+       SET data_devolucao         = SYSDATE,
+           estado_material_retorno = p_estado_material_retorno,
+           observacoes_devolucao  = p_observacoes,
+           multa_valor            = p_multa_valor,
+           multa_paga             = CASE WHEN p_multa_valor = 0 THEN 'S' ELSE 'N' END,
+           data_pagamento_multa   = CASE WHEN p_multa_valor = 0 THEN SYSDATE ELSE NULL END
      WHERE id_emprestimo = p_id_emprestimo;
 
-    p_valor_multa := v_valor_multa_final;
+    IF UPPER(p_estado_material_retorno) = 'DEGRADADO' THEN
+        UPDATE MATERIAL_BIBLIOGRAFICO
+           SET estado_material_conservacao = 'Degradado'
+         WHERE cod_material = v_cod_material;
+    ELSIF UPPER(p_estado_material_retorno) = 'PERDIDO' THEN
+        UPDATE MATERIAL_BIBLIOGRAFICO
+           SET estado_material_conservacao = 'Indisponivel'
+         WHERE cod_material = v_cod_material;
+    END IF;
+
     p_sucesso := 'Sucesso: Devolucao processada com sucesso.';
     COMMIT;
-
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         p_sucesso := 'Erro: Emprestimo nao encontrado.';
-        p_valor_multa := NULL;
     WHEN OTHERS THEN
         ROLLBACK;
         p_sucesso := 'Erro inesperado: ' || SQLERRM;
-        p_valor_multa := NULL;
 END;
 /
---EXEC processar_devolucao(101, 'Degradado', 'Capa danificada', :sucesso, :valor_multa);
 
-CREATE OR REPLACE PROCEDURE refresh_all_mviews IS
+-- PROCEDURE: atualiza_multa
+-- Actualiza o valor da multa para um emprestimo especifico
+CREATE OR REPLACE PROCEDURE atualiza_multa (
+    p_id_emprestimo IN EMPRESTIMO.id_emprestimo%TYPE,
+    p_nova_multa    IN EMPRESTIMO.multa_valor%TYPE
+) AS
 BEGIN
-  FOR r IN (SELECT mview_name FROM user_mviews) LOOP
-    DBMS_MVIEW.REFRESH(r.mview_name);
-  END LOOP;
-END;
-/
---Atualiza todas as materialized views do usuário
---EXEC refresh_all_mviews;
-
-CREATE OR REPLACE PROCEDURE atualiza_multa(
-    p_id_emprestimo IN emprestimo.id_emprestimo%TYPE,
-    p_nova_multa    IN emprestimo.multa_valor%TYPE
-)
-IS
-BEGIN
-    UPDATE emprestimo
+    UPDATE EMPRESTIMO
        SET multa_valor = p_nova_multa
      WHERE id_emprestimo = p_id_emprestimo;
 
     IF SQL%ROWCOUNT = 0 THEN
-        DBMS_OUTPUT.PUT_LINE('Nenhum emprestimo encontrado com o ID: ' || p_id_emprestimo);
-    ELSE
-        DBMS_OUTPUT.PUT_LINE('Multa atualizada com sucesso para o emprestimo ID: ' || p_id_emprestimo);
+        RAISE_APPLICATION_ERROR(-20030, 'Emprestimo nao encontrado: ' || p_id_emprestimo);
     END IF;
 
-    COMMIT;  -- Confirma a atualização
+    COMMIT;
 EXCEPTION
     WHEN OTHERS THEN
-        ROLLBACK;  -- Reverte caso ocorra erro
-        DBMS_OUTPUT.PUT_LINE('Erro ao atualizar multa: ' || SQLERRM);
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20031, 'Erro ao atualizar multa: ' || SQLERRM);
 END;
 /
---Atualiza o valor da multa para um empréstimo específico
---EXEC atualiza_multa(?, ?);
 
 -- PROCEDURE: insere_participacao_evento
--- OBJETIVO: Inserir participação em evento, bloqueando duplicações
+-- Insere participacao em evento; verifica duplicado na BD (barreira de seguranca)
+-- Validacoes de horario, publico-alvo e evento passado feitas no backend
 CREATE OR REPLACE PROCEDURE insere_participacao_evento (
-    p_num_cartao           IN participacao_evento.num_cartao%TYPE,
-    p_id_evento            IN participacao_evento.id_evento%TYPE,
-    p_presenca_confirmacao IN participacao_evento.presenca_confirmacao%TYPE
-)
-IS
+    p_num_cartao           IN PARTICIPACAO_EVENTO.num_cartao%TYPE,
+    p_id_evento            IN PARTICIPACAO_EVENTO.id_evento%TYPE,
+    p_presenca_confirmacao IN PARTICIPACAO_EVENTO.presenca_confirmacao%TYPE
+) AS
     v_count NUMBER;
 BEGIN
-    SELECT COUNT(*)
-      INTO v_count
-      FROM participacao_evento
-     WHERE num_cartao = p_num_cartao
-       AND id_evento = p_id_evento;
+    SELECT COUNT(*) INTO v_count
+      FROM PARTICIPACAO_EVENTO
+     WHERE num_cartao = p_num_cartao AND id_evento = p_id_evento;
 
     IF v_count > 0 THEN
         RAISE_APPLICATION_ERROR(-20600, 'Leitor ja inscrito neste evento');
     END IF;
 
-    INSERT INTO participacao_evento (
-        num_cartao,
-        id_evento,
-        data_inscricao,
-        presenca_confirmacao
-    ) VALUES (
-        p_num_cartao,
-        p_id_evento,
-        SYSDATE,
-        p_presenca_confirmacao
-    );
+    INSERT INTO PARTICIPACAO_EVENTO (num_cartao, id_evento, data_inscricao, presenca_confirmacao)
+    VALUES (p_num_cartao, p_id_evento, SYSDATE, p_presenca_confirmacao);
 
     COMMIT;
 END;
 /
 
--- Valida Formato do numero do cartão
-CREATE OR REPLACE TRIGGER valida_formato_num_cartao
-BEFORE INSERT OR UPDATE OF num_cartao ON LEITOR
-FOR EACH ROW
-DECLARE
-    v_prefixo VARCHAR2(3);
-    v_ano VARCHAR2(4);
-    v_sequencia VARCHAR2(5);
+-- PROCEDURE: suspender_leitor
+-- Marca leitor como Suspenso; motivo registado via DBMS_OUTPUT para auditoria
+CREATE OR REPLACE PROCEDURE suspender_leitor(
+    p_num_cartao   IN VARCHAR2,
+    p_id_emprestimo IN NUMBER,
+    p_dias         IN NUMBER,   -- 7, 15, 30 ou 60
+    p_observacoes  IN VARCHAR2 DEFAULT NULL
+) AS
+    v_existe NUMBER;
 BEGIN
-    IF LENGTH(:NEW.num_cartao) != 12 THEN
-        RAISE_APPLICATION_ERROR(-20500, 
-            'Numero de cartao invalido: deve ter 12 caracteres (formato: XXX202XYYYYY)');
+    SELECT COUNT(*) INTO v_existe FROM LEITOR
+    WHERE num_cartao = p_num_cartao;
+
+    IF v_existe = 0 THEN
+        RAISE_APPLICATION_ERROR(-20301, 'Leitor nao encontrado.');
     END IF;
 
-    v_prefixo := SUBSTR(:NEW.num_cartao, 1, 3);
-    v_ano := SUBSTR(:NEW.num_cartao, 4, 4);
-    v_sequencia := SUBSTR(:NEW.num_cartao, 8, 5);
+    -- Não suspende Bloqueados (estado terminal)
+    UPDATE LEITOR SET status_leitor = 'Suspenso'
+    WHERE num_cartao = p_num_cartao AND status_leitor = 'Activo';
 
-    IF NOT REGEXP_LIKE(v_prefixo, '^[A-Z]{3}$') THEN
-        RAISE_APPLICATION_ERROR(-20501, 'Prefixo invalido: 3 letras maiusculas');
+    INSERT INTO SUSPENSAO (num_cartao, id_emprestimo, data_inicio, data_fim,
+                           dias_suspensao, estado_suspensao, observacoes)
+    VALUES (p_num_cartao, p_id_emprestimo, SYSDATE, SYSDATE + p_dias,
+            p_dias, 'Activa', p_observacoes);
+END;
+/
+
+-- PROCEDURE: reativar_leitor
+-- Reactiva leitor se nao tiver emprestimos em atraso (> 30 dias sem devolucao)
+CREATE OR REPLACE PROCEDURE reativar_leitor(p_num_cartao IN VARCHAR2) AS
+    v_suspensoes_activas NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_suspensoes_activas
+    FROM SUSPENSAO
+    WHERE num_cartao = p_num_cartao
+      AND estado_suspensao = 'Activa'
+      AND SYSDATE <= data_fim;
+
+    IF v_suspensoes_activas > 0 THEN
+        RAISE_APPLICATION_ERROR(-20302, 'Leitor tem suspensao activa. Aguardar data_fim ou reduzir via Coordenador.');
     END IF;
 
-    IF NOT REGEXP_LIKE(v_ano, '^202[3-9]$') THEN
-        RAISE_APPLICATION_ERROR(-20502, 'Ano invalido: formato 202X (2023-2029)');
-    END IF;
+    -- Marcar suspensões vencidas como cumpridas
+    UPDATE SUSPENSAO SET estado_suspensao = 'Cumprida'
+    WHERE num_cartao = p_num_cartao
+      AND estado_suspensao = 'Activa'
+      AND SYSDATE > data_fim;
 
-    IF NOT REGEXP_LIKE(v_sequencia, '^[0-9]{5}$') THEN
-        RAISE_APPLICATION_ERROR(-20503, 'Sequencia invalida: 5 digitos');
-    END IF;
+    UPDATE LEITOR SET status_leitor = 'Activo'
+    WHERE num_cartao = p_num_cartao AND status_leitor = 'Suspenso';
+END;
+/
 
-    :NEW.num_cartao := UPPER(:NEW.num_cartao);
+-- PROCEDURE: proc_gerir_acesso_bd
+-- Gere acesso Oracle do funcionario via GRANT/REVOKE de role com base no nivel_acesso
+CREATE OR REPLACE PROCEDURE proc_gerir_acesso_bd (
+    p_cod_funcionario IN VARCHAR2,
+    p_acao           IN VARCHAR2   -- 'GRANT' ou 'REVOKE'
+) AS
+    v_nivel  VARCHAR2(30);
+    v_email  VARCHAR2(100);
+BEGIN
+    SELECT fn.nivel_acesso, f.email
+      INTO v_nivel, v_email
+      FROM FUNCIONARIO f
+      JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
+     WHERE f.cod_funcionario = p_cod_funcionario;
+
+    IF p_acao = 'GRANT' THEN
+        EXECUTE IMMEDIATE 'GRANT ROLE_' || v_nivel || ' TO "' || v_email || '"';
+    ELSIF p_acao = 'REVOKE' THEN
+        EXECUTE IMMEDIATE 'REVOKE ROLE_' || v_nivel || ' FROM "' || v_email || '"';
+    ELSE
+        RAISE_APPLICATION_ERROR(-20062, 'Acao invalida: ' || p_acao);
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20060, 'Funcionario nao encontrado: ' || p_cod_funcionario);
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20061, 'Erro ao gerir acesso BD: ' || SQLERRM);
 END;
 /

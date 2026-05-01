@@ -66,9 +66,13 @@ function badge(texto, cor) {
   return `<span class="badge ${cores[cor] || 'badge-gray'}">${texto}</span>`;
 }
 function badgeEstado(estado) {
-  const m = { ATIVO: 'verde', ACTIVO: 'verde', DISPONIVEL: 'verde',
-    SUSPENSO: 'amarelo', EMPRESTADO: 'amarelo', DEVOLVIDO: 'azul',
-    INATIVO: 'cinza', INDISPONIVEL: 'vermelho', PERDIDO: 'vermelho' };
+  const m = {
+    ATIVO: 'verde', ACTIVO: 'verde', DISPONIVEL: 'verde', Activo: 'verde',
+    SUSPENSO: 'amarelo', EMPRESTADO: 'amarelo', Suspenso: 'amarelo',
+    DEVOLVIDO: 'azul',
+    INATIVO: 'cinza',
+    INDISPONIVEL: 'vermelho', PERDIDO: 'vermelho', Bloqueado: 'vermelho',
+  };
   return badge(estado || '—', m[estado] || 'cinza');
 }
 function badgeTipo(tipo) {
@@ -261,9 +265,12 @@ async function carregarLeitores() {
   }
 }
 
-function abrirModalLeitor(numCartao = null) {
+async function abrirModalLeitor(numCartao = null) {
   document.getElementById('modal-titulo').textContent = numCartao ? 'Editar Leitor' : 'Novo Leitor';
   document.getElementById('modal-erro').classList.add('hidden');
+
+  let bibliotecas = [];
+  try { bibliotecas = await get('/api/funcionarios/bibliotecas'); } catch {}
 
   document.getElementById('modal-conteudo').innerHTML = `
     <div class="grid grid-cols-2 gap-3">
@@ -316,6 +323,17 @@ function abrirModalLeitor(numCartao = null) {
         <label class="label-dark">Morada</label>
         <input id="lf-morada" class="input-dark w-full" placeholder="Bairro, Cidade"/>
       </div>
+      <div class="col-span-2">
+        <label class="label-dark">Biblioteca *</label>
+        <select id="lf-id-biblioteca" class="input-dark w-full" required>
+          <option value="">— Seleccionar —</option>
+          ${bibliotecas.map(b => `<option value="${b.ID_BIBLIOTECA}">${b.NOME}</option>`).join('')}
+        </select>
+      </div>
+      ${!numCartao ? `<div class="col-span-2">
+        <label class="label-dark">Nº Cartão *</label>
+        <input id="lf-num-cartao" class="input-dark w-full font-mono" placeholder="ABC2024XXXXX"/>
+      </div>` : ''}
     </div>
 
     <!-- Campos dinâmicos por tipo -->
@@ -367,9 +385,9 @@ function abrirModalLeitor(numCartao = null) {
     <div class="mt-3">
       <label class="label-dark">Estado</label>
       <select id="lf-estado" class="input-dark w-full">
-        <option value="ATIVO">Activo</option>
-        <option value="SUSPENSO">Suspenso</option>
-        <option value="INATIVO">Inactivo</option>
+        <option value="Activo">Activo</option>
+        <option value="Suspenso">Suspenso</option>
+        <option value="Bloqueado">Bloqueado</option>
       </select>
     </div>` : ''}
   `;
@@ -385,7 +403,6 @@ function abrirModalLeitor(numCartao = null) {
       document.getElementById('lf-email').value = l.EMAIL || '';
       document.getElementById('lf-contacto').value = l.CONTACTO || '';
       document.getElementById('lf-morada').value = l.MORADA || '';
-      if (l.ESTADO) document.getElementById('lf-estado').value = l.ESTADO;
       document.getElementById('lf-profissao').value = l.PROFISSAO || '';
       document.getElementById('lf-nome-resp').value = l.NOME_RESPONSAVEL || '';
       document.getElementById('lf-cont-resp').value = l.CONTACTO_RESPONSAVEL || '';
@@ -393,6 +410,9 @@ function abrirModalLeitor(numCartao = null) {
       document.getElementById('lf-escola-p').value = l.ESCOLA_PROFESSOR || '';
       document.getElementById('lf-disciplina').value = l.DISCIPLINA || '';
       document.getElementById('lf-tipo-ensino').value = l.TIPO_ENSINO || '';
+      if (l.ID_BIBLIOTECA) document.getElementById('lf-id-biblioteca').value = l.ID_BIBLIOTECA;
+      const statusVal = l.STATUS_LEITOR || l.ESTADO || '';
+      if (statusVal) document.getElementById('lf-estado').value = statusVal;
       toggleCamposLeitor();
     }).catch(err => mostrarErroModal(err.message));
   }
@@ -402,25 +422,29 @@ function abrirModalLeitor(numCartao = null) {
   modalSalvarFn = async () => {
     const tipo = document.getElementById('lf-tipo').value;
     const body = {
-      nome: document.getElementById('lf-nome').value,
+      nome_completo: document.getElementById('lf-nome').value,
       genero: document.getElementById('lf-genero').value,
       data_nasc: document.getElementById('lf-data-nasc').value,
       tipo_doc: document.getElementById('lf-tipo-doc').value,
       documento_id: document.getElementById('lf-doc-id').value,
       email: document.getElementById('lf-email').value,
       contacto: document.getElementById('lf-contacto').value,
-      morada: document.getElementById('lf-morada').value,
+      localizacao_leitor: document.getElementById('lf-morada').value,
+      id_biblioteca: document.getElementById('lf-id-biblioteca')?.value || null,
       tipo,
       profissao: document.getElementById('lf-profissao')?.value,
       nome_responsavel: document.getElementById('lf-nome-resp')?.value,
-      contacto_responsavel: document.getElementById('lf-cont-resp')?.value,
-      escola: tipo === 'CRIANCA' ? document.getElementById('lf-escola-c')?.value
-                                 : document.getElementById('lf-escola-p')?.value,
+      telefone_responsavel: document.getElementById('lf-cont-resp')?.value,
+      escola_frequenta: tipo === 'CRIANCA' ? document.getElementById('lf-escola-c')?.value : undefined,
+      escola_instituto: tipo === 'PROFESSOR' ? document.getElementById('lf-escola-p')?.value : undefined,
       disciplina: document.getElementById('lf-disciplina')?.value,
       tipo_ensino: document.getElementById('lf-tipo-ensino')?.value,
     };
-    if (numCartao) body.estado = document.getElementById('lf-estado')?.value;
-    if (!body.nome) { mostrarErroModal('Nome é obrigatório.'); return; }
+    if (!numCartao) body.num_cartao = document.getElementById('lf-num-cartao')?.value;
+    if (numCartao) body.status_leitor = document.getElementById('lf-estado')?.value;
+    if (!body.nome_completo) { mostrarErroModal('Nome é obrigatório.'); return; }
+    if (!body.id_biblioteca) { mostrarErroModal('Biblioteca é obrigatória.'); return; }
+    if (!numCartao && !body.num_cartao) { mostrarErroModal('Nº Cartão é obrigatório.'); return; }
     if (numCartao) await put(`/api/leitores/${numCartao}`, body);
     else           await post('/api/leitores', body);
     fecharModal();
@@ -541,13 +565,9 @@ async function abrirModalMaterial(id = null) {
     </div>
 
     <div id="campos-livro" class="mt-3 grid grid-cols-2 gap-3">
-      <div>
+      <div class="col-span-2">
         <label class="label-dark">Localização</label>
         <input id="mf-localizacao" class="input-dark w-full" placeholder="Prateleira A-12"/>
-      </div>
-      <div>
-        <label class="label-dark">Nº Exemplares</label>
-        <input id="mf-nexemp" type="number" class="input-dark w-full" value="1"/>
       </div>
       <div class="col-span-2">
         <label class="label-dark">Condição</label>
@@ -613,7 +633,6 @@ async function abrirModalMaterial(id = null) {
       if (m.ID_CATEGORIA) document.getElementById('mf-categoria').value = m.ID_CATEGORIA;
       if (m.ESTADO) document.getElementById('mf-estado').value = m.ESTADO;
       document.getElementById('mf-localizacao').value = m.LOCALIZACAO || '';
-      document.getElementById('mf-nexemp').value = m.NUM_EXEMPLARES || 1;
       if (m.CONDICAO) document.getElementById('mf-condicao').value = m.CONDICAO;
       document.getElementById('mf-formato').value = m.FORMATO || 'PDF';
       document.getElementById('mf-tamanho').value = m.TAMANHO_MB || '';
@@ -639,7 +658,6 @@ async function abrirModalMaterial(id = null) {
       tipo,
       estado: document.getElementById('mf-estado')?.value,
       localizacao: document.getElementById('mf-localizacao')?.value,
-      num_exemplares: document.getElementById('mf-nexemp')?.value,
       condicao: document.getElementById('mf-condicao')?.value,
       formato: document.getElementById('mf-formato')?.value,
       tamanho_mb: document.getElementById('mf-tamanho')?.value,
