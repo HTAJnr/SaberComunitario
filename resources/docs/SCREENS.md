@@ -54,6 +54,8 @@ Cada funcionário tem um `nivel_acesso` vindo de `FUNCAO_FUNCIONARIO.nivel_acess
 
 ## TELA 00 — Login
 
+**Já feito**
+
 **Rota:** `/login`  
 **Acesso:** Público (não autenticado)
 
@@ -75,6 +77,8 @@ Cada funcionário tem um `nivel_acesso` vindo de `FUNCAO_FUNCIONARIO.nivel_acess
 ---
 
 ## TELA 01 — Dashboard
+
+**Já feito**
 
 **Rota:** `/dashboard`  
 **Acesso:** Todos os roles

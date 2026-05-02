@@ -5,8 +5,9 @@
 
 ---
 
-## 1. Autenticação e Sessão
+## 1. Autenticação e Sessão 
 
+**Já feito**
 ### Login
 - **POST** `/api/auth/login`
 - Body: `{ email, senha }`
@@ -41,6 +42,8 @@
 ---
 
 ## 2. Perfil do Utilizador Logado
+
+**Já feito**
 
 O funcionário pode ver e editar os seus próprios dados a partir de qualquer tela via ícone no header.
 
@@ -93,6 +96,8 @@ O funcionário pode ver e editar os seus próprios dados a partir de qualquer te
 
 ## 3. Controlo de Permissões
 
+**Já feito**
+
 O frontend controla visibilidade de elementos com base no `nivel_acesso` vindo do token. A lógica é:
 
 ```
@@ -143,6 +148,8 @@ Assistente     → acesso limitado: ver + criar leitores/empréstimos, gerir par
 
 ## 4. Módulo Dashboard
 
+**Já feito**
+
 ### Estatísticas globais (só Administrador)
 - **GET** `/api/dashboard/rede`
 - Resposta:
@@ -183,6 +190,7 @@ Assistente     → acesso limitado: ver + criar leitores/empréstimos, gerir par
 
 ## 5. Módulo Leitores
 
+**Já feito**
 ### Listar leitores
 - **GET** `/api/leitores?biblioteca=BIBMPM0001&status=Activo&tipo=Adulto&historico=Pontual&search=Ana&page=1&limit=20`
 - Administrador pode passar qualquer `biblioteca`. Os outros roles só vêem a sua.
@@ -231,6 +239,8 @@ Assistente     → acesso limitado: ver + criar leitores/empréstimos, gerir par
 ---
 
 ## 6. Módulo Empréstimos
+
+**Já feito**
 
 ### Listar empréstimos
 - **GET** `/api/emprestimos?biblioteca=BIBMPM0001&estado=activo&page=1&limit=20`
@@ -288,6 +298,7 @@ Assistente     → acesso limitado: ver + criar leitores/empréstimos, gerir par
 
 ## 7. Módulo Materiais
 
+**Já feito**
 ### Listar materiais (catálogo)
 - **GET** `/api/materiais?biblioteca=BIBMPM0001&tipo=Livro&estado=Bom&disponivel=true&search=historia&page=1&limit=20`
 - `tipo`: `Livro` | `Ebook` | `Periodico`
