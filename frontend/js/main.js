@@ -84,15 +84,67 @@ function badgeTipo(tipo) {
   return badge(labels[tipo] || tipo || '—', m[tipo] || 'cinza');
 }
 function linhaVazia(colunas, msg = 'Sem registos.') {
-  return `<tr><td colspan="${colunas}" class="py-6 text-center text-slate-500 text-sm">${msg}</td></tr>`;
+  return `<tr><td colspan="${colunas}" style="padding:24px;text-align:center;color:#888;font-size:12px">${msg}</td></tr>`;
+}
+
+function iniciais(nome) {
+  if (!nome) return '?';
+  const parts = nome.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function calcularRegiao(provincia) {
+  const SUL    = ['Maputo Cidade', 'Maputo Provincia', 'Gaza', 'Inhambane'];
+  const CENTRO = ['Sofala', 'Manica', 'Tete', 'Zambezia'];
+  if (SUL.includes(provincia))    return 'Sul';
+  if (CENTRO.includes(provincia)) return 'Centro';
+  return 'Norte';
+}
+
+function setTopbar(titulo, sub) {
+  const t = document.getElementById('topbar-title');
+  const s = document.getElementById('topbar-sub');
+  if (t) t.textContent = titulo || '';
+  if (s) s.textContent = sub || '';
+}
+
+function bdgEstado(estado) {
+  const m = {
+    'Activo': 'bdg-activo', 'Suspenso': 'bdg-suspenso', 'Bloqueado': 'bdg-bloqueado',
+    'Pendente': 'bdg-pendente', 'Aprovada': 'bdg-aprovada',
+    'Concluida': 'bdg-concluida', 'Concluída': 'bdg-concluida',
+    'Rejeitada': 'bdg-rejeitada',
+    'Activo (emp)': 'bdg-activo-emp', 'Vencido': 'bdg-vencido', 'Devolvido': 'bdg-devolvido',
+  };
+  return `<span class="bdg ${m[estado] || ''}">${estado || '—'}</span>`;
+}
+
+function bdgTipo(tipo) {
+  const m = {
+    'Adulto': 'bdg-adulto', 'Professor': 'bdg-professor',
+    'Crianca': 'bdg-crianca', 'Criança': 'bdg-crianca',
+  };
+  const labels = { 'Crianca': 'Criança' };
+  return `<span class="bdg ${m[tipo] || ''}">${labels[tipo] || tipo || '—'}</span>`;
 }
 
 // ════════════════════════════════════════════════
 // AUTH
 // ════════════════════════════════════════════════
+function calcularTema(provincia) {
+  const SUL    = ['Maputo Cidade', 'Maputo Provincia', 'Gaza', 'Inhambane'];
+  const CENTRO = ['Sofala', 'Manica', 'Tete', 'Zambezia'];
+  if (SUL.includes(provincia))    return 'theme-sul';
+  if (CENTRO.includes(provincia)) return 'theme-centro';
+  return 'theme-norte';
+}
+
 async function init() {
   try {
     utilizadorActual = await get('/api/auth/me');
+    const tema = calcularTema(utilizadorActual.PROVINCIA || 'Maputo Cidade');
+    document.documentElement.className = tema;
     mostrarApp();
   } catch {
     mostrarLogin();
@@ -100,6 +152,7 @@ async function init() {
 }
 
 function mostrarLogin() {
+  document.documentElement.className = 'theme-sul';
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app').classList.add('hidden');
 }
@@ -107,8 +160,21 @@ function mostrarLogin() {
 function mostrarApp() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('sidebar-user').textContent =
-    utilizadorActual.NOME || utilizadorActual.EMAIL || 'Funcionário';
+
+  const nome = utilizadorActual.NOME_FUNCIONARIO || utilizadorActual.EMAIL || 'Funcionário';
+  const prov = utilizadorActual.PROVINCIA || 'Maputo Cidade';
+  const regiao = calcularRegiao(prov);
+
+  document.getElementById('sidebar-user-name').textContent = nome;
+  document.getElementById('sidebar-user-role').textContent =
+    utilizadorActual.NIVEL_ACESSO || utilizadorActual.FUNCAO || '';
+  document.getElementById('sidebar-avatar').textContent = iniciais(nome);
+  document.getElementById('sidebar-library-name').textContent =
+    utilizadorActual.NOME_BIBLIOTECA || '';
+  document.getElementById('sidebar-region-label').textContent = `Região · ${regiao}`;
+  document.getElementById('topbar-region-pill').textContent = regiao;
+
+  configurarNavPorRole();
   configurarNavegacao();
   navegarPara(location.hash.slice(1) || 'dashboard');
 }
@@ -118,15 +184,22 @@ function bindEventos() {
     e.preventDefault();
     const erroEl = document.getElementById('login-erro');
     erroEl.classList.add('hidden');
+    const btn = document.getElementById('login-btn');
     const email = document.getElementById('login-email').value;
     const senha = document.getElementById('login-senha').value;
+    btn.disabled = true;
+    btn.textContent = 'A entrar…';
     try {
       const data = await post('/api/auth/login', { email, senha });
       utilizadorActual = data.funcionario;
+      const tema = calcularTema(utilizadorActual.PROVINCIA || 'Maputo Cidade');
+      document.documentElement.className = tema;
       mostrarApp();
     } catch (err) {
       document.getElementById('login-erro-msg').textContent = err.message;
       erroEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
     }
   });
 
@@ -141,17 +214,56 @@ function bindEventos() {
 // ROUTER
 // ════════════════════════════════════════════════
 const sectionLoaders = {
-  dashboard:    carregarDashboard,
-  leitores:     carregarLeitores,
-  materiais:    carregarMateriais,
-  emprestimos:  () => carregarEmprestimos('ACTIVO'),
-  funcionarios: carregarFuncionarios,
-  eventos:      carregarEventos,
-  doacoes:      carregarDoacoes,
+  dashboard:       carregarDashboard,
+  leitores:        carregarLeitores,
+  materiais:       carregarMateriais,
+  emprestimos:     () => carregarEmprestimos('ACTIVO'),
+  funcionarios:    carregarFuncionarios,
+  eventos:         carregarEventos,
+  doacoes:         carregarDoacoes,
+  transferencias:  () => {},
 };
 
+const SECTION_TOPBAR = {
+  dashboard:      { titulo: 'Dashboard' },
+  leitores:       { titulo: 'Leitores' },
+  materiais:      { titulo: 'Materiais' },
+  emprestimos:    { titulo: 'Empréstimos' },
+  funcionarios:   { titulo: 'Funcionários' },
+  eventos:        { titulo: 'Eventos' },
+  doacoes:        { titulo: 'Doações' },
+  transferencias: { titulo: 'Transferências' },
+};
+
+function configurarNavPorRole() {
+  const nivel = utilizadorActual?.NIVEL_ACESSO || '';
+  const isAdmin = nivel === 'Administrador';
+  const isCoord = nivel === 'Coordenador';
+
+  const hide = (section) => {
+    const el = document.querySelector(`.nav-item[data-section="${section}"]`);
+    if (el) el.style.display = 'none';
+  };
+  const show = (section) => {
+    const el = document.querySelector(`.nav-item[data-section="${section}"]`);
+    if (el) el.style.display = '';
+  };
+
+  // Mostrar tudo primeiro
+  ['transferencias', 'funcionarios', 'doacoes'].forEach(show);
+
+  if (nivel === 'Assistente') {
+    hide('transferencias');
+    hide('funcionarios');
+    hide('doacoes');
+  } else if (nivel === 'Bibliotecario') {
+    hide('transferencias');
+    hide('funcionarios');
+  }
+}
+
 function configurarNavegacao() {
-  document.querySelectorAll('.nav-link').forEach(link => {
+  document.querySelectorAll('.nav-item[data-section]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       navegarPara(link.dataset.section);
@@ -170,9 +282,13 @@ function navegarPara(section) {
   const sec = document.getElementById(`section-${section}`);
   if (sec) { sec.classList.remove('hidden'); sec.classList.add('fade-in'); }
 
-  document.querySelectorAll('.nav-link').forEach(l => {
+  document.querySelectorAll('.nav-item[data-section]').forEach(l => {
     l.classList.toggle('active', l.dataset.section === section);
   });
+
+  const bib = utilizadorActual?.NOME_BIBLIOTECA || '';
+  const tb = SECTION_TOPBAR[section];
+  if (tb) setTopbar(tb.titulo, bib ? `Bib. ${bib}` : '');
 
   sectionLoaders[section]?.();
 }
@@ -181,55 +297,185 @@ function navegarPara(section) {
 // DASHBOARD
 // ════════════════════════════════════════════════
 async function carregarDashboard() {
+  const nivel = utilizadorActual?.NIVEL_ACESSO;
+  if (nivel === 'Administrador') {
+    document.getElementById('dash-rede-view').classList.remove('hidden');
+    document.getElementById('dash-bib-view').classList.add('hidden');
+    await carregarDashboardAdmin();
+  } else {
+    document.getElementById('dash-bib-view').classList.remove('hidden');
+    document.getElementById('dash-rede-view').classList.add('hidden');
+    await carregarDashboardBib(nivel);
+  }
+}
+
+async function carregarDashboardAdmin() {
   try {
-    const [metricas, emprestimos, eventos] = await Promise.all([
-      get('/api/dashboard/metricas').catch(() => ({})),
-      get('/api/dashboard/emprestimos-ativos').catch(() => []),
-      get('/api/dashboard/eventos-proximos').catch(() => []),
-    ]);
-
-    const grid = document.getElementById('metricas-grid');
+    const stats = await get('/api/dashboard/rede').catch(() => ({}));
     const cards = [
-      { label: 'Total Leitores',        valor: metricas.TOTAL_LEITORES        || metricas.LEITORES    || '—', icon: 'fa-users',              bg: 'bg-blue-900/40',   cor: 'text-blue-400'   },
-      { label: 'Empréstimos Activos',   valor: metricas.EMPRESTIMOS_ATIVOS    || metricas.EMPRESTIMOS || '—', icon: 'fa-arrow-right-arrow-left', bg: 'bg-yellow-900/40', cor: 'text-yellow-400' },
-      { label: 'Materiais Disponíveis', valor: metricas.MATERIAIS_DISPONIVEIS || metricas.MATERIAIS   || '—', icon: 'fa-book-open',           bg: 'bg-green-900/40',  cor: 'text-green-400'  },
-      { label: 'Multas Pendentes',      valor: fmtMoeda(metricas.MULTAS_PENDENTES || metricas.MULTAS || 0),   icon: 'fa-triangle-exclamation', bg: 'bg-red-900/40',    cor: 'text-red-400'    },
+      { label: 'Bibliotecas activas',        valor: stats.TOTAL_BIBLIOTECAS         ?? '—' },
+      { label: 'Empréstimos activos na rede', valor: stats.EMPRESTIMOS_ATIVOS         ?? '—' },
+      { label: 'Transferências pendentes',   valor: stats.TRANSFERENCIAS_PENDENTES   ?? '—',
+        alerta: (stats.TRANSFERENCIAS_PENDENTES > 0) ? 'laranja' : null },
+      { label: 'Materiais no acervo',         valor: stats.MATERIAIS_ACERVO            ?? '—' },
     ];
-    grid.innerHTML = cards.map(c => `
-      <div class="card flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0">
-          <i class="fa-solid ${c.icon} text-xl ${c.cor}"></i>
-        </div>
-        <div>
-          <div class="text-2xl font-bold text-white">${c.valor}</div>
-          <div class="text-xs text-slate-400">${c.label}</div>
-        </div>
-      </div>
-    `).join('');
-
-    const empEl = document.getElementById('dash-emprestimos');
-    empEl.innerHTML = emprestimos.length
-      ? emprestimos.slice(0, 8).map(e => `
-          <div class="flex justify-between py-1 border-b border-slate-700/50">
-            <span class="text-slate-300 truncate max-w-[55%]">${e.NOME_LEITOR || e.NUM_CARTAO || '—'}</span>
-            <span class="text-slate-500">${fmtData(e.DATA_DEVOLUCAO_PREV)}</span>
-          </div>`)
-          .join('')
-      : '<p class="text-slate-500">Sem empréstimos activos.</p>';
-
-    const evEl = document.getElementById('dash-eventos');
-    evEl.innerHTML = eventos.length
-      ? eventos.map(ev => `
-          <div class="flex justify-between py-1 border-b border-slate-700/50">
-            <span class="text-slate-300 truncate max-w-[55%]">${ev.NOME || '—'}</span>
-            <span class="text-slate-500">${fmtData(ev.DATA_INICIO)}</span>
-          </div>`)
-          .join('')
-      : '<p class="text-slate-500">Sem eventos próximos.</p>';
-
+    document.getElementById('dash-rede-stats').innerHTML = cards.map(renderStatCard).join('');
+    document.getElementById('dash-rede-table').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">⇆</div>
+        <div class="empty-state-text">Módulo de rede disponível em breve</div>
+        <div class="empty-state-sub">Gestão de bibliotecas na TELA 11</div>
+      </div>`;
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');
   }
+}
+
+async function carregarDashboardBib(nivel) {
+  const isAssistente = nivel === 'Assistente';
+  try {
+    const [stats, devHoje, leitores, transferencias] = await Promise.all([
+      get('/api/dashboard/biblioteca').catch(() => ({})),
+      get('/api/dashboard/devolucoes-hoje').catch(() => []),
+      isAssistente ? Promise.resolve([]) : get('/api/dashboard/leitores-recentes').catch(() => []),
+      isAssistente ? Promise.resolve([]) : get('/api/dashboard/transferencias-recentes').catch(() => []),
+    ]);
+
+    // Stat cards
+    const allCards = [
+      { label: 'Empréstimos activos',       valor: stats.EMPRESTIMOS_ATIVOS      ?? '—' },
+      { label: 'Em atraso',                  valor: stats.EMPRESTIMOS_VENCIDOS     ?? '—',
+        alerta: (stats.EMPRESTIMOS_VENCIDOS > 0) ? 'vermelho' : null },
+      { label: 'Materiais disponíveis',      valor: stats.MATERIAIS_DISPONIVEIS    ?? '—' },
+      { label: 'Transferências pendentes',   valor: stats.TRANSFERENCIAS_PENDENTES ?? '—',
+        alerta: (stats.TRANSFERENCIAS_PENDENTES > 0) ? 'laranja' : null },
+    ];
+    document.getElementById('dash-stats').innerHTML =
+      (isAssistente ? allCards.slice(0, 2) : allCards).map(renderStatCard).join('');
+
+    // Devoluções hoje
+    renderDevolucoes(devHoje || []);
+
+    // Painel de gráfico e linha 2: esconder para Assistente
+    const grafico = document.getElementById('dash-grafico-panel');
+    const linha2  = document.getElementById('dash-linha2');
+    if (isAssistente) {
+      if (grafico) grafico.style.display = 'none';
+      if (linha2)  linha2.style.display  = 'none';
+    } else {
+      if (grafico) grafico.style.display = '';
+      if (linha2)  linha2.style.display  = '';
+      renderBarChart(stats.EMPRESTIMOS_SEMANA || []);
+      renderLeitoresRecentes(leitores || []);
+      renderTransferenciasRecentes(transferencias || []);
+    }
+  } catch (err) {
+    toast('Erro a carregar dashboard: ' + err.message, 'erro');
+  }
+}
+
+function renderStatCard({ label, valor, alerta }) {
+  let alertHtml = '';
+  if (alerta === 'vermelho') alertHtml = `<div class="stat-card-alert-red">↑ requer atenção</div>`;
+  if (alerta === 'laranja')  alertHtml = `<div class="stat-card-alert-warn">⚠ pendente</div>`;
+  return `
+    <div class="stat-card">
+      <div class="stat-card-bar"></div>
+      <div class="stat-card-label">${label}</div>
+      <div class="stat-card-value">${valor ?? '—'}</div>
+      ${alertHtml}
+    </div>`;
+}
+
+function renderDevolucoes(lista) {
+  const el = document.getElementById('dash-devolucoes-hoje');
+  if (!lista.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">○</div>
+      <div class="empty-state-text">Sem devoluções previstas hoje</div>
+    </div>`;
+    return;
+  }
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  el.innerHTML = lista.map(emp => {
+    const ini = iniciais(emp.NOME_LEITOR || '');
+    const titulo = (emp.TITULO || '—').substring(0, 32);
+    const prazo = new Date(emp.PRAZO_DEVOLUCAO); prazo.setHours(0, 0, 0, 0);
+    const diff = Math.round((prazo - hoje) / 86400000);
+    let badgeTxt, badgeCls;
+    if (diff < 0)     { badgeTxt = `${Math.abs(diff)}d atraso`; badgeCls = 'bdg-bloqueado'; }
+    else if (diff === 0) { badgeTxt = 'Hoje';    badgeCls = 'bdg-suspenso'; }
+    else              { badgeTxt = 'Pontual'; badgeCls = 'bdg-activo'; }
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid #f0f0f0">
+        <div class="avatar-initials" style="width:26px;height:26px;font-size:9px;flex-shrink:0">${ini}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.NOME_LEITOR || '—'}</div>
+          <div style="font-size:10px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${titulo}</div>
+        </div>
+        <span class="bdg ${badgeCls}" style="flex-shrink:0">${badgeTxt}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderBarChart(semana) {
+  const el = document.getElementById('dash-bar-chart');
+  if (!el) return;
+  const dias = ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'D-1', 'Hoje'];
+  while (semana.length < 7) semana.unshift(0);
+  const max = Math.max(...semana, 1);
+  el.innerHTML = semana.map((val, i) => {
+    const pct = Math.max(Math.round((val / max) * 100), val > 0 ? 4 : 2);
+    return `
+      <div class="bar-chart-col">
+        <div class="bar-chart-val">${val > 0 ? val : ''}</div>
+        <div class="bar-chart-bar" style="height:${pct}%"></div>
+        <div class="bar-chart-label">${dias[i]}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderLeitoresRecentes(lista) {
+  const tbody = document.getElementById('dash-leitores-tbody');
+  if (!lista.length) {
+    tbody.innerHTML = linhaVazia(4, 'Sem leitores recentes');
+    return;
+  }
+  tbody.innerHTML = lista.map(l => `
+    <tr>
+      <td><span class="cod">${l.NUM_CARTAO || '—'}</span></td>
+      <td>${l.NOME_COMPLETO || '—'}</td>
+      <td>${bdgTipo(l.TIPO)}</td>
+      <td>${bdgEstado(l.STATUS_LEITOR)}</td>
+    </tr>`).join('');
+}
+
+function renderTransferenciasRecentes(lista) {
+  const el = document.getElementById('dash-transferencias');
+  if (!lista.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">○</div>
+      <div class="empty-state-text">Sem transferências recentes</div>
+    </div>`;
+    return;
+  }
+  const bibActual = utilizadorActual?.COD_BIBLIOTECA;
+  el.innerHTML = lista.map(t => {
+    const enviada = t.COD_BIBLIOTECA_ORIGEM === bibActual;
+    const seta    = enviada ? '↗' : '↙';
+    const cor     = enviada ? '#1aab96' : '#e07820';
+    const outra   = enviada ? (t.NOME_DESTINO || t.NOME_BIBLIOTECA_DESTINO) : (t.NOME_ORIGEM || t.NOME_BIBLIOTECA_ORIGEM);
+    const titulo  = (t.TITULO || '—').substring(0, 30);
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid #f0f0f0">
+        <div style="font-size:16px;color:${cor};flex-shrink:0;width:16px;text-align:center">${seta}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${titulo}</div>
+          <div style="font-size:10px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${outra || '—'}</div>
+        </div>
+        ${bdgEstado(t.ESTADO_TRANSFERENCIA)}
+      </div>`;
+  }).join('');
 }
 
 // ════════════════════════════════════════════════
@@ -1420,7 +1666,7 @@ function mostrarErroModal(msg) {
 // INICIALIZAÇÃO
 // ════════════════════════════════════════════════
 async function inicializarHTML() {
-  const seccoes = ['dashboard','leitores','materiais','emprestimos','funcionarios','eventos','doacoes'];
+  const seccoes = ['dashboard','leitores','materiais','emprestimos','funcionarios','eventos','doacoes','transferencias'];
 
   // Login — inserido antes do bloco #app
   const loginHtml = await fetch('sections/login.html').then(r => r.text());

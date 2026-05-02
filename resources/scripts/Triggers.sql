@@ -82,16 +82,6 @@ BEGIN
 END;
 /
 
--- 9. HORARIO_EV_BIB
-CREATE OR REPLACE TRIGGER trg_horario_id
-BEFORE INSERT ON HORARIO_EV_BIB FOR EACH ROW
-BEGIN
-    IF :NEW.id_horario IS NULL THEN
-        SELECT SEQ_HORARIO.NEXTVAL INTO :NEW.id_horario FROM DUAL;
-    END IF;
-END;
-/
-
 -- 10. ITEM_DOACAO
 CREATE OR REPLACE TRIGGER trg_itemdoado_id
 BEFORE INSERT ON ITEM_DOACAO FOR EACH ROW
@@ -127,7 +117,7 @@ CREATE OR REPLACE TRIGGER trg_horario_bib_id
 BEFORE INSERT ON HORARIO_BIBLIOTECA FOR EACH ROW
 BEGIN
     IF :NEW.id_horario_bib IS NULL THEN
-        SELECT SEQ_BIBLIOTECA.NEXTVAL INTO :NEW.id_horario_bib FROM DUAL;
+        SELECT SEQ_HORARIO_BIB.NEXTVAL INTO :NEW.id_horario_bib FROM DUAL;
     END IF;
 END;
 /
@@ -148,16 +138,6 @@ BEFORE INSERT ON HORARIO_EVENTO FOR EACH ROW
 BEGIN
     IF :NEW.id_horario_ev IS NULL THEN
         SELECT SEQ_HORARIO_EV.NEXTVAL INTO :NEW.id_horario_ev FROM DUAL;
-    END IF;
-END;
-/
-
--- 16. EVENTO_RECURSO
-CREATE OR REPLACE TRIGGER trg_recurso_id
-BEFORE INSERT ON EVENTO_RECURSO FOR EACH ROW
-BEGIN
-    IF :NEW.id_recurso IS NULL THEN
-        SELECT SEQ_RECURSO.NEXTVAL INTO :NEW.id_recurso FROM DUAL;
     END IF;
 END;
 /
@@ -207,7 +187,8 @@ DECLARE
     v_count NUMBER;
 BEGIN
     SELECT COUNT(*) INTO v_count
-    FROM BIBLIOTECA WHERE id_responsavel = :OLD.cod_funcionario;
+    FROM BIBLIOTECA_RESPONSAVEL
+    WHERE cod_funcionario = :OLD.cod_funcionario AND data_fim IS NULL;
 
     IF v_count > 0 THEN
         RAISE_APPLICATION_ERROR(-20302, 'Coordenador nao pode ser removido enquanto for responsavel de biblioteca');
@@ -284,7 +265,7 @@ END;
 -- TRIGGER: trg_protege_material_trans
 -- Impede empréstimo de material em transferência pendente ou aprovada — bypass sem trigger
 CREATE OR REPLACE TRIGGER trg_protege_material_trans
-BEFORE INSERT OR UPDATE OF id_material ON EMPRESTIMO
+BEFORE INSERT OR UPDATE OF cod_material ON EMPRESTIMO
 FOR EACH ROW
 DECLARE
     v_em_transferencia NUMBER;
@@ -292,7 +273,7 @@ BEGIN
     SELECT COUNT(*)
       INTO v_em_transferencia
       FROM TRANSFERENCIA
-     WHERE id_material = :NEW.id_material
+     WHERE cod_material = :NEW.cod_material
        AND estado_transferencia IN ('Pendente', 'Aprovada');
 
     IF v_em_transferencia > 0 THEN
@@ -320,7 +301,7 @@ BEGIN
     SELECT cod_biblioteca
       INTO v_biblioteca_material
       FROM MATERIAL_BIBLIOGRAFICO
-     WHERE id_material = :NEW.id_material;
+     WHERE cod_material = :NEW.cod_material;
 
     IF v_biblioteca_material != :NEW.cod_biblioteca_origem THEN
         RAISE_APPLICATION_ERROR(-20103,
@@ -367,26 +348,26 @@ BEGIN
 
     SELECT ISBN, titulo INTO v_isbn, v_titulo
       FROM MATERIAL_BIBLIOGRAFICO
-     WHERE id_material = :NEW.id_material;
+     WHERE cod_material = :NEW.cod_material;
 
     IF v_isbn IS NOT NULL THEN
-        SELECT COUNT(m.id_material) INTO v_disponiveis
+        SELECT COUNT(m.cod_material) INTO v_disponiveis
           FROM MATERIAL_BIBLIOGRAFICO m
          WHERE m.ISBN = v_isbn
            AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-           AND m.id_material NOT IN (SELECT id_material FROM EMPRESTIMO WHERE data_devolucao IS NULL)
-           AND m.id_material NOT IN (
-               SELECT id_material FROM TRANSFERENCIA
+           AND m.cod_material NOT IN (SELECT cod_material FROM EMPRESTIMO WHERE data_devolucao IS NULL)
+           AND m.cod_material NOT IN (
+               SELECT cod_material FROM TRANSFERENCIA
                 WHERE estado_transferencia IN ('Pendente', 'Aprovada')
                   AND id_transferencia <> :NEW.id_transferencia);
     ELSE
-        SELECT COUNT(m.id_material) INTO v_disponiveis
+        SELECT COUNT(m.cod_material) INTO v_disponiveis
           FROM MATERIAL_BIBLIOGRAFICO m
          WHERE normaliza_titulo(m.titulo) = normaliza_titulo(v_titulo)
            AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-           AND m.id_material NOT IN (SELECT id_material FROM EMPRESTIMO WHERE data_devolucao IS NULL)
-           AND m.id_material NOT IN (
-               SELECT id_material FROM TRANSFERENCIA
+           AND m.cod_material NOT IN (SELECT cod_material FROM EMPRESTIMO WHERE data_devolucao IS NULL)
+           AND m.cod_material NOT IN (
+               SELECT cod_material FROM TRANSFERENCIA
                 WHERE estado_transferencia IN ('Pendente', 'Aprovada')
                   AND id_transferencia <> :NEW.id_transferencia);
     END IF;
@@ -414,26 +395,26 @@ BEGIN
 
     SELECT ISBN, titulo INTO v_isbn, v_titulo
       FROM MATERIAL_BIBLIOGRAFICO
-     WHERE id_material = :NEW.id_material;
+     WHERE cod_material = :NEW.cod_material;
 
     IF v_isbn IS NOT NULL THEN
-        SELECT COUNT(m.id_material) INTO v_disponiveis
+        SELECT COUNT(m.cod_material) INTO v_disponiveis
           FROM MATERIAL_BIBLIOGRAFICO m
          WHERE m.ISBN = v_isbn
            AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-           AND m.id_material NOT IN (SELECT id_material FROM EMPRESTIMO WHERE data_devolucao IS NULL)
-           AND m.id_material NOT IN (
-               SELECT id_material FROM TRANSFERENCIA
+           AND m.cod_material NOT IN (SELECT cod_material FROM EMPRESTIMO WHERE data_devolucao IS NULL)
+           AND m.cod_material NOT IN (
+               SELECT cod_material FROM TRANSFERENCIA
                 WHERE estado_transferencia IN ('Pendente', 'Aprovada')
                   AND id_transferencia <> :NEW.id_transferencia);
     ELSE
-        SELECT COUNT(m.id_material) INTO v_disponiveis
+        SELECT COUNT(m.cod_material) INTO v_disponiveis
           FROM MATERIAL_BIBLIOGRAFICO m
          WHERE normaliza_titulo(m.titulo) = normaliza_titulo(v_titulo)
            AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-           AND m.id_material NOT IN (SELECT id_material FROM EMPRESTIMO WHERE data_devolucao IS NULL)
-           AND m.id_material NOT IN (
-               SELECT id_material FROM TRANSFERENCIA
+           AND m.cod_material NOT IN (SELECT cod_material FROM EMPRESTIMO WHERE data_devolucao IS NULL)
+           AND m.cod_material NOT IN (
+               SELECT cod_material FROM TRANSFERENCIA
                 WHERE estado_transferencia IN ('Pendente', 'Aprovada')
                   AND id_transferencia <> :NEW.id_transferencia);
     END IF;

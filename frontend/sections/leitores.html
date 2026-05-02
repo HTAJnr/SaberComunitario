@@ -1,39 +1,80 @@
-<section id="section-leitores" class="section p-6 hidden">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-bold">Leitores</h2>
-    <button onclick="abrirModalLeitor()" class="btn-primary">
-      <i class="fa-solid fa-plus mr-1"></i> Novo Leitor
+<section id="section-leitores" class="section hidden">
+
+  <!-- Barra de acções -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <input id="filtro-leitor-q" type="text" placeholder="Pesquisar por nome ou cartão…"
+           oninput="carregarLeitores()"
+           class="input-field" style="flex:1;min-width:180px;max-width:260px"/>
+    <select id="filtro-leitor-estado" onchange="carregarLeitores()" class="input-field" style="width:140px">
+      <option value="">Todos os estados</option>
+      <option value="Activo">Activo</option>
+      <option value="Suspenso">Suspenso</option>
+      <option value="Bloqueado">Bloqueado</option>
+    </select>
+    <select id="filtro-leitor-tipo" onchange="carregarLeitores()" class="input-field" style="width:120px">
+      <option value="">Todos os tipos</option>
+      <option value="Adulto">Adulto</option>
+      <option value="Professor">Professor</option>
+      <option value="Crianca">Criança</option>
+    </select>
+    <select id="filtro-leitor-historico" onchange="carregarLeitores()" class="input-field" style="width:150px">
+      <option value="">Toda pontualidade</option>
+      <option value="Pontual">Pontual</option>
+      <option value="Irregular">Irregular</option>
+      <option value="Mau">Mau</option>
+    </select>
+    <button onclick="abrirWizardLeitor()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+      <i class="fa-solid fa-plus" style="margin-right:5px"></i>Cadastrar Leitor
     </button>
   </div>
-  <div class="flex gap-3 mb-4 flex-wrap">
-    <div class="relative">
-      <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-      <input id="filtro-leitor-q" type="text" placeholder="Pesquisar nome…" oninput="carregarLeitores()" class="input-dark pl-8 w-56"/>
-    </div>
-    <select id="filtro-leitor-tipo" onchange="carregarLeitores()" class="input-dark">
-      <option value="">Todos os tipos</option>
-      <option value="ADULTO">Adulto</option>
-      <option value="CRIANCA">Criança</option>
-      <option value="PROFESSOR">Professor</option>
-    </select>
-    <select id="filtro-leitor-estado" onchange="carregarLeitores()" class="input-dark">
-      <option value="">Todos os estados</option>
-      <option value="ATIVO">Activo</option>
-      <option value="SUSPENSO">Suspenso</option>
-      <option value="INATIVO">Inactivo</option>
-    </select>
-  </div>
-  <div class="card overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr class="border-b border-slate-700 text-slate-400">
-        <th class="text-left py-2 px-3">Cartão</th>
-        <th class="text-left py-2 px-3">Nome</th>
-        <th class="text-left py-2 px-3">Tipo</th>
-        <th class="text-left py-2 px-3">Contacto</th>
-        <th class="text-left py-2 px-3">Estado</th>
-        <th class="text-left py-2 px-3">Acções</th>
-      </tr></thead>
+
+  <!-- Tabela de leitores -->
+  <div class="panel">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Cartão</th>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>Pontualidade</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody id="tabela-leitores"></tbody>
     </table>
   </div>
+
+  <!-- Menu contextual (por row) -->
+  <div id="ctx-menu-leitor" class="ctx-menu" style="display:none"></div>
+
+  <!-- Overlay do drawer -->
+  <div id="drawer-leitor-overlay" onclick="fecharDrawerLeitor()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer — Perfil do leitor (02-C) -->
+  <div id="drawer-leitor" class="drawer">
+    <div id="drawer-leitor-header"></div>
+    <div id="drawer-leitor-tabs" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:12px"></div>
+    <div id="drawer-leitor-conteudo" style="margin-top:14px"></div>
+  </div>
+
+  <!-- Modal leitores: wizard, editar, alterar estado, suspensões -->
+  <div id="modal-leitor-overlay" class="modal-overlay hidden" onclick="fecharModalLeitor(event)">
+    <div class="modal" style="width:520px">
+      <div class="modal-header">
+        <span id="modal-leitor-titulo" class="modal-title"></span>
+        <button onclick="fecharModalLeitor()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-leitor-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-leitor-erro-msg"></span>
+      </div>
+      <div id="modal-leitor-conteudo"></div>
+      <div id="modal-leitor-footer" style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px"></div>
+    </div>
+  </div>
+
 </section>

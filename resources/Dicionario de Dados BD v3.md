@@ -159,7 +159,7 @@ Tabelas com a palavra "código" no enunciado usam VARCHAR2 como PK com formato f
 | `nivel_leitura` | VARCHAR2 | 12      | `'Basico'`, `'Intermedio'`, `'Avancado'`                   |
 
 ---
-
+ 
 ### BIBLIOTECA
 | Atributo              | Tipo     | Tamanho | Notas                                                     |
 | --------------------- | -------- | ------- | --------------------------------------------------------- |

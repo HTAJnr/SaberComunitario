@@ -130,9 +130,8 @@ SELECT
     h.hora_abertura,
     h.hora_fecho
 FROM biblioteca b
-LEFT JOIN horario_ev_bib h
-    ON b.cod_biblioteca = h.cod_biblioteca
-WHERE h.id_evento IS NULL;
+LEFT JOIN HORARIO_BIBLIOTECA h
+    ON b.cod_biblioteca = h.cod_biblioteca;
 /
 
 -- OBJETIVO: Equipa operacional com permissões
@@ -148,7 +147,7 @@ JOIN funcao_funcionario ff
     ON f.id_funcao = ff.id_funcao
 LEFT JOIN biblioteca b
     ON f.cod_biblioteca = b.cod_biblioteca
-WHERE f.data_saida IS NULL;
+WHERE f.data_demissao IS NULL;
 /
 
 -- OBJETIVO: Agenda de eventos futuros
@@ -177,8 +176,9 @@ SELECT
     f.nome_funcionario AS coordenador_nome,
     f.contacto AS coordenador_contacto
 FROM biblioteca b
-LEFT JOIN funcionario f
-    ON b.id_responsavel = f.cod_funcionario;
+LEFT JOIN BIBLIOTECA_RESPONSAVEL br
+    ON b.cod_biblioteca = br.cod_biblioteca AND br.papel = 'Principal' AND br.data_fim IS NULL
+LEFT JOIN FUNCIONARIO f ON br.cod_funcionario = f.cod_funcionario;
 /
 
 -- OBJETIVO: Unificar hierarquia de materiais com dados de contexto
@@ -316,7 +316,7 @@ SELECT
         2
     ) AS taxa_circulacao
 FROM CATEGORIA c
-LEFT JOIN MATERIAL_BIBLIOGRAFICO m ON c.id_categoria = m.id_categoria
+LEFT JOIN MATERIAL_BIBLIOGRAFICO m ON m.cod_categoria = c.id_categoria
 GROUP BY c.area_tematica, c.faixa_etaria, c.nivel_leitura
 ORDER BY c.area_tematica, c.faixa_etaria;
 /
@@ -445,7 +445,7 @@ JOIN leitor l ON e.num_cartao = l.num_cartao
 JOIN funcionario f ON e.cod_funcionario = f.cod_funcionario
 JOIN biblioteca b ON f.cod_biblioteca = b.cod_biblioteca
 JOIN material_bibliografico m ON e.cod_material = m.cod_material
-JOIN categoria c ON m.id_categoria = c.id_categoria
+JOIN categoria c ON m.cod_categoria = c.id_categoria
 LEFT JOIN professor p ON l.num_cartao = p.num_cartao
 LEFT JOIN adulto a ON l.num_cartao = a.num_cartao
 LEFT JOIN crianca cr ON l.num_cartao = cr.num_cartao;

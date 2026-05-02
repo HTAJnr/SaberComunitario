@@ -133,7 +133,13 @@ if (req.query.filtro) {
 
 ## Frontend Work
 
-Before making any changes to frontend files (`frontend/`), always read `resources/docs/Design.md` first. It contains the full design system: exact color values, component CSS, spacing, typography, icon usage, and layout patterns. All UI additions must be consistent with it.
+Before making any changes to frontend files (`frontend/`), always read these docs in `resources/docs/` first:
+
+- **`DESIGN.md`** — sistema de design completo: tokens de cor por tema de região, componentes CSS, tipografia, badges, modais, drawers. Todas as adições de UI devem seguir este documento.
+- **`SCREENS.md`** — especificação ecrã a ecrã: campos, permissões por role, comportamentos de cada tela.
+- **`frontend_guide.md`** — o que o frontend precisa do backend: rotas, payloads, formatos de resposta, erros padronizados.
+
+**Correcção importante documentada:** A tabela `FUNCIONARIO` não tem `foto_path`. Avatares de funcionários são sempre iniciais. Ver §7.6 do DESIGN.md e §17 do frontend_guide.md.
 
 ## Language
 

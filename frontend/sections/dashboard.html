@@ -1,14 +1,63 @@
-<section id="section-dashboard" class="section p-6 hidden">
-  <h2 class="text-xl font-bold mb-6">Dashboard</h2>
-  <div id="metricas-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"></div>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div class="card">
-      <h3 class="font-semibold mb-3 text-slate-300">Empréstimos Activos Recentes</h3>
-      <div id="dash-emprestimos" class="text-sm space-y-2"></div>
+<section id="section-dashboard" class="section hidden">
+
+  <!-- ── Vista Biblioteca (Coord / Biblio / Assistente) ── -->
+  <div id="dash-bib-view">
+
+    <!-- Stat cards -->
+    <div id="dash-stats" class="stats-grid"></div>
+
+    <!-- Linha 1: Devoluções hoje + Gráfico de empréstimos -->
+    <div class="panel-grid" style="margin-bottom:16px">
+
+      <div class="panel">
+        <div class="panel-title">Devoluções previstas hoje</div>
+        <div id="dash-devolucoes-hoje"></div>
+      </div>
+
+      <div class="panel" id="dash-grafico-panel">
+        <div class="panel-title">Empréstimos — últimos 7 dias</div>
+        <div id="dash-bar-chart" class="bar-chart" style="height:90px;margin-top:8px"></div>
+      </div>
+
     </div>
-    <div class="card">
-      <h3 class="font-semibold mb-3 text-slate-300">Próximos Eventos</h3>
-      <div id="dash-eventos" class="text-sm space-y-2"></div>
+
+    <!-- Linha 2: Leitores recentes + Transferências (só Coord/Biblio) -->
+    <div class="panel-grid" id="dash-linha2">
+
+      <div class="panel">
+        <div class="panel-title">Leitores recentes</div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Cartão</th>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="dash-leitores-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Transferências recentes</div>
+        <div id="dash-transferencias"></div>
+      </div>
+
     </div>
+
   </div>
+
+  <!-- ── Vista Rede (só Administrador) ── -->
+  <div id="dash-rede-view" class="hidden">
+
+    <div id="dash-rede-stats" class="stats-grid"></div>
+
+    <div class="panel" style="margin-top:4px">
+      <div class="panel-title">Bibliotecas da rede</div>
+      <div id="dash-rede-table"></div>
+    </div>
+
+  </div>
+
 </section>

@@ -1,8 +1,10 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
+const { autenticar, exigirNivel } = require('../middleware/permissoes');
 
-router.get('/funcoes', async (req, res) => {
+router.get('/funcoes', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -22,7 +24,7 @@ router.get('/funcoes', async (req, res) => {
   }
 });
 
-router.get('/bibliotecas', async (req, res) => {
+router.get('/bibliotecas', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -42,7 +44,7 @@ router.get('/bibliotecas', async (req, res) => {
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -72,7 +74,146 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+// ─── Secção 2: Perfil do utilizador logado ───────────────────────────────────
+
+router.get('/me', autenticar, async (req, res) => {
+
+  // Demo user — sem registo na BD
+  if (req.session.funcionario.COD_FUNCIONARIO === 0) {
+    return res.json({ ...req.session.funcionario, habilidades: [], horarios: [] });
+  }
+
+  const cod = req.session.funcionario.COD_FUNCIONARIO;
+  let conn;
+  try {
+    conn = await getConnection();
+
+    const [perfilRes, habilRes, horRes] = await Promise.all([
+      conn.execute(
+        `SELECT f.COD_FUNCIONARIO, f.NOME_FUNCIONARIO, f.GENERO, f.DATA_NASC,
+                f.CONTACTO, f.ENDERECO, f.FORMACAO, f.EXPERIENCIA,
+                f.DATA_CONTRATACAO, f.EMAIL,
+                ff.NOME_FUNCAO, ff.NIVEL_ACESSO,
+                b.NOME_BIBLIOTECA
+           FROM FUNCIONARIO f
+           LEFT JOIN FUNCAO_FUNCIONARIO ff ON ff.ID_FUNCAO = f.ID_FUNCAO
+           LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = f.COD_BIBLIOTECA
+          WHERE f.COD_FUNCIONARIO = :cod`,
+        { cod },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      ),
+      conn.execute(
+        `SELECT HABILIDADE FROM FUNCIONARIO_HABILIDADE WHERE COD_FUNCIONARIO = :cod`,
+        { cod },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      ),
+      conn.execute(
+        `SELECT DIA_SEMANA, HORA_ENTRADA, HORA_SAIDA
+           FROM HORARIO_FUNCIONARIO
+          WHERE COD_FUNCIONARIO = :cod
+          ORDER BY DIA_SEMANA`,
+        { cod },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      ),
+    ]);
+
+    if (perfilRes.rows.length === 0) return res.status(404).json({ erro: 'Funcionário não encontrado.' });
+
+    const perfil = perfilRes.rows[0];
+    perfil.habilidades = habilRes.rows.map(r => r.HABILIDADE);
+    perfil.horarios = horRes.rows;
+    res.json(perfil);
+  } catch (err) {
+    console.error('\x1b[31m[FUNCIONARIOS GET /me] ERRO ao carregar perfil\x1b[0m');
+    console.error('     BD: FUNCIONARIO + FUNCAO_FUNCIONARIO + BIBLIOTECA + FUNCIONARIO_HABILIDADE + HORARIO_FUNCIONARIO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+router.patch('/me', autenticar, async (req, res) => {
+  if (req.session.funcionario.COD_FUNCIONARIO === 0) {
+    return res.status(403).json({ erro: 'Conta demo não permite edição de perfil.' });
+  }
+
+  const { contacto, endereco } = req.body;
+  const cod = req.session.funcionario.COD_FUNCIONARIO;
+
+  let conn;
+  try {
+    conn = await getConnection();
+    await conn.execute(
+      `UPDATE FUNCIONARIO
+          SET CONTACTO = NVL(:contacto, CONTACTO),
+              ENDERECO = NVL(:endereco, ENDERECO)
+        WHERE COD_FUNCIONARIO = :cod`,
+      { contacto: contacto ?? null, endereco: endereco ?? null, cod }
+    );
+    await conn.commit();
+
+    if (contacto !== undefined) req.session.funcionario.CONTACTO = contacto;
+    if (endereco !== undefined) req.session.funcionario.ENDERECO = endereco;
+
+    res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error('\x1b[31m[FUNCIONARIOS PATCH /me] ERRO ao actualizar perfil\x1b[0m');
+    console.error('     BD: UPDATE FUNCIONARIO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+router.patch('/me/senha', autenticar, async (req, res) => {
+  if (req.session.funcionario.COD_FUNCIONARIO === 0) {
+    return res.status(403).json({ erro: 'Conta demo não permite alteração de senha.' });
+  }
+
+  const { senha_atual, nova_senha } = req.body;
+  if (!senha_atual || !nova_senha) {
+    return res.status(400).json({ erro: 'senha_atual e nova_senha são obrigatórias.' });
+  }
+
+  const cod = req.session.funcionario.COD_FUNCIONARIO;
+  let conn;
+  try {
+    conn = await getConnection();
+
+    const result = await conn.execute(
+      `SELECT SENHA FROM FUNCIONARIO WHERE COD_FUNCIONARIO = :cod`,
+      { cod },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (result.rows.length === 0) return res.status(404).json({ erro: 'Funcionário não encontrado.' });
+
+    const senhaValida = await bcrypt.compare(senha_atual, result.rows[0].SENHA);
+    if (!senhaValida) return res.status(401).json({ erro: 'Senha actual incorrecta.' });
+
+    const novoHash = await bcrypt.hash(nova_senha, 10);
+    await conn.execute(
+      `UPDATE FUNCIONARIO SET SENHA = :hash WHERE COD_FUNCIONARIO = :cod`,
+      { hash: novoHash, cod }
+    );
+    await conn.commit();
+    res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error('\x1b[31m[FUNCIONARIOS PATCH /me/senha] ERRO ao alterar senha\x1b[0m');
+    console.error('     BD: FUNCIONARIO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -110,7 +251,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   const { nome_funcionario, email, senha, contacto, genero, id_funcao, COD_biblioteca, data_contratacao } = req.body;
   if (!nome_funcionario || !email || !senha) {
     return res.status(400).json({ erro: 'Nome, email e senha obrigatórios.' });
@@ -146,7 +287,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   const { nome_funcionario, email, senha, contacto, genero, id_funcao, COD_biblioteca } = req.body;
   let conn;
   try {
@@ -179,7 +320,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -202,7 +343,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Endpoint BD2-READY: gerir acesso Oracle do funcionário via proc_gerir_acesso_bd
-router.post('/:id/acesso', async (req, res) => {
+router.post('/:id/acesso', exigirNivel('Administrador'), async (req, res) => {
   const { acao } = req.body;
   if (!acao || !['GRANT', 'REVOKE'].includes(acao.toUpperCase())) {
     return res.status(400).json({ erro: 'acao deve ser "GRANT" ou "REVOKE".' });

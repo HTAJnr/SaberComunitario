@@ -13,6 +13,7 @@ const DEMO_USER = {
   NIVEL_ACESSO: 'Administrador',
   COD_BIBLIOTECA: null,
   NOME_BIBLIOTECA: 'Biblioteca Demo',
+  PROVINCIA: 'Maputo Cidade',
 };
 
 router.post('/login', async (req, res) => {
@@ -34,7 +35,7 @@ router.post('/login', async (req, res) => {
       `SELECT f.COD_FUNCIONARIO, f.NOME_FUNCIONARIO, f.EMAIL, f.CONTACTO, f.ID_FUNCAO,
               f.SENHA,
               ff.NOME_FUNCAO AS FUNCAO, ff.NIVEL_ACESSO,
-              f.COD_BIBLIOTECA, b.NOME_BIBLIOTECA
+              f.COD_BIBLIOTECA, b.NOME_BIBLIOTECA, b.PROVINCIA
          FROM FUNCIONARIO f
          LEFT JOIN FUNCAO_FUNCIONARIO ff ON ff.ID_FUNCAO = f.ID_FUNCAO
          LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = f.COD_BIBLIOTECA
@@ -59,6 +60,7 @@ router.post('/login', async (req, res) => {
     req.session.cod_funcionario = func.COD_FUNCIONARIO;
     req.session.cod_biblioteca = func.COD_BIBLIOTECA;
     req.session.nivel_acesso = func.NIVEL_ACESSO;
+    req.session.provincia = func.PROVINCIA;
     res.json({ ok: true, funcionario: func });
   } catch (err) {
     console.error('\x1b[31m[AUTH POST /login] ERRO ao autenticar funcionário\x1b[0m');

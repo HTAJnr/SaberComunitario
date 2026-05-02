@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
+const { autenticar, exigirNivel } = require('../middleware/permissoes');
 
 // ── Doadores ──────────────────────────────────────────────────────────────────
-router.get('/doadores', async (req, res) => {
+router.get('/doadores', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -27,7 +28,7 @@ router.get('/doadores', async (req, res) => {
   }
 });
 
-router.post('/doadores', async (req, res) => {
+router.post('/doadores', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   const { nome_doador, tipo_doador, contacto, endereco, observacoes } = req.body;
   if (!nome_doador || !tipo_doador) return res.status(400).json({ erro: 'Nome e tipo obrigatórios.' });
   let conn;
@@ -55,7 +56,7 @@ router.post('/doadores', async (req, res) => {
 });
 
 // ── Doações ───────────────────────────────────────────────────────────────────
-router.get('/', async (req, res) => {
+router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -81,7 +82,7 @@ router.get('/', async (req, res) => {
 });
 
 // ── Certificados ──────────────────────────────────────────────────────────────
-router.get('/certificados', async (req, res) => {
+router.get('/certificados', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -106,7 +107,7 @@ router.get('/certificados', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -138,7 +139,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   // itens: [{ COD_biblioteca, quantidade, valor_estimado, observacoes }]
   const { id_doador, data_doacao, itens } = req.body;
   if (!id_doador || !itens || itens.length === 0) {
@@ -221,7 +222,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.post('/certificados/:id/reemitir', async (req, res) => {
+router.post('/certificados/:id/reemitir', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   const { motivo } = req.body;
   let conn;
   try {

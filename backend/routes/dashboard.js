@@ -1,19 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
+const { autenticar, exigirNivel } = require('../middleware/permissoes');
 
 function isAdmin(req) {
-  return (req.session.nivel_acesso || req.session.funcionario?.FUNCAO) === 'Administrador';
+  return (req.session.nivel_acesso || req.session.funcionario?.NIVEL_ACESSO) === 'Administrador';
 }
 
-router.get('/metricas', async (req, res) => {
+function getCodBib(req) {
+  return req.session.cod_biblioteca;
+}
+
+// ── Endpoints legados (mantidos para compatibilidade) ─────────────────────────
+
+router.get('/metricas', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
 
     let result;
     if (isAdmin(req)) {
-      // Administrador: visão global da rede
       result = await conn.execute(
         `SELECT
            TOTAL_LEITORES_CADASTRADOS  AS TOTAL_LEITORES,
@@ -30,11 +36,8 @@ router.get('/metricas', async (req, res) => {
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
     } else {
-      // Bibliotecário/Assistente/Coordenador: métricas da sua biblioteca
-      const codBib = req.session.cod_biblioteca;
-      if (!codBib) {
-        return res.status(400).json({ erro: 'Sessão sem biblioteca associada.' });
-      }
+      const codBib = getCodBib(req);
+      if (!codBib) return res.status(400).json({ erro: 'Sessão sem biblioteca associada.' });
       result = await conn.execute(
         `SELECT
            TOTAL_LEITORES         AS TOTAL_LEITORES,
@@ -57,16 +60,14 @@ router.get('/metricas', async (req, res) => {
 
     res.json(result.rows[0] || {});
   } catch (err) {
-    console.error('\x1b[31m[DASHBOARD GET /metricas] ERRO ao carregar métricas\x1b[0m');
-    console.error('     BD: vw_metricas_sistema (admin) ou vw_metricas_por_biblioteca (outros)');
-    console.error('     Detalhe:', err.message);
+    console.error('\x1b[31m[DASHBOARD /metricas]\x1b[0m', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
     if (conn) await conn.close();
   }
 });
 
-router.get('/emprestimos-ativos', async (req, res) => {
+router.get('/emprestimos-ativos', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -74,51 +75,340 @@ router.get('/emprestimos-ativos', async (req, res) => {
     let sql;
     const params = {};
     if (isAdmin(req)) {
-      sql = `SELECT ID_EMPRESTIMO, NOME_LEITOR, NUM_CARTAO,
-                    MATERIAL_TITULO AS TITULO,
-                    PRAZO_DEVOLUCAO AS DATA_DEVOLUCAO_PREV,
-                    DIAS_ATRASO
-             FROM vw_emprestimos_ativos WHERE ROWNUM <= 10`;
+      sql = `SELECT * FROM (
+               SELECT ID_EMPRESTIMO, NOME_LEITOR, NUM_CARTAO,
+                      TITULO,
+                      PRAZO_DEVOLUCAO AS DATA_DEVOLUCAO_PREV,
+                      DIAS_ATRASO
+               FROM vw_emprestimos_ativos
+               ORDER BY DIAS_ATRASO DESC
+             ) WHERE ROWNUM <= 10`;
     } else {
-      sql = `SELECT ID_EMPRESTIMO, NOME_LEITOR, NUM_CARTAO,
-                    MATERIAL_TITULO AS TITULO,
-                    PRAZO_DEVOLUCAO AS DATA_DEVOLUCAO_PREV,
-                    DIAS_ATRASO
-             FROM vw_emprestimos_ativos
-             WHERE cod_BIBLIOTECA = :cod_bib AND ROWNUM <= 10`;
-      params.cod_bib = req.session.cod_biblioteca;
+      sql = `SELECT * FROM (
+               SELECT ID_EMPRESTIMO, NOME_LEITOR, NUM_CARTAO,
+                      TITULO,
+                      PRAZO_DEVOLUCAO AS DATA_DEVOLUCAO_PREV,
+                      DIAS_ATRASO
+               FROM vw_emprestimos_ativos
+               WHERE COD_BIBLIOTECA = :cod_bib
+               ORDER BY DIAS_ATRASO DESC
+             ) WHERE ROWNUM <= 10`;
+      params.cod_bib = getCodBib(req);
     }
 
     const result = await conn.execute(sql, params, { outFormat: oracledb.OUT_FORMAT_OBJECT });
     res.json(result.rows);
   } catch (err) {
-    console.error('\x1b[31m[DASHBOARD GET /emprestimos-ativos] ERRO ao carregar empréstimos activos\x1b[0m');
-    console.error('     BD: VIEW vw_emprestimos_ativos');
-    console.error('     Detalhe:', err.message);
+    console.error('\x1b[31m[DASHBOARD /emprestimos-ativos]\x1b[0m', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
     if (conn) await conn.close();
   }
 });
 
-router.get('/eventos-proximos', async (req, res) => {
+router.get('/eventos-proximos', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
     const result = await conn.execute(
-      `SELECT ID_EVENTO,
-              TITULO_EVENTO   AS NOME,
-              DATA_EVENTO     AS DATA_INICIO,
-              BIBLIOTECA_NOME AS NOME_BIBLIOTECA
-       FROM vw_eventos_proximos WHERE ROWNUM <= 5`,
+      `SELECT * FROM (
+         SELECT ID_EVENTO,
+                TITULO_EVENTO   AS NOME,
+                DATA_EVENTO     AS DATA_INICIO,
+                BIBLIOTECA_NOME AS NOME_BIBLIOTECA
+         FROM vw_eventos_proximos
+         ORDER BY DATA_EVENTO
+       ) WHERE ROWNUM <= 5`,
       [],
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
     res.json(result.rows);
   } catch (err) {
-    console.error('\x1b[31m[DASHBOARD GET /eventos-proximos] ERRO ao carregar eventos próximos\x1b[0m');
-    console.error('     BD: VIEW vw_eventos_proximos');
-    console.error('     Detalhe:', err.message);
+    console.error('\x1b[31m[DASHBOARD /eventos-proximos]\x1b[0m', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+// ── Módulo Dashboard — spec frontend_guide.md §4 ─────────────────────────────
+
+// GET /api/dashboard/rede — visão global da rede (só Administrador)
+router.get('/rede', exigirNivel('Administrador'), async (req, res) => {
+  let conn;
+  try {
+    conn = await getConnection();
+
+    const metResult = await conn.execute(
+      `SELECT
+         TOTAL_BIBLIOTECAS_ATIVAS   AS TOTAL_BIBLIOTECAS,
+         TOTAL_LEITORES_CADASTRADOS AS TOTAL_LEITORES,
+         TOTAL_EMPRESTIMOS_ATIVOS   AS EMPRESTIMOS_ATIVOS,
+         VALOR_MULTAS_PENDENTES     AS TOTAL_MULTAS_POR_COBRAR
+       FROM vw_metricas_sistema`,
+      [],
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const vencResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL
+       FROM EMPRESTIMO
+       WHERE DATA_DEVOLUCAO IS NULL
+         AND TRUNC(SYSDATE) > TRUNC(PRAZO_DEVOLUCAO)`,
+      [],
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const perdidosResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL
+       FROM EMPRESTIMO
+       WHERE ESTADO_MATERIAL_RETORNO = 'Perdido'
+         AND TRUNC(DATA_DEVOLUCAO, 'MM') = TRUNC(SYSDATE, 'MM')`,
+      [],
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const transfResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL
+       FROM TRANSFERENCIA
+       WHERE ESTADO_TRANSFERENCIA = 'Pendente'`,
+      [],
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const m = metResult.rows[0] || {};
+    res.json({
+      total_bibliotecas:        m.TOTAL_BIBLIOTECAS        || 0,
+      total_leitores:           m.TOTAL_LEITORES            || 0,
+      emprestimos_ativos:       m.EMPRESTIMOS_ATIVOS        || 0,
+      emprestimos_vencidos:     vencResult.rows[0]?.TOTAL   || 0,
+      transferencias_pendentes: transfResult.rows[0]?.TOTAL || 0,
+      materiais_perdidos_mes:   perdidosResult.rows[0]?.TOTAL || 0,
+      total_multas_por_cobrar:  m.TOTAL_MULTAS_POR_COBRAR  || 0,
+    });
+  } catch (err) {
+    console.error('\x1b[31m[DASHBOARD /rede]\x1b[0m', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+// GET /api/dashboard/biblioteca — visão local da biblioteca (Coordenador, Bibliotecário, Assistente)
+router.get('/biblioteca', autenticar, async (req, res) => {
+  const codBib = getCodBib(req);
+  if (!codBib) return res.status(400).json({ erro: 'Sessão sem biblioteca associada.' });
+
+  let conn;
+  try {
+    conn = await getConnection();
+
+    const metResult = await conn.execute(
+      `SELECT EMPRESTIMOS_ATIVOS, MATERIAIS_DISPONIVEIS, DEVOLUCOES_HOJE, MULTAS_PENDENTES
+       FROM vw_metricas_por_biblioteca
+       WHERE COD_BIBLIOTECA = :bib`,
+      { bib: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const vencResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL
+       FROM EMPRESTIMO E
+       JOIN MATERIAL_BIBLIOGRAFICO M ON E.COD_MATERIAL = M.COD_MATERIAL
+       WHERE M.COD_BIBLIOTECA = :bib
+         AND E.DATA_DEVOLUCAO IS NULL
+         AND TRUNC(SYSDATE) > TRUNC(E.PRAZO_DEVOLUCAO)`,
+      { bib: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const transfResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL
+       FROM TRANSFERENCIA
+       WHERE ESTADO_TRANSFERENCIA = 'Pendente'
+         AND (COD_BIBLIOTECA_ORIGEM = :bib OR COD_BIBLIOTECA_DESTINO = :bib2)`,
+      { bib: codBib, bib2: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const eventosResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL
+       FROM EVENTO
+       WHERE COD_BIBLIOTECA = :bib
+         AND EXTRACT(MONTH FROM DATA_EVENTO) = EXTRACT(MONTH FROM SYSDATE)
+         AND EXTRACT(YEAR  FROM DATA_EVENTO) = EXTRACT(YEAR  FROM SYSDATE)`,
+      { bib: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const doacoesResult = await conn.execute(
+      `SELECT COUNT(DISTINCT D.ID_DOACAO) AS TOTAL
+       FROM DOACAO D
+       JOIN ITEM_DOACAO I ON D.ID_DOACAO = I.ID_DOACAO
+       WHERE I.COD_BIBLIOTECA = :bib
+         AND EXTRACT(MONTH FROM D.DATA_DOACAO) = EXTRACT(MONTH FROM SYSDATE)
+         AND EXTRACT(YEAR  FROM D.DATA_DOACAO) = EXTRACT(YEAR  FROM SYSDATE)`,
+      { bib: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const semanaResult = await conn.execute(
+      `SELECT TRUNC(E.DATA_RETIRADA) AS DIA, COUNT(*) AS TOTAL
+       FROM EMPRESTIMO E
+       JOIN MATERIAL_BIBLIOGRAFICO M ON E.COD_MATERIAL = M.COD_MATERIAL
+       WHERE M.COD_BIBLIOTECA = :bib
+         AND E.DATA_RETIRADA >= TRUNC(SYSDATE) - 6
+       GROUP BY TRUNC(E.DATA_RETIRADA)
+       ORDER BY DIA`,
+      { bib: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const topResult = await conn.execute(
+      `SELECT * FROM (
+         SELECT M.TITULO, COUNT(*) AS TOTAL_EMPRESTIMOS
+         FROM EMPRESTIMO E
+         JOIN MATERIAL_BIBLIOGRAFICO M ON E.COD_MATERIAL = M.COD_MATERIAL
+         WHERE M.COD_BIBLIOTECA = :bib
+         GROUP BY M.TITULO
+         ORDER BY COUNT(*) DESC
+       ) WHERE ROWNUM <= 5`,
+      { bib: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    // Constrói array de 7 dias — índice 0 = há 6 dias, índice 6 = hoje
+    const porDia = {};
+    semanaResult.rows.forEach(r => {
+      porDia[new Date(r.DIA).toDateString()] = r.TOTAL;
+    });
+    const emprestimos_semana = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      emprestimos_semana.push(porDia[d.toDateString()] || 0);
+    }
+
+    const m = metResult.rows[0] || {};
+    res.json({
+      emprestimos_ativos:       m.EMPRESTIMOS_ATIVOS       || 0,
+      emprestimos_vencidos:     vencResult.rows[0]?.TOTAL  || 0,
+      devolucoes_hoje:          m.DEVOLUCOES_HOJE           || 0,
+      materiais_disponiveis:    m.MATERIAIS_DISPONIVEIS     || 0,
+      materiais_emprestados:    m.EMPRESTIMOS_ATIVOS        || 0,
+      multas_por_cobrar:        m.MULTAS_PENDENTES          || 0,
+      eventos_este_mes:         eventosResult.rows[0]?.TOTAL  || 0,
+      doacoes_este_mes:         doacoesResult.rows[0]?.TOTAL  || 0,
+      transferencias_pendentes: transfResult.rows[0]?.TOTAL   || 0,
+      emprestimos_semana,
+      top_materiais: topResult.rows.map(r => ({
+        titulo:            r.TITULO,
+        total_emprestimos: r.TOTAL_EMPRESTIMOS,
+      })),
+    });
+  } catch (err) {
+    console.error('\x1b[31m[DASHBOARD /biblioteca]\x1b[0m', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+// GET /api/dashboard/devolucoes-hoje — empréstimos a vencer hoje nesta biblioteca
+router.get('/devolucoes-hoje', autenticar, async (req, res) => {
+  const codBib = getCodBib(req);
+  if (!codBib) return res.json([]);
+
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT * FROM (
+         SELECT E.ID_EMPRESTIMO,
+                L.NOME_COMPLETO  AS NOME_LEITOR,
+                E.NUM_CARTAO,
+                M.TITULO,
+                E.PRAZO_DEVOLUCAO
+         FROM EMPRESTIMO E
+         JOIN LEITOR L ON E.NUM_CARTAO = L.NUM_CARTAO
+         JOIN MATERIAL_BIBLIOGRAFICO M ON E.COD_MATERIAL = M.COD_MATERIAL
+         WHERE L.COD_BIBLIOTECA = :bib
+           AND TRUNC(E.PRAZO_DEVOLUCAO) = TRUNC(SYSDATE)
+           AND E.DATA_DEVOLUCAO IS NULL
+         ORDER BY E.PRAZO_DEVOLUCAO
+       ) WHERE ROWNUM <= 5`,
+      { bib: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('\x1b[31m[DASHBOARD /devolucoes-hoje]\x1b[0m', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+// GET /api/dashboard/leitores-recentes — últimos leitores cadastrados
+router.get('/leitores-recentes', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
+  const codBib = getCodBib(req);
+  if (!codBib) return res.json([]);
+
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT * FROM (
+         SELECT L.NUM_CARTAO, L.NOME_COMPLETO, L.STATUS_LEITOR,
+                CASE WHEN P.NUM_CARTAO IS NOT NULL THEN 'Professor'
+                     WHEN A.NUM_CARTAO IS NOT NULL THEN 'Adulto'
+                     ELSE 'Crianca' END AS TIPO
+         FROM LEITOR L
+         LEFT JOIN ADULTO A   ON L.NUM_CARTAO = A.NUM_CARTAO
+         LEFT JOIN PROFESSOR P ON L.NUM_CARTAO = P.NUM_CARTAO
+         WHERE L.COD_BIBLIOTECA = :bib
+         ORDER BY L.NUM_CARTAO DESC
+       ) WHERE ROWNUM <= 5`,
+      { bib: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('\x1b[31m[DASHBOARD /leitores-recentes]\x1b[0m', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+// GET /api/dashboard/transferencias-recentes — últimas transferências desta biblioteca
+router.get('/transferencias-recentes', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+  const codBib = getCodBib(req);
+  if (!codBib) return res.json([]);
+
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT * FROM (
+         SELECT T.ID_TRANSFERENCIA, M.TITULO,
+                BO.NOME_BIBLIOTECA AS NOME_ORIGEM,
+                BD.NOME_BIBLIOTECA AS NOME_DESTINO,
+                T.DATA_SOLICITACAO, T.ESTADO_TRANSFERENCIA,
+                T.COD_BIBLIOTECA_ORIGEM, T.COD_BIBLIOTECA_DESTINO
+         FROM TRANSFERENCIA T
+         JOIN MATERIAL_BIBLIOGRAFICO M ON T.COD_MATERIAL = M.COD_MATERIAL
+         JOIN BIBLIOTECA BO ON T.COD_BIBLIOTECA_ORIGEM = BO.COD_BIBLIOTECA
+         JOIN BIBLIOTECA BD ON T.COD_BIBLIOTECA_DESTINO = BD.COD_BIBLIOTECA
+         WHERE T.COD_BIBLIOTECA_ORIGEM = :bib OR T.COD_BIBLIOTECA_DESTINO = :bib2
+         ORDER BY T.DATA_SOLICITACAO DESC
+       ) WHERE ROWNUM <= 3`,
+      { bib: codBib, bib2: codBib },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('\x1b[31m[DASHBOARD /transferencias-recentes]\x1b[0m', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
     if (conn) await conn.close();

@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
+const { autenticar, exigirNivel } = require('../middleware/permissoes');
 
 const DIAS_PT = ['Domingo','Segunda','Terca','Quarta','Quinta','Sexta','Sabado'];
 
-router.get('/', async (req, res) => {
+router.get('/', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -37,7 +38,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -58,7 +59,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   const { titulo_evento, descricao_evento, data_evento, publico_alvo, recorrente, COD_biblioteca } = req.body;
   if (!titulo_evento || !data_evento) {
     return res.status(400).json({ erro: 'titulo_evento e data_evento obrigatórios.' });
@@ -107,7 +108,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   const { titulo_evento, descricao_evento, data_evento, publico_alvo, recorrente, COD_biblioteca } = req.body;
   let conn;
   try {
@@ -139,7 +140,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -157,7 +158,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-router.get('/:id/participacoes', async (req, res) => {
+router.get('/:id/participacoes', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -182,7 +183,7 @@ router.get('/:id/participacoes', async (req, res) => {
   }
 });
 
-router.post('/:id/participacoes', async (req, res) => {
+router.post('/:id/participacoes', autenticar, async (req, res) => {
   const { num_cartao, presenca_confirmacao } = req.body;
   if (!num_cartao) return res.status(400).json({ erro: 'Número de cartão obrigatório.' });
 
@@ -260,7 +261,7 @@ router.post('/:id/participacoes', async (req, res) => {
   }
 });
 
-router.delete('/:id/participacoes/:numCartao', async (req, res) => {
+router.delete('/:id/participacoes/:numCartao', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -281,7 +282,7 @@ router.delete('/:id/participacoes/:numCartao', async (req, res) => {
   }
 });
 
-router.post('/:id/avaliacoes', async (req, res) => {
+router.post('/:id/avaliacoes', autenticar, async (req, res) => {
   const { num_cartao, nota, comentario } = req.body;
   if (!num_cartao || nota == null)
     return res.status(400).json({ erro: 'num_cartao e nota obrigatórios.' });
