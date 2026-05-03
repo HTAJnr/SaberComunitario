@@ -92,10 +92,14 @@ router.get('/', autenticar, async (req, res) => {
     const result = await conn.execute(
       `SELECT * FROM (
          SELECT t.*, ROWNUM AS RN FROM (
-           SELECT NUM_CARTAO, NOME_COMPLETO, TIPO_LEITOR, STATUS_LEITOR,
-                  HISTORICO_PONTUALIDADE, CONTACTO, COD_BIBLIOTECA, NOME_BIBLIOTECA
-             FROM VW_LEITORES_COMPLETOS ${where}
-            ORDER BY NOME_COMPLETO
+           SELECT lv.NUM_CARTAO, lv.NOME_COMPLETO, lv.TIPO_LEITOR, lv.STATUS_LEITOR,
+                  lv.HISTORICO_PONTUALIDADE, lv.CONTACTO, lv.COD_BIBLIOTECA, lv.NOME_BIBLIOTECA,
+                  (SELECT CASE WHEN COUNT(*) > 0 THEN 'S' ELSE 'N' END
+                     FROM EMPRESTIMO e
+                    WHERE e.NUM_CARTAO = lv.NUM_CARTAO
+                      AND e.DATA_DEVOLUCAO IS NULL) AS EMPRESTIMO_ATIVO
+             FROM VW_LEITORES_COMPLETOS lv ${where}
+            ORDER BY lv.NOME_COMPLETO
          ) t WHERE ROWNUM <= :end_row
        ) WHERE RN > :start_row`,
       paginaParams,
@@ -459,7 +463,6 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'
          NIVEL_ESCOLAR        = NVL(:nivel,    NIVEL_ESCOLAR),
          LOCALIZACAO_LEITOR   = NVL(:loc,      LOCALIZACAO_LEITOR),
          CONTACTO             = NVL(:contacto, CONTACTO),
-         COD_BIBLIOTECA       = NVL(:cod_bib,  COD_BIBLIOTECA),
          DISTANCIA_BIBLIOTECA = NVL(:dist_bib, DISTANCIA_BIBLIOTECA)
        WHERE NUM_CARTAO = :id`,
       {
@@ -469,7 +472,6 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'
         nivel:    nivel_escolar || null,
         loc:      localizacao_leitor || null,
         contacto: contacto || null,
-        cod_bib:  cod_biblioteca || null,
         dist_bib: distancia_biblioteca != null ? Number(distancia_biblioteca) : null,
         id:       req.params.id
       }
