@@ -86,7 +86,7 @@ router.get('/', autenticar, async (req, res) => {
       where += ` AND DISPONIVEL_EMPRESTIMO = 'S'`;
     }
     if (cod_categoria) {
-      where += ` AND COD_CATEGORIA = :cod_cat`;
+      where += ` AND COD_MATERIAL IN (SELECT COD_MATERIAL FROM MATERIAL_BIBLIOGRAFICO WHERE COD_CATEGORIA = :cod_cat)`;
       params.cod_cat = Number(cod_categoria);
     }
     if (search) {
@@ -115,7 +115,7 @@ router.get('/', autenticar, async (req, res) => {
                  ESTADO_CONSERVACAO   AS ESTADO,
                  DISPONIVEL_EMPRESTIMO,
                  COD_BIBLIOTECA, BIBLIOTECA_NOME,
-                 COD_CATEGORIA, CATEGORIA_AREA_TEMATICA, CATEGORIA_FAIXA_ETARIA,
+                 CATEGORIA_AREA_TEMATICA, CATEGORIA_FAIXA_ETARIA,
                  LOCALIZACAO_ESTANTE,
                  EBOOK_FORMATO, EBOOK_URL, EBOOK_TAMANHO,
                  PERIODICO_EDICAO, PERIODICO_PERIODICIDADE, PERIODICO_ISSN
@@ -156,6 +156,9 @@ router.get('/:id', autenticar, async (req, res) => {
               m.ORIGEM_MATERIAL, m.DATA_AQUISICAO, m.VALOR_AQUISICAO,
               m.LOCALIZACAO_ESTANTE, m.COD_CATEGORIA, m.COD_BIBLIOTECA,
               m.ID_ITEMDOADO,
+              cat.AREA_TEMATICA  AS CATEGORIA_AREA_TEMATICA,
+              cat.FAIXA_ETARIA   AS CATEGORIA_FAIXA_ETARIA,
+              cat.NIVEL_LEITURA  AS CATEGORIA_NIVEL_LEITURA,
               CASE WHEN lf.COD_MATERIAL IS NOT NULL THEN 'Livro'
                    WHEN e.COD_MATERIAL  IS NOT NULL THEN 'Ebook'
                    WHEN p.COD_MATERIAL  IS NOT NULL THEN 'Periodico'
@@ -168,9 +171,10 @@ router.get('/:id', autenticar, async (req, res) => {
               p.DATA_PUBLICACAO AS PERIODICO_DATA_PUBLICACAO,
               p.ISSN            AS PERIODICO_ISSN
          FROM MATERIAL_BIBLIOGRAFICO m
-         LEFT JOIN LIVRO_FISICO lf ON lf.COD_MATERIAL = m.COD_MATERIAL
-         LEFT JOIN EBOOK e         ON e.COD_MATERIAL  = m.COD_MATERIAL
-         LEFT JOIN PERIODICO p     ON p.COD_MATERIAL  = m.COD_MATERIAL
+         LEFT JOIN CATEGORIA cat    ON cat.ID_CATEGORIA = m.COD_CATEGORIA
+         LEFT JOIN LIVRO_FISICO lf  ON lf.COD_MATERIAL  = m.COD_MATERIAL
+         LEFT JOIN EBOOK e          ON e.COD_MATERIAL   = m.COD_MATERIAL
+         LEFT JOIN PERIODICO p      ON p.COD_MATERIAL   = m.COD_MATERIAL
         WHERE m.COD_MATERIAL = :id`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -183,37 +187,32 @@ router.get('/:id', autenticar, async (req, res) => {
     const material = matResult.rows[0];
     const resposta = { ...material };
 
-    if (includes.emprestimos) {
-      const n = includes.emprestimos;
-      const empResult = await conn.execute(
-        `SELECT * FROM (
-           SELECT ID_EMPRESTIMO, NUM_CARTAO, COD_FUNCIONARIO,
-                  DATA_RETIRADA, PRAZO_DEVOLUCAO, DATA_DEVOLUCAO,
-                  MULTA_VALOR, MULTA_PAGA
-             FROM EMPRESTIMO
-            WHERE COD_MATERIAL = :id
-            ORDER BY DATA_RETIRADA DESC
-         ) WHERE ROWNUM <= :n`,
-        { id, n },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-      resposta.emprestimos = empResult.rows;
-    }
-
-    if (includes.transferencias) {
-      const tResult = await conn.execute(
-        `SELECT ID_TRANSFERENCIA, ESTADO_TRANSFERENCIA, DATA_SOLICITACAO,
-                DATA_CONCLUSAO, COD_BIBLIOTECA_ORIGEM, COD_BIBLIOTECA_DESTINO
-           FROM TRANSFERENCIA
+    const empResult = await conn.execute(
+      `SELECT * FROM (
+         SELECT ID_EMPRESTIMO, NUM_CARTAO, COD_FUNCIONARIO,
+                DATA_RETIRADA, PRAZO_DEVOLUCAO, DATA_DEVOLUCAO,
+                MULTA_VALOR, MULTA_PAGA
+           FROM EMPRESTIMO
           WHERE COD_MATERIAL = :id
-          ORDER BY DATA_SOLICITACAO DESC`,
-        { id },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-      resposta.transferencias = tResult.rows;
-    }
+          ORDER BY DATA_RETIRADA DESC
+       ) WHERE ROWNUM <= 5`,
+      { id },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    resposta.emprestimos = empResult.rows;
 
-    if (includes.doacao && material.ID_ITEMDOADO) {
+    const tResult = await conn.execute(
+      `SELECT ID_TRANSFERENCIA, ESTADO_TRANSFERENCIA, DATA_SOLICITACAO,
+              DATA_CONCLUSAO, COD_BIBLIOTECA_ORIGEM, COD_BIBLIOTECA_DESTINO
+         FROM TRANSFERENCIA
+        WHERE COD_MATERIAL = :id
+        ORDER BY DATA_SOLICITACAO DESC`,
+      { id },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    resposta.transferencias = tResult.rows;
+
+    if (material.ID_ITEMDOADO) {
       const dResult = await conn.execute(
         `SELECT it.ID_ITEMDOADO, it.VALOR_ESTIMADO, it.QUANTIDADE,
                 d.DATA_DOACAO, dor.NOME_DOADOR, dor.TIPO_DOADOR
@@ -225,6 +224,8 @@ router.get('/:id', autenticar, async (req, res) => {
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
       resposta.doacao = dResult.rows[0] || null;
+    } else {
+      resposta.doacao = null;
     }
 
     res.json(resposta);
