@@ -13,7 +13,7 @@
 
 ## FASE 2 — Implementar Routes em Falta
 
-- [ ] `transferencias.js` — GET lista (`?direcao&estado`), POST solicitar, PATCH aprovar, PATCH rejeitar, PATCH concluir §8
+- [x] `transferencias.js` — GET lista (`?direcao&estado`), POST solicitar, PATCH aprovar, PATCH rejeitar, PATCH concluir §8
 - [ ] `programas.js` — GET lista, POST criar, GET `/:cod/participantes`, POST `/participantes`, PATCH `/participantes/:num_cartao` §11
 - [ ] `bibliotecas.js` — GET lista (só Admin), GET `/:cod`, POST (só Admin), PATCH §13
 - [ ] `server.js` — montar as 3 novas routes
