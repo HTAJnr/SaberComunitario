@@ -7,7 +7,7 @@ const { autenticar } = require('../middleware/permissoes');
 const TAXA_MULTA = { ADULTO: 15, CRIANCA: 5, PROFESSOR: 10 };
 
 // RN02: prazo = 14 + floor(distancia/10) ± ajustes, mínimo 7 dias
-function calcularPrazo(distancia, tipoLeitor, historicoPontualidade) {
+function calcularPrazo(distancia, tipoLeitor, historicoPontualidade, dataInicio) {
   const base = 14;
   const geografico = Math.floor((distancia || 0) / 10);
   const professor = tipoLeitor === 'PROFESSOR' ? 7 : 0;
@@ -15,7 +15,7 @@ function calcularPrazo(distancia, tipoLeitor, historicoPontualidade) {
   if (historicoPontualidade === 'Irregular') pontualidade = -3;
   if (historicoPontualidade === 'Mau') pontualidade = -5;
   const dias = Math.max(base + geografico + professor + pontualidade, 7);
-  const prazo = new Date();
+  const prazo = dataInicio ? new Date(dataInicio) : new Date();
   prazo.setDate(prazo.getDate() + dias);
   return { prazo, dias, detalhes: { base, geografico, professor, pontualidade } };
 }
@@ -228,7 +228,7 @@ router.get('/validar-leitor/:num_cartao', autenticar, async (req, res) => {
 
 // ── POST /calcular-prazo — preview do prazo antes de confirmar empréstimo ──────
 router.post('/calcular-prazo', autenticar, async (req, res) => {
-  const { num_cartao } = req.body;
+  const { num_cartao, data_retirada } = req.body;
   if (!num_cartao) return res.status(400).json({ erro: true, codigo: 'DADOS_INCOMPLETOS', mensagem: 'num_cartao obrigatório.' });
 
   let conn;
@@ -251,7 +251,7 @@ router.post('/calcular-prazo', autenticar, async (req, res) => {
     if (r.rows.length === 0) return res.status(404).json({ erro: true, codigo: 'LEITOR_NAO_ENCONTRADO', mensagem: 'Leitor não encontrado.' });
 
     const l = r.rows[0];
-    const { prazo, dias, detalhes } = calcularPrazo(l.DISTANCIA_BIBLIOTECA, l.TIPO_LEITOR, l.HISTORICO_PONTUALIDADE);
+    const { prazo, dias, detalhes } = calcularPrazo(l.DISTANCIA_BIBLIOTECA, l.TIPO_LEITOR, l.HISTORICO_PONTUALIDADE, data_retirada || null);
 
     res.json({
       prazo_devolucao: prazo.toISOString().slice(0, 10),
