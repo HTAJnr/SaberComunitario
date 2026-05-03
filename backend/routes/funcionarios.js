@@ -4,6 +4,15 @@ const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { autenticar, exigirNivel } = require('../middleware/permissoes');
 
+// Gera email a partir do nome: "Ana Beatriz Machava" → "ana.machava@sabercomunitario.mz"
+function gerarEmail(nome) {
+  const partes = nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/\s+/).filter(Boolean);
+  const primeiro = partes[0] || 'funcionario';
+  const ultimo = partes.length > 1 ? partes[partes.length - 1] : '';
+  const local = ultimo ? `${primeiro}.${ultimo}` : primeiro;
+  return `${local}@sabercomunitario.mz`;
+}
+
 router.get('/funcoes', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
@@ -44,25 +53,34 @@ router.get('/bibliotecas', exigirNivel('Administrador', 'Coordenador'), async (r
   }
 });
 
+// GET / — lista de funcionários com filtro ?biblioteca (Coordenador restrito à sua)
 router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+  const user = req.session.funcionario;
+  const nivelUser = user.NIVEL_ACESSO;
+  // Coordenador só vê a sua biblioteca; Admin pode filtrar ou ver todas
+  const codBib = nivelUser === 'Coordenador' ? user.COD_BIBLIOTECA : (req.query.biblioteca || null);
+
+  let sql = `SELECT f.COD_FUNCIONARIO,
+                    f.NOME_FUNCIONARIO  AS NOME,
+                    f.EMAIL,
+                    ff.NOME_FUNCAO      AS FUNCAO,
+                    ff.NIVEL_ACESSO,
+                    b.NOME_BIBLIOTECA
+             FROM FUNCIONARIO f
+             LEFT JOIN FUNCAO_FUNCIONARIO ff ON ff.ID_FUNCAO = f.ID_FUNCAO
+             LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = f.COD_BIBLIOTECA
+             WHERE f.DATA_DEMISSAO IS NULL`;
+  const binds = {};
+  if (codBib) {
+    sql += ` AND f.COD_BIBLIOTECA = :cod_bib`;
+    binds.cod_bib = codBib;
+  }
+  sql += ` ORDER BY f.NOME_FUNCIONARIO`;
+
   let conn;
   try {
     conn = await getConnection();
-    const result = await conn.execute(
-      `SELECT f.COD_FUNCIONARIO,
-              f.NOME_FUNCIONARIO  AS NOME,
-              f.EMAIL,
-              ff.NOME_FUNCAO      AS FUNCAO,
-              ff.NIVEL_ACESSO,
-              b.NOME_BIBLIOTECA
-       FROM FUNCIONARIO f
-       LEFT JOIN FUNCAO_FUNCIONARIO ff ON ff.ID_FUNCAO = f.ID_FUNCAO
-       LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = f.COD_BIBLIOTECA
-       WHERE f.DATA_DEMISSAO IS NULL
-       ORDER BY f.NOME_FUNCIONARIO`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+    const result = await conn.execute(sql, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT });
     res.json(result.rows);
   } catch (err) {
     console.error('\x1b[31m[FUNCIONARIOS GET /] ERRO ao listar funcionários\x1b[0m');
@@ -213,37 +231,48 @@ router.patch('/me/senha', autenticar, async (req, res) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+// GET /:id — inclui habilidades + horários
 router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
-    const result = await conn.execute(
-      `SELECT f.COD_FUNCIONARIO, f.NOME_FUNCIONARIO, f.EMAIL, f.CONTACTO, f.GENERO,
-              f.DATA_CONTRATACAO, f.DATA_DEMISSAO, f.ID_FUNCAO, f.COD_BIBLIOTECA,
-              ff.NOME_FUNCAO AS FUNCAO, ff.NIVEL_ACESSO, b.NOME_BIBLIOTECA
-         FROM FUNCIONARIO f
-         LEFT JOIN FUNCAO_FUNCIONARIO ff ON ff.ID_FUNCAO = f.ID_FUNCAO
-         LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = f.COD_BIBLIOTECA
-        WHERE f.COD_FUNCIONARIO = :id`,
-      { id: req.params.id },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-    if (result.rows.length === 0) return res.status(404).json({ erro: 'Funcionário não encontrado.' });
+    const [funcRes, habilRes, horRes] = await Promise.all([
+      conn.execute(
+        `SELECT f.COD_FUNCIONARIO, f.NOME_FUNCIONARIO, f.EMAIL, f.CONTACTO, f.GENERO,
+                f.DATA_NASC, f.FORMACAO, f.EXPERIENCIA,
+                f.DATA_CONTRATACAO, f.DATA_DEMISSAO, f.ID_FUNCAO, f.COD_BIBLIOTECA,
+                ff.NOME_FUNCAO AS FUNCAO, ff.NIVEL_ACESSO, b.NOME_BIBLIOTECA
+           FROM FUNCIONARIO f
+           LEFT JOIN FUNCAO_FUNCIONARIO ff ON ff.ID_FUNCAO = f.ID_FUNCAO
+           LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = f.COD_BIBLIOTECA
+          WHERE f.COD_FUNCIONARIO = :id`,
+        { id: req.params.id },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      ),
+      conn.execute(
+        `SELECT HABILIDADE FROM FUNCIONARIO_HABILIDADE WHERE COD_FUNCIONARIO = :id`,
+        { id: req.params.id },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      ),
+      conn.execute(
+        `SELECT DIA_SEMANA, HORA_ENTRADA, HORA_SAIDA
+           FROM HORARIO_FUNCIONARIO
+          WHERE COD_FUNCIONARIO = :id
+          ORDER BY DIA_SEMANA`,
+        { id: req.params.id },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      ),
+    ]);
 
-    const horarioResult = await conn.execute(
-      `SELECT dia_semana, hora_entrada, hora_saida
-         FROM HORARIO_FUNCIONARIO
-        WHERE cod_funcionario = :cod
-        ORDER BY dia_semana`,
-      { cod: req.params.id },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-    const funcionario = result.rows[0];
-    funcionario.HORARIO = horarioResult.rows;
+    if (funcRes.rows.length === 0) return res.status(404).json({ erro: 'Funcionário não encontrado.' });
+
+    const funcionario = funcRes.rows[0];
+    funcionario.HABILIDADES = habilRes.rows.map(r => r.HABILIDADE);
+    funcionario.HORARIO = horRes.rows;
     res.json(funcionario);
   } catch (err) {
     console.error(`\x1b[31m[FUNCIONARIOS GET /${req.params.id}] ERRO ao buscar funcionário\x1b[0m`);
-    console.error('     BD: FUNCIONARIO + FUNCAO_FUNCIONARIO + BIBLIOTECA + HORARIO_FUNCIONARIO');
+    console.error('     BD: FUNCIONARIO + FUNCAO_FUNCIONARIO + BIBLIOTECA + FUNCIONARIO_HABILIDADE + HORARIO_FUNCIONARIO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
@@ -251,35 +280,74 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res)
   }
 });
 
+// POST / — cria funcionário; gera cod, email e hash da senha; insere habilidades + horários
 router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
-  const { nome_funcionario, email, senha, contacto, genero, id_funcao, COD_biblioteca, data_contratacao } = req.body;
-  if (!nome_funcionario || !email || !senha) {
-    return res.status(400).json({ erro: 'Nome, email e senha obrigatórios.' });
+  const { nome_funcionario, senha, contacto, genero, id_funcao, cod_biblioteca,
+          data_contratacao, endereco, formacao, experiencia,
+          habilidades, horarios } = req.body;
+
+  if (!nome_funcionario || !senha) {
+    return res.status(400).json({ erro: 'Nome e senha são obrigatórios.' });
   }
+
+  const user = req.session.funcionario;
+  // Coordenador só pode criar funcionários na sua biblioteca
+  const codBib = user.NIVEL_ACESSO === 'Coordenador' ? user.COD_BIBLIOTECA : (cod_biblioteca || null);
 
   let conn;
   try {
+    const senhaHash = await bcrypt.hash(senha, 10);
+    const email = gerarEmail(nome_funcionario);
+
     conn = await getConnection();
     const result = await conn.execute(
       `INSERT INTO FUNCIONARIO
          (COD_FUNCIONARIO, NOME_FUNCIONARIO, EMAIL, SENHA, CONTACTO, GENERO,
+          ENDERECO, FORMACAO, EXPERIENCIA,
           ID_FUNCAO, COD_BIBLIOTECA, DATA_CONTRATACAO)
        VALUES
-         (SEQ_FUNCIONARIO.NEXTVAL, :nome, :email, :senha, :contacto, :genero,
+         ('FUC' || TO_CHAR(SYSDATE,'YYYY') || LPAD(TO_CHAR(SEQ_FUNCIONARIO.NEXTVAL),4,'0'),
+          :nome, :email, :senha, :contacto, :genero,
+          :endereco, :formacao, :experiencia,
           :id_funcao, :cod_bib, NVL(TO_DATE(:dent,'YYYY-MM-DD'), SYSDATE))
-       RETURNING COD_FUNCIONARIO INTO :id_out`,
-      { nome: nome_funcionario, email, senha,
+       RETURNING COD_FUNCIONARIO INTO :cod_out`,
+      {
+        nome: nome_funcionario, email, senha: senhaHash,
         contacto: contacto || null, genero: genero || 'Masculino',
-        id_funcao: id_funcao || null, cod_bib: COD_biblioteca || null,
+        endereco: endereco || null, formacao: formacao || null, experiencia: experiencia || null,
+        id_funcao: id_funcao || null, cod_bib: codBib,
         dent: data_contratacao || null,
-        id_out: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } }
+        cod_out: { dir: oracledb.BIND_OUT, type: oracledb.STRING }
+      }
     );
+
+    const codFuncionario = result.outBinds.cod_out[0];
+
+    if (Array.isArray(habilidades) && habilidades.length > 0) {
+      for (const h of habilidades) {
+        await conn.execute(
+          `INSERT INTO FUNCIONARIO_HABILIDADE (COD_FUNCIONARIO, HABILIDADE) VALUES (:cod, :h)`,
+          { cod: codFuncionario, h }
+        );
+      }
+    }
+
+    if (Array.isArray(horarios) && horarios.length > 0) {
+      for (const hor of horarios) {
+        await conn.execute(
+          `INSERT INTO HORARIO_FUNCIONARIO (COD_FUNCIONARIO, DIA_SEMANA, HORA_ENTRADA, HORA_SAIDA)
+           VALUES (:cod, :dia, :entrada, :saida)`,
+          { cod: codFuncionario, dia: hor.dia_semana, entrada: hor.hora_entrada, saida: hor.hora_saida }
+        );
+      }
+    }
+
     await conn.commit();
-    res.status(201).json({ ok: true, COD_funcionario: result.outBinds.id_out[0] });
+    res.status(201).json({ ok: true, cod_funcionario: codFuncionario, email });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('\x1b[31m[FUNCIONARIOS POST /] ERRO ao criar funcionário\x1b[0m');
-    console.error('     BD: INSERT FUNCIONARIO');
+    console.error('     BD: INSERT FUNCIONARIO + FUNCIONARIO_HABILIDADE + HORARIO_FUNCIONARIO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
@@ -287,32 +355,66 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
   }
 });
 
-router.put('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
-  const { nome_funcionario, email, senha, contacto, genero, id_funcao, COD_biblioteca } = req.body;
+// PATCH /:id — edita dados pessoais, habilidades, horários (email e nivel_acesso nunca editáveis aqui)
+router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+  const { nome_funcionario, contacto, genero, endereco, formacao, experiencia,
+          id_funcao, cod_biblioteca, habilidades, horarios } = req.body;
   let conn;
   try {
     conn = await getConnection();
     await conn.execute(
       `UPDATE FUNCIONARIO SET
          NOME_FUNCIONARIO = NVL(:nome, NOME_FUNCIONARIO),
-         EMAIL            = NVL(:email, EMAIL),
-         SENHA            = NVL(:senha, SENHA),
          CONTACTO         = NVL(:contacto, CONTACTO),
          GENERO           = NVL(:genero, GENERO),
+         ENDERECO         = NVL(:endereco, ENDERECO),
+         FORMACAO         = NVL(:formacao, FORMACAO),
+         EXPERIENCIA      = NVL(:experiencia, EXPERIENCIA),
          ID_FUNCAO        = NVL(:id_funcao, ID_FUNCAO),
-         COD_BIBLIOTECA    = NVL(:cod_bib, COD_BIBLIOTECA)
+         COD_BIBLIOTECA   = NVL(:cod_bib, COD_BIBLIOTECA)
        WHERE COD_FUNCIONARIO = :id`,
-      { nome: nome_funcionario || null, email: email || null, senha: senha || null,
-        contacto: contacto || null, genero: genero || null,
-        id_funcao: id_funcao || null, cod_bib: COD_biblioteca || null,
-        id: req.params.id }
+      {
+        nome: nome_funcionario || null, contacto: contacto || null,
+        genero: genero || null, endereco: endereco || null,
+        formacao: formacao || null, experiencia: experiencia || null,
+        id_funcao: id_funcao || null, cod_bib: cod_biblioteca || null,
+        id: req.params.id
+      }
     );
+
+    if (Array.isArray(habilidades)) {
+      await conn.execute(
+        `DELETE FROM FUNCIONARIO_HABILIDADE WHERE COD_FUNCIONARIO = :id`,
+        { id: req.params.id }
+      );
+      for (const h of habilidades) {
+        await conn.execute(
+          `INSERT INTO FUNCIONARIO_HABILIDADE (COD_FUNCIONARIO, HABILIDADE) VALUES (:cod, :h)`,
+          { cod: req.params.id, h }
+        );
+      }
+    }
+
+    if (Array.isArray(horarios)) {
+      await conn.execute(
+        `DELETE FROM HORARIO_FUNCIONARIO WHERE COD_FUNCIONARIO = :id`,
+        { id: req.params.id }
+      );
+      for (const hor of horarios) {
+        await conn.execute(
+          `INSERT INTO HORARIO_FUNCIONARIO (COD_FUNCIONARIO, DIA_SEMANA, HORA_ENTRADA, HORA_SAIDA)
+           VALUES (:cod, :dia, :entrada, :saida)`,
+          { cod: req.params.id, dia: hor.dia_semana, entrada: hor.hora_entrada, saida: hor.hora_saida }
+        );
+      }
+    }
+
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
     if (conn) await conn.rollback();
-    console.error(`\x1b[31m[FUNCIONARIOS PUT /${req.params.id}] ERRO ao actualizar funcionário\x1b[0m`);
-    console.error('     BD: UPDATE FUNCIONARIO');
+    console.error(`\x1b[31m[FUNCIONARIOS PATCH /${req.params.id}] ERRO ao actualizar funcionário\x1b[0m`);
+    console.error('     BD: UPDATE FUNCIONARIO + FUNCIONARIO_HABILIDADE + HORARIO_FUNCIONARIO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
@@ -324,7 +426,7 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
-    // Desactivar: define DATA_DEMISSAO em vez de apagar (trigger impede_exclusao_coordenador protege coordenadores)
+    // Soft delete: define DATA_DEMISSAO em vez de apagar
     await conn.execute(
       `UPDATE FUNCIONARIO SET DATA_DEMISSAO = SYSDATE WHERE COD_FUNCIONARIO = :id AND DATA_DEMISSAO IS NULL`,
       { id: req.params.id }
@@ -334,7 +436,7 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
   } catch (err) {
     if (conn) await conn.rollback();
     console.error(`\x1b[31m[FUNCIONARIOS DELETE /${req.params.id}] ERRO ao desactivar funcionário\x1b[0m`);
-    console.error('     BD: UPDATE FUNCIONARIO SET DATA_DEMISSAO (TRIGGER impede_exclusao_coordenador pode estar a bloquear)');
+    console.error('     BD: UPDATE FUNCIONARIO SET DATA_DEMISSAO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
@@ -342,23 +444,28 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
   }
 });
 
-// Endpoint BD2-READY: gerir acesso Oracle do funcionário via proc_gerir_acesso_bd
-router.post('/:id/acesso', exigirNivel('Administrador'), async (req, res) => {
-  const { acao } = req.body;
-  if (!acao || !['GRANT', 'REVOKE'].includes(acao.toUpperCase())) {
-    return res.status(400).json({ erro: 'acao deve ser "GRANT" ou "REVOKE".' });
+// PATCH /:id/acesso — altera nível de acesso (muda ID_FUNCAO); só Administrador
+router.patch('/:id/acesso', exigirNivel('Administrador'), async (req, res) => {
+  const { id_funcao } = req.body;
+  if (!id_funcao) {
+    return res.status(400).json({ erro: 'id_funcao é obrigatório.' });
   }
   let conn;
   try {
     conn = await getConnection();
-    await conn.execute(
-      `BEGIN proc_gerir_acesso_bd(:id_func, :acao); END;`,
-      { id_func: req.params.id, acao: acao.toUpperCase() }
+    const result = await conn.execute(
+      `UPDATE FUNCIONARIO SET ID_FUNCAO = :id_funcao WHERE COD_FUNCIONARIO = :id`,
+      { id_funcao, id: req.params.id }
     );
-    res.json({ ok: true, mensagem: `${acao.toUpperCase()} de acesso BD aplicado ao funcionário ${req.params.id}.` });
+    if (result.rowsAffected === 0) {
+      return res.status(404).json({ erro: 'Funcionário não encontrado.' });
+    }
+    await conn.commit();
+    res.json({ ok: true });
   } catch (err) {
-    console.error(`\x1b[31m[FUNCIONARIOS POST /${req.params.id}/acesso] ERRO ao gerir acesso\x1b[0m`);
-    console.error('     BD: PROCEDURE proc_gerir_acesso_bd');
+    if (conn) await conn.rollback();
+    console.error(`\x1b[31m[FUNCIONARIOS PATCH /${req.params.id}/acesso] ERRO ao alterar nível de acesso\x1b[0m`);
+    console.error('     BD: UPDATE FUNCIONARIO SET ID_FUNCAO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {

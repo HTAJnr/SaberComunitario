@@ -6,8 +6,8 @@
 - [x] `dashboard.js` — verificar `/rede` (só Admin) e `/biblioteca` com campos correctos §4
 - [x] `leitores.js` — verificar GET lista, GET perfil completo (subtipo + empréstimo activo + histórico + suspensões + multas), POST, PATCH, DELETE, PATCH `/status` §5
 - [x] `emprestimos.js` — verificar GET lista, GET `validar-leitor`, POST `calcular-prazo`, POST criar, PATCH `devolver` (com resumo dias/multa/suspensão), PATCH `pagar-multa`, POST `preview-devolucao` §6 + §15
-- [ ] `materiais.js` — verificar GET lista, GET detalhe (subtipo + histórico + transferências), POST, PATCH, DELETE §7
-- [ ] `funcionarios.js` — verificar GET lista, GET detalhe, POST, PATCH, DELETE, PATCH `/acesso` (só Admin), GET `/me`, PATCH `/me`, PATCH `/me/senha` §2 + §12
+- [x] `materiais.js` — verificar GET lista, GET detalhe (subtipo + histórico + transferências), POST, PATCH, DELETE §7
+- [x] `funcionarios.js` — verificar GET lista, GET detalhe, POST, PATCH, DELETE, PATCH `/acesso` (só Admin), GET `/me`, PATCH `/me`, PATCH `/me/senha` §2 + §12
 - [ ] `eventos.js` — verificar GET lista, POST criar (com horários + recursos), POST `/participantes`, DELETE `/participantes/:num_cartao`, PATCH `/status` §9
 - [ ] `doacoes.js` — verificar GET lista, POST criar, POST `/:id/certificado`, GET `/doadores`, POST `/doadores` §10
 
