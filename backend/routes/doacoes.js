@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const doadoresRouter = express.Router();
 const { getConnection, oracledb } = require('../db');
-const { autenticar, exigirNivel } = require('../middleware/permissoes');
+const { exigirNivel } = require('../middleware/permissoes');
 
 // ── Doadores ──────────────────────────────────────────────────────────────────
-router.get('/doadores', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+doadoresRouter.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -26,7 +27,7 @@ router.get('/doadores', exigirNivel('Administrador', 'Coordenador'), async (req,
     );
     res.json(result.rows);
   } catch (err) {
-    console.error('\x1b[31m[DOACOES GET /doadores] ERRO ao listar doadores\x1b[0m');
+    console.error('\x1b[31m[DOADORES GET /] ERRO ao listar doadores\x1b[0m');
     console.error('     BD: DOADOR');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
@@ -35,7 +36,7 @@ router.get('/doadores', exigirNivel('Administrador', 'Coordenador'), async (req,
   }
 });
 
-router.post('/doadores', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+doadoresRouter.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   const { nome_doador, tipo_doador, contacto, endereco, observacoes } = req.body;
   if (!nome_doador || !tipo_doador) return res.status(400).json({ erro: 'Nome e tipo obrigatórios.' });
   let conn;
@@ -53,7 +54,7 @@ router.post('/doadores', exigirNivel('Administrador', 'Coordenador'), async (req
     res.status(201).json({ ok: true, id_doador: result.outBinds.id_out[0] });
   } catch (err) {
     if (conn) await conn.rollback();
-    console.error('\x1b[31m[DOACOES POST /doadores] ERRO ao criar doador\x1b[0m');
+    console.error('\x1b[31m[DOADORES POST /] ERRO ao criar doador\x1b[0m');
     console.error('     BD: INSERT DOADOR');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
@@ -68,23 +69,51 @@ router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =>
   try {
     conn = await getConnection();
     const { biblioteca } = req.query;
-    const binds = {};
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const minRow = (page - 1) * limit;
+    const maxRow = page * limit;
+
+    const binds = { min_row: minRow, max_row: maxRow };
     let where = '';
     if (biblioteca) {
       where = `WHERE ID_DOACAO IN (SELECT ID_DOACAO FROM ITEM_DOACAO WHERE COD_BIBLIOTECA = :biblioteca)`;
       binds.biblioteca = biblioteca;
     }
+
     const result = await conn.execute(
-      `SELECT ID_DOACAO, DATA_DOACAO,
-              DOADOR_NOME              AS NOME_DOADOR,
-              VALOR_TOTAL_DOACAO       AS VALOR_TOTAL,
-              BIBLIOTECAS_BENEFICIADAS AS NOME_BIBLIOTECA,
-              TOTAL_ITENS, CERTIFICADO_NUMERO
-       FROM vw_doacoes_detalhadas ${where} ORDER BY DATA_DOACAO DESC`,
+      `SELECT * FROM (
+         SELECT a.*, ROWNUM AS RN FROM (
+           SELECT ID_DOACAO, DATA_DOACAO,
+                  DOADOR_NOME              AS NOME_DOADOR,
+                  VALOR_TOTAL_DOACAO       AS VALOR_TOTAL,
+                  BIBLIOTECAS_BENEFICIADAS AS NOME_BIBLIOTECA,
+                  TOTAL_ITENS, CERTIFICADO_NUMERO
+             FROM vw_doacoes_detalhadas ${where} ORDER BY DATA_DOACAO DESC
+         ) a WHERE ROWNUM <= :max_row
+       ) WHERE RN > :min_row`,
       binds,
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-    res.json(result.rows);
+
+    const countBinds = {};
+    let countWhere = '';
+    if (biblioteca) {
+      countWhere = `WHERE ID_DOACAO IN (SELECT ID_DOACAO FROM ITEM_DOACAO WHERE COD_BIBLIOTECA = :biblioteca)`;
+      countBinds.biblioteca = biblioteca;
+    }
+    const countResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL FROM vw_doacoes_detalhadas ${countWhere}`,
+      countBinds,
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    res.json({
+      dados: result.rows,
+      total: countResult.rows[0].TOTAL,
+      page,
+      limit
+    });
   } catch (err) {
     console.error('\x1b[31m[DOACOES GET /] ERRO ao listar doações\x1b[0m');
     console.error('     BD: VIEW vw_doacoes_detalhadas');
@@ -95,7 +124,6 @@ router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =>
   }
 });
 
-// ── Certificados ──────────────────────────────────────────────────────────────
 router.get('/certificados', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
@@ -128,7 +156,7 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res)
     const dResult = await conn.execute(
       `SELECT d.*, dr.NOME_DOADOR, dr.TIPO_DOADOR
          FROM DOACAO d
-         JOIN DOADOR dr ON dr.ID_DOADOR = d.ID_DOADOR
+         LEFT JOIN DOADOR dr ON dr.ID_DOADOR = d.ID_DOADOR
         WHERE d.ID_DOACAO = :id`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -154,13 +182,13 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res)
 });
 
 router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
-  // itens: [{ COD_biblioteca, quantidade, valor_estimado, observacoes }]
+  // itens: [{ cod_biblioteca, quantidade, valor_estimado, observacoes }]
+  // id_doador: 0 significa doador anónimo (RN10)
   const { id_doador, data_doacao, itens } = req.body;
   if (id_doador == null || !itens || itens.length === 0) {
-    return res.status(400).json({ erro: 'Doador e pelo menos um item obrigatórios.' });
+    return res.status(400).json({ erro: 'Doador (0 para anónimo) e pelo menos um item obrigatórios.' });
   }
 
-  // Validar cada item
   for (let i = 0; i < itens.length; i++) {
     const item = itens[i];
     if (!item.cod_biblioteca) {
@@ -176,6 +204,9 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
     }
   }
 
+  // id_doador === 0 → doação anónima (NULL na BD)
+  const idDoadorBD = (Number(id_doador) === 0) ? null : id_doador;
+
   let conn;
   try {
     conn = await getConnection();
@@ -184,7 +215,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       `INSERT INTO DOACAO (ID_DOACAO, ID_DOADOR, DATA_DOACAO)
        VALUES (SEQ_DOACAO.NEXTVAL, :id_doador, NVL(TO_DATE(:data,'YYYY-MM-DD'), SYSDATE))
        RETURNING ID_DOACAO INTO :id_out`,
-      { id_doador,
+      { id_doador: idDoadorBD,
         data: data_doacao || null,
         id_out: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } }
     );
@@ -202,13 +233,12 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       );
     }
 
-    // Verificar se elegível para certificado (≥1000MT) — o trigger gera_certificado_automatico também faz isto,
-    // mas garantimos aqui como fallback
+    // Verificar se elegível para certificado (≥1000MT) — trigger gera_certificado_automatico também faz isto
     const valorTotal = itens.reduce(
       (s, i) => s + (Number(i.quantidade || 1) * Number(i.valor_estimado || 0)), 0
     );
     let numCertificado = null;
-    if (valorTotal >= 1000) {
+    if (valorTotal >= 1000 && idDoadorBD !== null) {
       const seqResult = await conn.execute(
         `SELECT SEQ_CERTIFICADO.NEXTVAL AS SEQ FROM DUAL`,
         [],
@@ -317,4 +347,4 @@ router.post('/certificados/:id/reemitir', exigirNivel('Administrador', 'Coordena
   }
 });
 
-module.exports = router;
+module.exports = { doacoesRouter: router, doadoresRouter };

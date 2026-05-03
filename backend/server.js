@@ -12,7 +12,7 @@ const materiaisRoutes = require('./routes/materiais');
 const emprestimosRoutes = require('./routes/emprestimos');
 const funcionariosRoutes = require('./routes/funcionarios');
 const eventosRoutes = require('./routes/eventos');
-const doacoesRoutes = require('./routes/doacoes');
+const { doacoesRouter, doadoresRouter } = require('./routes/doacoes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,7 +45,8 @@ app.use('/api/materiais', materiaisRoutes);
 app.use('/api/emprestimos', emprestimosRoutes);
 app.use('/api/funcionarios', funcionariosRoutes);
 app.use('/api/eventos', eventosRoutes);
-app.use('/api/doacoes', doacoesRoutes);
+app.use('/api/doacoes', doacoesRouter);
+app.use('/api/doadores', doadoresRouter);
 
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
@@ -61,6 +62,6 @@ app.listen(PORT, () => {
   console.log(`\x1b[36m[SERVER]\x1b[0m Oracle:  ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_SERVICE}`);
   console.log(`\x1b[36m[SERVER]\x1b[0m User:    ${process.env.DB_USER}${process.env.DB_PRIVILEGE ? ' AS ' + process.env.DB_PRIVILEGE : ''}`);
   console.log(`\x1b[36m[SERVER]\x1b[0m Rotas:   /api/auth | /api/dashboard | /api/leitores | /api/materiais`);
-  console.log(`\x1b[36m[SERVER]\x1b[0m          /api/emprestimos | /api/funcionarios | /api/eventos | /api/doacoes`);
+  console.log(`\x1b[36m[SERVER]\x1b[0m          /api/emprestimos | /api/funcionarios | /api/eventos | /api/doacoes | /api/doadores`);
   console.log('\x1b[36m════════════════════════════════════════\x1b[0m');
 });

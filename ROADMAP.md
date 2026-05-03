@@ -8,8 +8,8 @@
 - [x] `emprestimos.js` — verificar GET lista, GET `validar-leitor`, POST `calcular-prazo`, POST criar, PATCH `devolver` (com resumo dias/multa/suspensão), PATCH `pagar-multa`, POST `preview-devolucao` §6 + §15
 - [x] `materiais.js` — verificar GET lista, GET detalhe (subtipo + histórico + transferências), POST, PATCH, DELETE §7
 - [x] `funcionarios.js` — verificar GET lista, GET detalhe, POST, PATCH, DELETE, PATCH `/acesso` (só Admin), GET `/me`, PATCH `/me`, PATCH `/me/senha` §2 + §12
-- [ ] `eventos.js` — verificar GET lista, POST criar (com horários + recursos), POST `/participantes`, DELETE `/participantes/:num_cartao`, PATCH `/status` §9
-- [ ] `doacoes.js` — verificar GET lista, POST criar, POST `/:id/certificado`, GET `/doadores`, POST `/doadores` §10
+- [x] `eventos.js` — verificar GET lista, POST criar (com horários + recursos), POST `/participantes`, DELETE `/participantes/:num_cartao`, PATCH `/status` §9
+- [x] `doacoes.js` — verificar GET lista, POST criar, POST `/:id/certificado`, GET `/doadores`, POST `/doadores` §10
 
 ## FASE 2 — Implementar Routes em Falta
 
