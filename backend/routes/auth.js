@@ -25,6 +25,7 @@ router.post('/login', async (req, res) => {
     req.session.cod_funcionario = DEMO_USER.COD_FUNCIONARIO;
     req.session.cod_biblioteca = DEMO_USER.COD_BIBLIOTECA;
     req.session.nivel_acesso = DEMO_USER.NIVEL_ACESSO;
+    req.session.provincia = DEMO_USER.PROVINCIA;
     return res.json({ ok: true, funcionario: DEMO_USER });
   }
 
@@ -74,11 +75,6 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
-});
-
-router.get('/me', (req, res) => {
-  if (!req.session.funcionario) return res.status(401).json({ erro: 'Não autenticado.' });
-  res.json(req.session.funcionario);
 });
 
 module.exports = router;

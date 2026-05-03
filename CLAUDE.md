@@ -2,6 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Stack section
+
+- Primary language: JavaScript
+- Documentation: Markdown
+- Frontend: HTML/CSS
+
+When creating new files, default to JavaScript unless specified otherwise. Follow existing code conventions in the repo.
+Add under a ## Editing Approach section in CLAUDE.md\n\n## Editing Approach
+
+- Prefer editing existing files over creating new ones
+- Read the file first before making edits to understand context
+- Use targeted Edit operations rather than rewriting whole files with Write
+  Add as a ## Planning section near the top of CLAUDE.md\n\n## Planning
+- For multi-step tasks, present a plan before making changes
+- Confirm scope on tasks touching 3+ files
+
 ## Project Overview
 
 **Saber Comunitário** — a distributed community library management system (Trabalho Prático BD1). Node.js/Express REST API + vanilla JS SPA frontend + Oracle Database.
