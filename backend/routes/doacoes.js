@@ -8,13 +8,20 @@ router.get('/doadores', exigirNivel('Administrador', 'Coordenador'), async (req,
   let conn;
   try {
     conn = await getConnection();
+    const { search } = req.query;
+    const binds = {};
+    let where = '';
+    if (search) {
+      where = `WHERE UPPER(NOME_DOADOR) LIKE UPPER(:search)`;
+      binds.search = `%${search}%`;
+    }
     const result = await conn.execute(
       `SELECT ID_DOADOR,
               NOME_DOADOR  AS NOME,
               TIPO_DOADOR  AS TIPO,
               CONTACTO
-       FROM DOADOR ORDER BY NOME_DOADOR`,
-      [],
+       FROM DOADOR ${where} ORDER BY NOME_DOADOR`,
+      binds,
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
     res.json(result.rows);
@@ -60,14 +67,21 @@ router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =>
   let conn;
   try {
     conn = await getConnection();
+    const { biblioteca } = req.query;
+    const binds = {};
+    let where = '';
+    if (biblioteca) {
+      where = `WHERE ID_DOACAO IN (SELECT ID_DOACAO FROM ITEM_DOACAO WHERE COD_BIBLIOTECA = :biblioteca)`;
+      binds.biblioteca = biblioteca;
+    }
     const result = await conn.execute(
       `SELECT ID_DOACAO, DATA_DOACAO,
               DOADOR_NOME              AS NOME_DOADOR,
               VALOR_TOTAL_DOACAO       AS VALOR_TOTAL,
               BIBLIOTECAS_BENEFICIADAS AS NOME_BIBLIOTECA,
               TOTAL_ITENS, CERTIFICADO_NUMERO
-       FROM vw_doacoes_detalhadas ORDER BY DATA_DOACAO DESC`,
-      [],
+       FROM vw_doacoes_detalhadas ${where} ORDER BY DATA_DOACAO DESC`,
+      binds,
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
     res.json(result.rows);
@@ -142,15 +156,15 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res)
 router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   // itens: [{ COD_biblioteca, quantidade, valor_estimado, observacoes }]
   const { id_doador, data_doacao, itens } = req.body;
-  if (!id_doador || !itens || itens.length === 0) {
+  if (id_doador == null || !itens || itens.length === 0) {
     return res.status(400).json({ erro: 'Doador e pelo menos um item obrigatórios.' });
   }
 
   // Validar cada item
   for (let i = 0; i < itens.length; i++) {
     const item = itens[i];
-    if (!item.COD_biblioteca) {
-      return res.status(400).json({ erro: `Item ${i + 1}: COD_biblioteca obrigatório.` });
+    if (!item.cod_biblioteca) {
+      return res.status(400).json({ erro: `Item ${i + 1}: cod_biblioteca obrigatório.` });
     }
     const qtd = Number(item.quantidade);
     const val = Number(item.valor_estimado ?? 0);
@@ -181,7 +195,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
         `INSERT INTO ITEM_DOACAO (ID_ITEMDOADO, ID_DOACAO, COD_BIBLIOTECA, QUANTIDADE, VALOR_ESTIMADO, OBSERVACOES)
          VALUES (SEQ_ITEMDOADO.NEXTVAL, :id_doacao, :id_bib, :qtd, :val, :obs)`,
         { id_doacao: idDoacao,
-          id_bib:  item.COD_biblioteca,
+          id_bib:  item.cod_biblioteca,
           qtd:     Number(item.quantidade),
           val:     Number(item.valor_estimado || 0),
           obs:     item.observacoes || null }
@@ -215,6 +229,51 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
     if (conn) await conn.rollback();
     console.error('\x1b[31m[DOACOES POST /] ERRO ao registar doação\x1b[0m');
     console.error('     BD: INSERT DOACAO + INSERT ITEM_DOACAO + INSERT CERTIFICADO_DOACAO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+router.post('/:id/certificado', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+  const { tipo_certificado, observacoes } = req.body;
+  if (!tipo_certificado) return res.status(400).json({ erro: 'tipo_certificado obrigatório.' });
+  const tiposValidos = ['Original', 'Reemissao', 'Honorifico'];
+  if (!tiposValidos.includes(tipo_certificado)) {
+    return res.status(400).json({ erro: `tipo_certificado inválido. Valores aceites: ${tiposValidos.join(', ')}.` });
+  }
+  let conn;
+  try {
+    conn = await getConnection();
+    const doacaoResult = await conn.execute(
+      `SELECT ID_DOACAO FROM DOACAO WHERE ID_DOACAO = :id`,
+      { id: parseInt(req.params.id) },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (doacaoResult.rows.length === 0)
+      return res.status(404).json({ erro: 'Doação não encontrada.' });
+
+    const seqResult = await conn.execute(
+      `SELECT SEQ_CERTIFICADO.NEXTVAL AS SEQ FROM DUAL`,
+      [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    const seq = seqResult.rows[0].SEQ;
+    const numCertificado = `CERT-${new Date().getFullYear()}-${String(seq).padStart(4, '0')}`;
+
+    await conn.execute(
+      `INSERT INTO CERTIFICADO_DOACAO
+         (ID_CERTIFICADO, NUM_CERTIFICADO, ID_DOACAO, TIPO_CERTIFICADO, DATA_EMISSAO, OBSERVACOES)
+       VALUES (SEQ_CERTIFICADO.NEXTVAL, :num_cert, :id_doacao, :tipo, SYSDATE, :obs)`,
+      { num_cert: numCertificado, id_doacao: parseInt(req.params.id),
+        tipo: tipo_certificado, obs: observacoes || null }
+    );
+    await conn.commit();
+    res.status(201).json({ ok: true, num_certificado: numCertificado });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error(`\x1b[31m[DOACOES POST /${req.params.id}/certificado] ERRO ao emitir certificado\x1b[0m`);
+    console.error('     BD: INSERT CERTIFICADO_DOACAO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {

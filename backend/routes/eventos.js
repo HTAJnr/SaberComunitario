@@ -9,28 +9,43 @@ router.get('/', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
-    const { proximos } = req.query;
-    const sql = proximos === '1'
-      ? `SELECT ID_EVENTO,
+    const { proximos, biblioteca, status } = req.query;
+
+    if (proximos === '1') {
+      const result = await conn.execute(
+        `SELECT ID_EVENTO,
                 TITULO_EVENTO   AS NOME,
                 DATA_EVENTO     AS DATA_INICIO,
                 BIBLIOTECA_NOME AS NOME_BIBLIOTECA
-         FROM vw_eventos_proximos ORDER BY DATA_EVENTO`
-      : `SELECT e.ID_EVENTO,
-                e.TITULO_EVENTO  AS NOME,
-                e.DATA_EVENTO    AS DATA_INICIO,
-                e.DESCRICAO_EVENTO, e.PUBLICO_ALVO, e.RECORRENTE, e.COD_BIBLIOTECA,
-                b.NOME_BIBLIOTECA,
-                (SELECT COUNT(*) FROM PARTICIPACAO_EVENTO p WHERE p.ID_EVENTO = e.ID_EVENTO) AS INSCRITOS
-           FROM EVENTO e
-           LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = e.COD_BIBLIOTECA
-          ORDER BY e.DATA_EVENTO DESC`;
-    const result = await conn.execute(sql, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+           FROM vw_eventos_proximos ORDER BY DATA_EVENTO`,
+        [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      return res.json(result.rows);
+    }
+
+    const binds = {};
+    const conditions = [];
+    if (biblioteca) { conditions.push('e.COD_BIBLIOTECA = :biblioteca'); binds.biblioteca = biblioteca; }
+    if (status)     { conditions.push('e.STATUS_EVENTO = :status');      binds.status = status; }
+    const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+
+    const result = await conn.execute(
+      `SELECT e.ID_EVENTO,
+              e.TITULO_EVENTO  AS NOME,
+              e.DATA_EVENTO    AS DATA_INICIO,
+              e.DESCRICAO_EVENTO, e.PUBLICO_ALVO, e.RECORRENTE,
+              e.STATUS_EVENTO, e.COD_BIBLIOTECA,
+              b.NOME_BIBLIOTECA,
+              (SELECT COUNT(*) FROM PARTICIPACAO_EVENTO p WHERE p.ID_EVENTO = e.ID_EVENTO) AS INSCRITOS
+         FROM EVENTO e
+         LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = e.COD_BIBLIOTECA
+         ${where}
+        ORDER BY e.DATA_EVENTO DESC`,
+      binds, { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
     res.json(result.rows);
   } catch (err) {
-    const fonte = req.query.proximos === '1' ? 'VIEW vw_eventos_proximos' : 'EVENTO + BIBLIOTECA + PARTICIPACAO_EVENTO';
     console.error('\x1b[31m[EVENTOS GET /] ERRO ao listar eventos\x1b[0m');
-    console.error(`     BD: ${fonte}`);
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
@@ -51,7 +66,6 @@ router.get('/:id', autenticar, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error(`\x1b[31m[EVENTOS GET /${req.params.id}] ERRO ao buscar evento\x1b[0m`);
-    console.error('     BD: EVENTO + BIBLIOTECA + PARTICIPACAO_EVENTO (COUNT)');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
@@ -60,47 +74,92 @@ router.get('/:id', autenticar, async (req, res) => {
 });
 
 router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
-  const { titulo_evento, descricao_evento, data_evento, publico_alvo, recorrente, COD_biblioteca } = req.body;
-  if (!titulo_evento || !data_evento) {
-    return res.status(400).json({ erro: 'titulo_evento e data_evento obrigatórios.' });
+  const {
+    titulo_evento, descricao_evento, local_evento,
+    data_evento, publico_alvo, capacidade, recorrente,
+    cod_biblioteca, horarios, recursos
+  } = req.body;
+
+  if (!titulo_evento || !data_evento || !publico_alvo || !cod_biblioteca) {
+    return res.status(400).json({ erro: 'titulo_evento, data_evento, publico_alvo e cod_biblioteca obrigatórios.' });
   }
 
   let conn;
   try {
     conn = await getConnection();
 
-    // Verificar horário da biblioteca: só bloqueia se houver horários definidos e o dia não constar
-    if (COD_biblioteca && data_evento) {
-      const diaSemana = DIAS_PT[new Date(data_evento).getDay()];
-      const schedResult = await conn.execute(
-        `SELECT COUNT(*) AS TOTAL,
-                SUM(CASE WHEN DIA_SEMANA = :dia THEN 1 ELSE 0 END) AS NESTE_DIA
+    // RN07: verificar horário da biblioteca para o dia do evento
+    const diaSemana = DIAS_PT[new Date(data_evento).getDay()];
+    const schedResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL,
+              SUM(CASE WHEN DIA_SEMANA = :dia THEN 1 ELSE 0 END) AS NESTE_DIA
          FROM HORARIO_BIBLIOTECA
-         WHERE COD_BIBLIOTECA = :cod_bib`,
-        { dia: diaSemana, cod_bib: COD_biblioteca },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-      const sched = schedResult.rows[0];
-      if (sched.TOTAL > 0 && (sched.NESTE_DIA === 0 || sched.NESTE_DIA === null)) {
-        return res.status(409).json({ erro: `Biblioteca não tem horário definido para ${diaSemana}.` });
-      }
+        WHERE COD_BIBLIOTECA = :cod_bib`,
+      { dia: diaSemana, cod_bib: cod_biblioteca },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    const sched = schedResult.rows[0];
+    if (sched.TOTAL > 0 && (sched.NESTE_DIA === 0 || sched.NESTE_DIA === null)) {
+      return res.status(409).json({ erro: `Biblioteca não tem horário definido para ${diaSemana}.` });
     }
 
     const result = await conn.execute(
-      `INSERT INTO EVENTO (ID_EVENTO, TITULO_EVENTO, DESCRICAO_EVENTO, DATA_EVENTO, PUBLICO_ALVO, RECORRENTE, COD_BIBLIOTECA)
-       VALUES (SEQ_EVENTO.NEXTVAL, :titulo, :desc, TO_DATE(:data,'YYYY-MM-DD'), :pub_alvo, NVL(:rec,'N'), :cod_bib)
+      `INSERT INTO EVENTO
+         (ID_EVENTO, TITULO_EVENTO, DESCRICAO_EVENTO, LOCAL_EVENTO, DATA_EVENTO,
+          PUBLICO_ALVO, CAPACIDADE, STATUS_EVENTO, RECORRENTE, COD_BIBLIOTECA)
+       VALUES
+         (SEQ_EVENTO.NEXTVAL, :titulo, :desc, :local, TO_DATE(:data,'YYYY-MM-DD'),
+          :pub_alvo, :cap, 'Planeado', NVL(:rec,'N'), :cod_bib)
        RETURNING ID_EVENTO INTO :id_out`,
-      { titulo: titulo_evento, desc: descricao_evento || null,
-        data: data_evento, pub_alvo: publico_alvo || null,
-        rec: recorrente || 'N', cod_bib: COD_biblioteca || null,
-        id_out: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } }
+      {
+        titulo: titulo_evento, desc: descricao_evento || null, local: local_evento || null,
+        data: data_evento, pub_alvo: publico_alvo, cap: capacidade || null,
+        rec: recorrente || 'N', cod_bib: cod_biblioteca,
+        id_out: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+      }
     );
+    const idEvento = result.outBinds.id_out[0];
+
+    // Inserir horários do evento
+    if (Array.isArray(horarios) && horarios.length > 0) {
+      const maxRes = await conn.execute(
+        `SELECT NVL(MAX(ID_HORARIO_EV),0) AS M FROM HORARIO_EVENTO`,
+        [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      let nextId = maxRes.rows[0].M + 1;
+      for (const h of horarios) {
+        await conn.execute(
+          `INSERT INTO HORARIO_EVENTO
+             (ID_HORARIO_EV, ID_EVENTO, DIA_SEMANA, DATA_OCORRENCIA, HORA_INICIO, HORA_FIM)
+           VALUES (:id, :ev, :dia, TO_DATE(:data,'YYYY-MM-DD'), :inicio, :fim)`,
+          { id: nextId++, ev: idEvento, dia: h.dia_semana,
+            data: h.data_ocorrencia, inicio: h.hora_inicio, fim: h.hora_fim }
+        );
+      }
+    }
+
+    // Inserir recursos do evento
+    if (Array.isArray(recursos) && recursos.length > 0) {
+      const maxRes = await conn.execute(
+        `SELECT NVL(MAX(ID_RECURSO),0) AS M FROM EVENTO_RECURSO`,
+        [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      let nextId = maxRes.rows[0].M + 1;
+      for (const r of recursos) {
+        await conn.execute(
+          `INSERT INTO EVENTO_RECURSO (ID_RECURSO, ID_EVENTO, NOME_RECURSO, QUANTIDADE)
+           VALUES (:id, :ev, :nome, :qtd)`,
+          { id: nextId++, ev: idEvento, nome: r.nome_recurso, qtd: r.quantidade }
+        );
+      }
+    }
+
     await conn.commit();
-    res.status(201).json({ ok: true, id_evento: result.outBinds.id_out[0] });
+    res.status(201).json({ ok: true, id_evento: idEvento });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('\x1b[31m[EVENTOS POST /] ERRO ao criar evento\x1b[0m');
-    console.error('     BD: HORARIO_BIBLIOTECA (validação) + INSERT EVENTO');
+    console.error('     BD: HORARIO_BIBLIOTECA + INSERT EVENTO + HORARIO_EVENTO + EVENTO_RECURSO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
@@ -109,7 +168,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
 });
 
 router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
-  const { titulo_evento, descricao_evento, data_evento, publico_alvo, recorrente, COD_biblioteca } = req.body;
+  const { titulo_evento, descricao_evento, local_evento, data_evento, publico_alvo, capacidade, recorrente, cod_biblioteca } = req.body;
   let conn;
   try {
     conn = await getConnection();
@@ -117,21 +176,51 @@ router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
       `UPDATE EVENTO SET
          TITULO_EVENTO    = NVL(:titulo, TITULO_EVENTO),
          DESCRICAO_EVENTO = NVL(:desc, DESCRICAO_EVENTO),
+         LOCAL_EVENTO     = NVL(:local, LOCAL_EVENTO),
          DATA_EVENTO      = NVL(TO_DATE(:data,'YYYY-MM-DD'), DATA_EVENTO),
          PUBLICO_ALVO     = NVL(:pub_alvo, PUBLICO_ALVO),
+         CAPACIDADE       = NVL(:cap, CAPACIDADE),
          RECORRENTE       = NVL(:rec, RECORRENTE),
-         COD_BIBLIOTECA    = NVL(:cod_bib, COD_BIBLIOTECA)
+         COD_BIBLIOTECA   = NVL(:cod_bib, COD_BIBLIOTECA)
        WHERE ID_EVENTO = :id`,
-      { titulo: titulo_evento || null, desc: descricao_evento || null,
-        data: data_evento || null, pub_alvo: publico_alvo || null,
+      { titulo: titulo_evento || null, desc: descricao_evento || null, local: local_evento || null,
+        data: data_evento || null, pub_alvo: publico_alvo || null, cap: capacidade || null,
         rec: recorrente !== undefined ? recorrente : null,
-        cod_bib: COD_biblioteca || null, id: req.params.id }
+        cod_bib: cod_biblioteca || null, id: req.params.id }
     );
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error(`\x1b[31m[EVENTOS PUT /${req.params.id}] ERRO ao actualizar evento\x1b[0m`);
+    console.error('     BD: UPDATE EVENTO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+router.patch('/:id/status', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
+  const { status_evento } = req.body;
+  if (!status_evento) return res.status(400).json({ erro: 'status_evento obrigatório.' });
+  const statusValidos = ['Planeado', 'Realizado', 'Cancelado'];
+  if (!statusValidos.includes(status_evento)) {
+    return res.status(400).json({ erro: `Status inválido. Valores aceites: ${statusValidos.join(', ')}.` });
+  }
+  let conn;
+  try {
+    conn = await getConnection();
+    const upd = await conn.execute(
+      `UPDATE EVENTO SET STATUS_EVENTO = :status WHERE ID_EVENTO = :id`,
+      { status: status_evento, id: req.params.id }
+    );
+    if (upd.rowsAffected === 0) return res.status(404).json({ erro: 'Evento não encontrado.' });
+    await conn.commit();
+    res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error(`\x1b[31m[EVENTOS PATCH /${req.params.id}/status] ERRO ao actualizar status\x1b[0m`);
     console.error('     BD: UPDATE EVENTO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
@@ -158,7 +247,7 @@ router.delete('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario
   }
 });
 
-router.get('/:id/participacoes', autenticar, async (req, res) => {
+router.get('/:id/participantes', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -174,7 +263,7 @@ router.get('/:id/participacoes', autenticar, async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error(`\x1b[31m[EVENTOS GET /${req.params.id}/participacoes] ERRO ao listar participações\x1b[0m`);
+    console.error(`\x1b[31m[EVENTOS GET /${req.params.id}/participantes] ERRO ao listar participantes\x1b[0m`);
     console.error('     BD: PARTICIPACAO_EVENTO + LEITOR');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
@@ -183,7 +272,7 @@ router.get('/:id/participacoes', autenticar, async (req, res) => {
   }
 });
 
-router.post('/:id/participacoes', autenticar, async (req, res) => {
+router.post('/:id/participantes', autenticar, async (req, res) => {
   const { num_cartao, presenca_confirmacao } = req.body;
   if (!num_cartao) return res.status(400).json({ erro: 'Número de cartão obrigatório.' });
 
@@ -216,7 +305,7 @@ router.post('/:id/participacoes', autenticar, async (req, res) => {
     }
 
     // 3. Verificar público-alvo vs tipo de leitor
-    if (evento.PUBLICO_ALVO && evento.PUBLICO_ALVO !== 'Todas as Idades') {
+    if (evento.PUBLICO_ALVO && evento.PUBLICO_ALVO !== 'Todos') {
       const leitorResult = await conn.execute(
         `SELECT CASE WHEN p.NUM_CARTAO IS NOT NULL THEN 'PROFESSOR'
                      WHEN a.NUM_CARTAO IS NOT NULL THEN 'ADULTO'
@@ -243,7 +332,7 @@ router.post('/:id/participacoes', autenticar, async (req, res) => {
         return res.status(409).json({ erro: 'Este evento é destinado a professores.' });
     }
 
-    // 4. Chamar procedure (que ainda verifica duplicado como barreira de segurança na BD)
+    // 4. Chamar procedure
     await conn.execute(
       `BEGIN insere_participacao_evento(:nc, :id_ev, :presenca); END;`,
       { nc: num_cartao, id_ev: parseInt(req.params.id), presenca: presenca_confirmacao || 'N' }
@@ -252,7 +341,7 @@ router.post('/:id/participacoes', autenticar, async (req, res) => {
     res.status(201).json({ ok: true });
   } catch (err) {
     if (conn) await conn.rollback();
-    console.error(`\x1b[31m[EVENTOS POST /${req.params.id}/participacoes] ERRO ao inscrever participante\x1b[0m`);
+    console.error(`\x1b[31m[EVENTOS POST /${req.params.id}/participantes] ERRO ao inscrever participante\x1b[0m`);
     console.error('     BD: EVENTO + PARTICIPACAO_EVENTO + PROCEDURE insere_participacao_evento');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
@@ -261,19 +350,19 @@ router.post('/:id/participacoes', autenticar, async (req, res) => {
   }
 });
 
-router.delete('/:id/participacoes/:numCartao', autenticar, async (req, res) => {
+router.delete('/:id/participantes/:num_cartao', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
     await conn.execute(
       `DELETE FROM PARTICIPACAO_EVENTO WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
-      { id: req.params.id, nc: req.params.numCartao }
+      { id: req.params.id, nc: req.params.num_cartao }
     );
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
     if (conn) await conn.rollback();
-    console.error(`\x1b[31m[EVENTOS DELETE /${req.params.id}/participacoes/${req.params.numCartao}] ERRO ao remover participante\x1b[0m`);
+    console.error(`\x1b[31m[EVENTOS DELETE /${req.params.id}/participantes/${req.params.num_cartao}] ERRO ao remover participante\x1b[0m`);
     console.error('     BD: DELETE PARTICIPACAO_EVENTO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
