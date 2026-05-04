@@ -9,18 +9,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Frontend: HTML/CSS
 
 When creating new files, default to JavaScript unless specified otherwise. Follow existing code conventions in the repo.
-Add under a ## Editing Approach section in CLAUDE.md\n\n## Editing Approach
+
+## Editing Approach
 
 - Prefer editing existing files over creating new ones
 - Read the file first before making edits to understand context
 - Use targeted Edit operations rather than rewriting whole files with Write
-  Add as a ## Planning section near the top of CLAUDE.md\n\n## Planning
+
+## Planning
+
 - For multi-step tasks, present a plan before making changes
 - Confirm scope on tasks touching 3+ files
 
 ## Project Overview
 
-**Saber Comunitário** — a distributed community library management system (Trabalho Prático BD1). Node.js/Express REST API + vanilla JS SPA frontend + Oracle Database.
+**Saber Comunitário** — a distributed community library management system (Trabalho Prático BD2). Node.js/Express REST API + vanilla JS SPA frontend + Oracle Database.
 
 ## Commands
 
@@ -65,14 +68,16 @@ Oracle Instant Client must exist at `INSTANT_CLIENT_PATH` for the thick client m
 Every route file follows this exact structure — do not re-explore existing routes to learn these patterns:
 
 **Imports:**
+
 ```javascript
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { autenticar, exigirNivel } = require('../middleware/permissoes');
 ```
 
 **Connection + error handling (every handler):**
+
 ```javascript
 let conn;
 try {
@@ -92,14 +97,16 @@ try {
 ```
 
 **Session fields (flat on `req.session`):**
+
 ```javascript
-req.session.cod_funcionario   // VARCHAR2(12) — '0' for demo user
-req.session.cod_biblioteca    // VARCHAR2(10)
-req.session.nivel_acesso      // 'Administrador' | 'Coordenador' | 'Bibliotecario'
-req.session.funcionario       // full object with uppercase keys (COD_FUNCIONARIO, etc.)
+req.session.cod_funcionario; // VARCHAR2(12) — '0' for demo user
+req.session.cod_biblioteca; // VARCHAR2(10)
+req.session.nivel_acesso; // 'Administrador' | 'Coordenador' | 'Bibliotecario'
+req.session.funcionario; // full object with uppercase keys (COD_FUNCIONARIO, etc.)
 ```
 
 **Demo user guard (before DB calls, on any write that stores cod_funcionario as FK):**
+
 ```javascript
 if (req.session.cod_funcionario === 0) {
   return res.status(400).json({ erro: 'Utilizador demo não pode realizar esta acção.' });
@@ -107,10 +114,12 @@ if (req.session.cod_funcionario === 0) {
 ```
 
 **Auth middleware:**
+
 - `autenticar` — qualquer utilizador autenticado
 - `exigirNivel('Administrador', 'Coordenador')` — restringe por nível (aceita N argumentos)
 
 **Oracle 10g SQL rules:**
+
 - Paginação: ROWNUM duplo (sem `FETCH FIRST` — é 12c+)
 - Sem `LISTAGG` (é 11g+)
 - Primary keys: `SEQ_NOME.NEXTVAL` + `RETURNING id INTO :id_out`
@@ -118,6 +127,7 @@ if (req.session.cod_funcionario === 0) {
 - Oracle devolve colunas em MAIÚSCULAS: `result.rows[0].COD_BIBLIOTECA`
 
 **Paginação ROWNUM:**
+
 ```sql
 SELECT * FROM (
   SELECT t.*, ROWNUM AS RN FROM (
@@ -128,12 +138,15 @@ SELECT * FROM (
 ```
 
 **Export (simples, não named):**
+
 ```javascript
 module.exports = router;
 ```
+
 Named exports só em `doacoes.js` (caso especial com dois routers).
 
 **Montar em server.js:**
+
 ```javascript
 // linha ~16 (imports)
 const xRouter = require('./routes/x');
@@ -165,6 +178,7 @@ Corpo opcional se necessário.
 ```
 
 Tipos: `feat`, `fix`, `refactor`, `docs`, `chore`. Exemplo:
+
 ```
 feat(transferencias): implementar route completa §8 — GET lista, POST solicitar, PATCH aprovar/rejeitar/concluir
 ```

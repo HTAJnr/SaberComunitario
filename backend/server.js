@@ -16,6 +16,7 @@ const { doacoesRouter, doadoresRouter } = require('./routes/doacoes');
 const transfRouter    = require('./routes/transferencias');
 const programasRouter = require('./routes/programas');
 const bibliotecasRouter = require('./routes/bibliotecas');
+const suspensoesRouter  = require('./routes/suspensoes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,7 +53,8 @@ app.use('/api/doacoes', doacoesRouter);
 app.use('/api/doadores', doadoresRouter);
 app.use('/api/transferencias', transfRouter);
 app.use('/api/programas',     programasRouter);
-app.use('/api/bibliotecas',  bibliotecasRouter);
+app.use('/api/bibliotecas',   bibliotecasRouter);
+app.use('/api/suspensoes',    suspensoesRouter);
 
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));
@@ -69,6 +71,6 @@ app.listen(PORT, () => {
   console.log(`\x1b[36m[SERVER]\x1b[0m User:    ${process.env.DB_USER}${process.env.DB_PRIVILEGE ? ' AS ' + process.env.DB_PRIVILEGE : ''}`);
   console.log(`\x1b[36m[SERVER]\x1b[0m Rotas:   /api/auth | /api/dashboard | /api/leitores | /api/materiais`);
   console.log(`\x1b[36m[SERVER]\x1b[0m          /api/emprestimos | /api/funcionarios | /api/eventos | /api/doacoes | /api/doadores`);
-  console.log(`\x1b[36m[SERVER]\x1b[0m          /api/transferencias | /api/programas | /api/bibliotecas`);
+  console.log(`\x1b[36m[SERVER]\x1b[0m          /api/transferencias | /api/programas | /api/bibliotecas | /api/suspensoes`);
   console.log('\x1b[36m════════════════════════════════════════\x1b[0m');
 });

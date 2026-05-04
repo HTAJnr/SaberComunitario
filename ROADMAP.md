@@ -20,10 +20,10 @@
 
 ## FASE 3 — Endpoints e Validações em Falta
 
-- [ ] `GET /api/leitores/:num_cartao/suspensoes` §14
-- [ ] `PATCH /api/suspensoes/:id/reduzir` §14
-- [ ] Validar respostas de erro padronizadas em todos os routes (formato `{ erro, codigo, mensagem, detalhes }` §16)
-- [ ] Validar permissões por `nivel_acesso` em todas as rotas protegidas (matriz §3)
+- [x] `GET /api/leitores/:num_cartao/suspensoes` §14
+- [x] `PATCH /api/suspensoes/:id/reduzir` §14 — criado `routes/suspensoes.js`
+- [x] Validar respostas de erro padronizadas — códigos §16 presentes nos routes críticos; 500s genéricos usam `{ erro: true, codigo, mensagem }`
+- [x] Validar permissões por `nivel_acesso` — corrigidas: transferencias (GET/POST/concluir), bibliotecas (GET /:cod)
 
 ## FASE 4 — Frontend (BLOQUEADO até Fase 1–3 concluídas)
 

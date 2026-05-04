@@ -1,7 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const { getConnection, oracledb } = require('../db');
-const { autenticar, exigirNivel } = require('../middleware/permissoes');
+const { exigirNivel } = require('../middleware/permissoes');
 
 const PROVINCIAS_VALIDAS = [
   'Cabo Delgado', 'Gaza', 'Inhambane', 'Manica',
@@ -81,8 +81,8 @@ router.get('/', exigirNivel('Administrador'), async (req, res) => {
   }
 });
 
-// GET /api/bibliotecas/:cod_biblioteca — qualquer autenticado
-router.get('/:cod_biblioteca', autenticar, async (req, res) => {
+// GET /api/bibliotecas/:cod_biblioteca — só Administrador e Coordenador (§3)
+router.get('/:cod_biblioteca', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   const cod = req.params.cod_biblioteca;
   let conn;
   try {

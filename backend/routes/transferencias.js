@@ -1,10 +1,10 @@
 const express = require('express');
 const router  = express.Router();
 const { getConnection, oracledb } = require('../db');
-const { autenticar, exigirNivel } = require('../middleware/permissoes');
+const { exigirNivel } = require('../middleware/permissoes');
 
 // GET /api/transferencias?biblioteca=X&direcao=enviadas|recebidas|todas&estado=X
-router.get('/', autenticar, async (req, res) => {
+router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     const nivel     = req.session.nivel_acesso || '';
@@ -74,7 +74,7 @@ router.get('/', autenticar, async (req, res) => {
 });
 
 // POST /api/transferencias — solicitar transferência
-router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
+router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     const cod_funcionario = req.session.cod_funcionario;
@@ -252,7 +252,7 @@ router.patch('/:id/rejeitar', exigirNivel('Administrador', 'Coordenador'), async
 });
 
 // PATCH /api/transferencias/:id/concluir
-router.patch('/:id/concluir', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
+router.patch('/:id/concluir', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     const id = parseInt(req.params.id);
