@@ -323,8 +323,11 @@ router.post('/', autenticar, async (req, res) => {
 
   const tipo = normalizarTipo(req.body.tipo);
 
-  if (!nome_completo) return res.status(400).json({ erro: true, codigo: 'CAMPO_OBRIGATORIO', mensagem: 'nome_completo é obrigatório.' });
-  if (!tipo)          return res.status(400).json({ erro: true, codigo: 'CAMPO_OBRIGATORIO', mensagem: 'tipo é obrigatório.' });
+  if (!nome_completo)      return res.status(400).json({ erro: true, codigo: 'CAMPO_OBRIGATORIO', mensagem: 'nome_completo é obrigatório.' });
+  if (!tipo)               return res.status(400).json({ erro: true, codigo: 'CAMPO_OBRIGATORIO', mensagem: 'tipo é obrigatório.' });
+  if (!data_nasc)          return res.status(400).json({ erro: true, codigo: 'CAMPO_OBRIGATORIO', mensagem: 'data_nasc é obrigatório.' });
+  if (!nivel_escolar)      return res.status(400).json({ erro: true, codigo: 'CAMPO_OBRIGATORIO', mensagem: 'nivel_escolar é obrigatório.' });
+  if (!localizacao_leitor) return res.status(400).json({ erro: true, codigo: 'CAMPO_OBRIGATORIO', mensagem: 'localizacao_leitor é obrigatório.' });
   if (!['ADULTO', 'PROFESSOR', 'CRIANCA'].includes(tipo)) {
     return res.status(400).json({ erro: true, codigo: 'TIPO_INVALIDO', mensagem: 'tipo deve ser Adulto, Professor ou Crianca.' });
   }

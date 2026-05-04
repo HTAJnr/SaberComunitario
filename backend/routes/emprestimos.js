@@ -93,7 +93,7 @@ router.get('/', autenticar, async (req, res) => {
 
     const { where: bibWhere, params } = filtrosBiblioteca(req);
 
-    // Colunas comuns a ambas as views
+    // Colunas da vw_emprestimos_ativos
     const colunasActivos = `
       ID_EMPRESTIMO, NUM_CARTAO, NOME_LEITOR,
       MATERIAL_TITULO AS TITULO,
@@ -345,6 +345,10 @@ router.get('/:id', autenticar, async (req, res) => {
 
 // ── POST / — criar empréstimo ────────────────────────────────────────────────────
 router.post('/', autenticar, async (req, res) => {
+  if (req.session.cod_funcionario === 0) {
+    return res.status(400).json({ erro: true, codigo: 'DEMO_RESTRITO', mensagem: 'Utilizador demo não pode criar empréstimos.' });
+  }
+
   const { num_cartao, cod_material, cod_funcionario, estado_material_saida } = req.body;
   if (!num_cartao || !cod_material) {
     return res.status(400).json({ erro: true, codigo: 'DADOS_INCOMPLETOS', mensagem: 'Leitor e material obrigatórios.' });

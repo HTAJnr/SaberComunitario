@@ -131,7 +131,7 @@ router.get('/:cod_biblioteca', exigirNivel('Administrador', 'Coordenador'), asyn
               FROM EMPRESTIMO e
               JOIN LEITOR l ON l.NUM_CARTAO = e.NUM_CARTAO
              WHERE l.COD_BIBLIOTECA = :cod
-               AND e.STATUS_EMPRESTIMO = 'Activo') AS EMPRESTIMOS_ACTIVOS
+               AND e.DATA_DEVOLUCAO IS NULL) AS EMPRESTIMOS_ACTIVOS
            FROM DUAL`,
         { cod },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }

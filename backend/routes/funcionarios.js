@@ -38,7 +38,7 @@ router.get('/bibliotecas', exigirNivel('Administrador', 'Coordenador'), async (r
   try {
     conn = await getConnection();
     const result = await conn.execute(
-      `SELECT COD_BIBLIOTECA, NOME_BIBLIOTECA AS NOME, PROVINCIA, LOCALIZACAO FROM BIBLIOTECA ORDER BY NOME_BIBLIOTECA`,
+      `SELECT COD_BIBLIOTECA, NOME_BIBLIOTECA AS NOME, PROVINCIA, ENDERECO FROM BIBLIOTECA ORDER BY NOME_BIBLIOTECA`,
       [],
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -288,6 +288,9 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
 
   if (!nome_funcionario || !senha) {
     return res.status(400).json({ erro: 'Nome e senha são obrigatórios.' });
+  }
+  if (!contacto) {
+    return res.status(400).json({ erro: 'contacto é obrigatório.' });
   }
 
   const user = req.session.funcionario;

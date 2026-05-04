@@ -204,8 +204,8 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
     }
   }
 
-  // id_doador === 0 → doação anónima (NULL na BD)
-  const idDoadorBD = (Number(id_doador) === 0) ? null : id_doador;
+  // id_doador === 0 → doação anónima (registo DOADOR com id=0 obrigatório como seed)
+  const idDoadorBD = Number(id_doador);
 
   let conn;
   try {
@@ -233,28 +233,9 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       );
     }
 
-    // Verificar se elegível para certificado (≥1000MT) — trigger gera_certificado_automatico também faz isto
-    const valorTotal = itens.reduce(
-      (s, i) => s + (Number(i.quantidade || 1) * Number(i.valor_estimado || 0)), 0
-    );
-    let numCertificado = null;
-    if (valorTotal >= 1000 && idDoadorBD !== null) {
-      const seqResult = await conn.execute(
-        `SELECT SEQ_CERTIFICADO.NEXTVAL AS SEQ FROM DUAL`,
-        [],
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-      const seq = seqResult.rows[0].SEQ;
-      numCertificado = `CERT-${new Date().getFullYear()}-${String(seq).padStart(4, '0')}`;
-      await conn.execute(
-        `INSERT INTO CERTIFICADO_DOACAO (ID_CERTIFICADO, NUM_CERTIFICADO, ID_DOACAO, TIPO_CERTIFICADO, DATA_EMISSAO)
-         VALUES (SEQ_CERTIFICADO.NEXTVAL, :num_cert, :id_doacao, 'Original', SYSDATE)`,
-        { num_cert: numCertificado, id_doacao: idDoacao }
-      );
-    }
-
     await conn.commit();
-    res.status(201).json({ ok: true, id_doacao: idDoacao, num_certificado: numCertificado });
+    // O trigger gera_certificado_automatico insere o certificado automaticamente após ITEM_DOACAO
+    res.status(201).json({ ok: true, id_doacao: idDoacao });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('\x1b[31m[DOACOES POST /] ERRO ao registar doação\x1b[0m');

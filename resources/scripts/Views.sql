@@ -367,8 +367,9 @@ SELECT
     e.num_cartao,
     l.nome_completo AS nome_leitor,
     l.cod_biblioteca,
+    b.nome_biblioteca AS biblioteca_nome,
     e.cod_material,
-    mb.titulo,
+    mb.titulo AS material_titulo,
     e.data_retirada,
     e.prazo_devolucao,
     TRUNC(SYSDATE) - TRUNC(e.prazo_devolucao) AS dias_atraso,
@@ -392,6 +393,7 @@ SELECT
 FROM EMPRESTIMO e
 JOIN LEITOR l ON e.num_cartao = l.num_cartao
 JOIN MATERIAL_BIBLIOGRAFICO mb ON e.cod_material = mb.cod_material
+JOIN BIBLIOTECA b ON l.cod_biblioteca = b.cod_biblioteca
 LEFT JOIN PROFESSOR pr ON e.num_cartao = pr.num_cartao
 LEFT JOIN CRIANCA cr   ON e.num_cartao = cr.num_cartao
 WHERE e.data_devolucao IS NULL;
