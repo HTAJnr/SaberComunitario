@@ -68,18 +68,22 @@ function badge(texto, cor) {
 function badgeEstado(estado) {
   const m = {
     ATIVO: 'verde', ACTIVO: 'verde', DISPONIVEL: 'verde', Activo: 'verde',
+    Bom: 'verde',
     SUSPENSO: 'amarelo', EMPRESTADO: 'amarelo', Suspenso: 'amarelo',
+    Degradado: 'amarelo',
     DEVOLVIDO: 'azul',
     INATIVO: 'cinza',
-    INDISPONIVEL: 'vermelho', PERDIDO: 'vermelho', Bloqueado: 'vermelho',
+    INDISPONIVEL: 'vermelho', Indisponivel: 'vermelho', PERDIDO: 'vermelho', Bloqueado: 'vermelho',
   };
   return badge(estado || '—', m[estado] || 'cinza');
 }
 function badgeTipo(tipo) {
   const m = { ADULTO: 'azul', CRIANCA: 'verde', PROFESSOR: 'amarelo',
     LIVRO_FISICO: 'azul', EBOOK: 'verde', PERIODICO: 'amarelo',
+    Livro: 'azul', Ebook: 'verde', Periodico: 'amarelo',
     INDIVIDUAL: 'azul', INSTITUCIONAL: 'verde' };
   const labels = { LIVRO_FISICO: 'Livro Físico', EBOOK: 'Ebook', PERIODICO: 'Periódico',
+    Livro: 'Livro Físico', Ebook: 'Ebook', Periodico: 'Periódico',
     INDIVIDUAL: 'Individual', INSTITUCIONAL: 'Institucional' };
   return badge(labels[tipo] || tipo || '—', m[tipo] || 'cinza');
 }

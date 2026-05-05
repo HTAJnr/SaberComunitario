@@ -1,45 +1,89 @@
-<section id="section-materiais" class="section p-6 hidden">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-bold">Materiais Bibliográficos</h2>
-    <button onclick="abrirModalMaterial()" class="btn-primary">
-      <i class="fa-solid fa-plus mr-1"></i> Novo Material
-    </button>
-  </div>
-  <div class="flex gap-3 mb-4 flex-wrap">
-    <div class="relative">
-      <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-      <input id="filtro-mat-q" type="text" placeholder="Título ou autor…" oninput="carregarMateriais()" class="input-dark pl-8 w-56"/>
-    </div>
-    <select id="filtro-mat-tipo" onchange="carregarMateriais()" class="input-dark">
+<section id="section-materiais" class="section hidden">
+
+  <!-- Barra de acções -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <input id="filtro-mat-q" type="text" placeholder="Pesquisar por título, autor ou ISBN…"
+           oninput="_renderizarTabelaMat()"
+           class="input-field" style="flex:1;min-width:180px;max-width:260px"/>
+    <select id="filtro-mat-tipo" onchange="_renderizarTabelaMat()" class="input-field">
       <option value="">Todos os tipos</option>
-      <option value="LIVRO_FISICO">Livro Físico</option>
-      <option value="EBOOK">Ebook</option>
-      <option value="PERIODICO">Periódico</option>
+      <option value="Livro">Livro Físico</option>
+      <option value="Ebook">Ebook</option>
+      <option value="Periodico">Periódico</option>
     </select>
-    <select id="filtro-mat-conservacao" onchange="carregarMateriais()" class="input-dark">
-      <option value="">Todos (conservação)</option>
+    <select id="filtro-mat-estado" onchange="_renderizarTabelaMat()" class="input-field">
+      <option value="">Todos (estado)</option>
       <option value="Bom">Bom</option>
-      <option value="Razoável">Razoável</option>
-      <option value="Mau">Mau</option>
+      <option value="Degradado">Degradado</option>
       <option value="Indisponivel">Indisponível</option>
     </select>
-    <select id="filtro-mat-disponivel" onchange="carregarMateriais()" class="input-dark">
-      <option value="">Todas (disponibilidade)</option>
+    <select id="filtro-mat-disponivel" onchange="_renderizarTabelaMat()" class="input-field">
+      <option value="">Todos (disponibilidade)</option>
       <option value="S">Disponível</option>
-      <option value="N">Emprestado/Indisponível</option>
+      <option value="N">Indisponível/Emprestado</option>
     </select>
+    <select id="filtro-mat-categoria" onchange="_renderizarTabelaMat()" class="input-field">
+      <option value="">Todas as categorias</option>
+    </select>
+    <button id="btn-adicionar-mat" onclick="abrirWizardMat()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+      <i class="fa-solid fa-plus" style="margin-right:5px"></i>Adicionar Material
+    </button>
   </div>
-  <div class="card overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr class="border-b border-slate-700 text-slate-400">
-        <th class="text-left py-2 px-3">ID</th>
-        <th class="text-left py-2 px-3">Título</th>
-        <th class="text-left py-2 px-3">Autor</th>
-        <th class="text-left py-2 px-3">Tipo</th>
-        <th class="text-left py-2 px-3">Estado</th>
-        <th class="text-left py-2 px-3">Acções</th>
-      </tr></thead>
+
+  <!-- Tabela -->
+  <div class="panel">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Título</th>
+          <th>Autor</th>
+          <th>Tipo</th>
+          <th>Categoria</th>
+          <th>Estado</th>
+          <th>Disponível</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody id="tabela-materiais"></tbody>
     </table>
   </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-mat" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-mat-overlay" onclick="fecharDrawerMat()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer 04-B — Detalhe do Material -->
+  <div id="drawer-mat" class="drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:13px;font-weight:600;color:#111">Detalhe do Material</span>
+      <button onclick="fecharDrawerMat()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="drawer-mat-conteudo"></div>
+  </div>
+
+  <!-- Modal overlay — wizard 04-D + editar 04-C -->
+  <div id="modal-mat-overlay" class="modal-overlay hidden" onclick="fecharModalMat(event)">
+    <div class="modal" style="width:580px">
+      <div class="modal-header">
+        <span id="modal-mat-titulo" class="modal-title"></span>
+        <button onclick="fecharModalMat()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-mat-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-mat-erro-msg"></span>
+      </div>
+      <div id="modal-mat-conteudo"></div>
+      <div id="modal-mat-footer" style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px"></div>
+    </div>
+  </div>
+
 </section>
