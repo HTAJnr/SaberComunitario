@@ -1,31 +1,89 @@
-<section id="section-emprestimos" class="section p-6 hidden">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-bold">Empréstimos</h2>
-    <button onclick="abrirModalEmprestimo()" class="btn-primary">
-      <i class="fa-solid fa-plus mr-1"></i> Registar Empréstimo
+<section id="section-emprestimos" class="section hidden">
+
+  <!-- Barra de acções -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <input id="filtro-emp-q" type="text" placeholder="Pesquisar por leitor, material ou cartão…"
+           oninput="_renderizarTabelaEmp()"
+           class="input-field" style="flex:1;min-width:180px;max-width:260px"/>
+    <input id="filtro-emp-data" type="date"
+           onchange="_renderizarTabelaEmp()"
+           class="input-field" style="width:150px"
+           title="Filtrar por data de retirada"/>
+    <button onclick="abrirWizardEmprestimo()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+      <i class="fa-solid fa-plus" style="margin-right:5px"></i>Novo Empréstimo
     </button>
   </div>
-  <div class="flex gap-2 mb-4">
-    <button id="tab-emp-ativos" onclick="switchTabEmprestimos('ACTIVO')" class="tab-btn tab-active">
-      <i class="fa-solid fa-clock-rotate-left mr-1"></i> Activos
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button id="tab-emp-activo"    class="tab-btn tab-active" onclick="switchTabEmprestimos('activo')">
+      <i class="fa-solid fa-clock" style="margin-right:4px"></i>Activos
     </button>
-    <button id="tab-emp-hist" onclick="switchTabEmprestimos('HISTORICO')" class="tab-btn">
-      <i class="fa-solid fa-rectangle-list mr-1"></i> Histórico
+    <button id="tab-emp-vencido"   class="tab-btn" onclick="switchTabEmprestimos('vencido')">
+      <i class="fa-solid fa-triangle-exclamation" style="margin-right:4px"></i>Vencidos
+    </button>
+    <button id="tab-emp-devolvido" class="tab-btn" onclick="switchTabEmprestimos('devolvido')">
+      <i class="fa-solid fa-check" style="margin-right:4px"></i>Devolvidos
+    </button>
+    <button id="tab-emp-todos"     class="tab-btn" onclick="switchTabEmprestimos('todos')">
+      <i class="fa-solid fa-list" style="margin-right:4px"></i>Todos
     </button>
   </div>
-  <div class="card overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr class="border-b border-slate-700 text-slate-400">
-        <th class="text-left py-2 px-3">ID</th>
-        <th class="text-left py-2 px-3">Leitor</th>
-        <th class="text-left py-2 px-3">Material</th>
-        <th class="text-left py-2 px-3">Data Emp.</th>
-        <th class="text-left py-2 px-3">Devolução Prev.</th>
-        <th class="text-left py-2 px-3">Multa</th>
-        <th class="text-left py-2 px-3">Estado</th>
-        <th class="text-left py-2 px-3">Acções</th>
-      </tr></thead>
+
+  <!-- Tabela -->
+  <div class="panel">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Leitor</th>
+          <th>Material</th>
+          <th>Retirada</th>
+          <th>Prazo</th>
+          <th>Estado</th>
+          <th>Multa</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody id="tabela-emprestimos"></tbody>
     </table>
   </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-emp" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-emp-overlay" onclick="fecharDrawerEmp()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer 03-B — Detalhe do Empréstimo -->
+  <div id="drawer-emp" class="drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:13px;font-weight:600;color:#111">Detalhe do Empréstimo</span>
+      <button onclick="fecharDrawerEmp()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="drawer-emp-conteudo"></div>
+  </div>
+
+  <!-- Modal overlay — wizard 03-D + devolução 03-C -->
+  <div id="modal-emp-overlay" class="modal-overlay hidden" onclick="fecharModalEmp(event)">
+    <div class="modal" style="width:560px">
+      <div class="modal-header">
+        <span id="modal-emp-titulo" class="modal-title"></span>
+        <button onclick="fecharModalEmp()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-emp-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-emp-erro-msg"></span>
+      </div>
+      <div id="modal-emp-conteudo"></div>
+      <div id="modal-emp-footer" style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px"></div>
+    </div>
+  </div>
+
 </section>

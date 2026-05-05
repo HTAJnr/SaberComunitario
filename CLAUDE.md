@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Stack section
+## Project Stack
 
 - Primary language: JavaScript
 - Documentation: Markdown
@@ -45,11 +45,11 @@ The Oracle instance is **Oracle Database 10g (SQL\*Plus 10.2)** running on a **C
 ## Environment Configuration (`backend/.env`)
 
 ```
-DB_HOST=172.20.10.3
+DB_HOST=XXX.XXX.XXX.XXX
 DB_PORT=1521
 DB_SERVICE=XE
-DB_USER=JnrLite
-DB_PASSWORD=1234
+DB_USER=userName
+DB_PASSWORD=userPass
 INSTANT_CLIENT_PATH=C:/instantclient_21_20
 PORT=3000
 NLS_LANG=AMERICAN_AMERICA.AL32UTF8
@@ -59,25 +59,26 @@ Oracle Instant Client must exist at `INSTANT_CLIENT_PATH` for the thick client m
 
 ## Frontend JS Structure
 
-`main.js` é o núcleo — estado global, helpers HTTP, auth, router, modais genéricos. Toda a lógica de secção vive no seu próprio ficheiro:
+`main.js` is the core — global state, HTTP helpers, auth, router, generic modals. All section logic lives in its own file:
 
-| Ficheiro | Conteúdo |
-|---|---|
-| `js/componentes.js` | Helpers reutilizáveis (`emptyState`, etc.) — **carrega primeiro** |
-| `js/dashboard.js` | `carregarDashboard`, render helpers do dashboard |
-| `js/leitores.js` | Wizard, drawer, modais de leitor |
-| `js/materiais.js` | CRUD de materiais |
-| `js/emprestimos.js` | Empréstimos e devoluções |
-| `js/funcionarios.js` | CRUD de funcionários |
-| `js/eventos.js` | Eventos e participações |
-| `js/doacoes.js` | Doações, doadores, certificados |
-| `js/main.js` | Estado global, auth, router — **carrega por último** |
+| File                 | Contents                                                          |
+| -------------------- | ----------------------------------------------------------------- |
+| `js/componentes.js`  | Reusable helpers (`emptyState`, etc.) — **loads first**           |
+| `js/dashboard.js`    | `carregarDashboard`, dashboard render helpers                     |
+| `js/leitores.js`     | Reader wizard, drawer, modals                                     |
+| `js/materiais.js`    | Materials CRUD                                                    |
+| `js/emprestimos.js`  | Loans and returns                                                 |
+| `js/funcionarios.js` | Staff CRUD                                                        |
+| `js/eventos.js`      | Events and participations                                         |
+| `js/doacoes.js`      | Donations, donors, certificates                                   |
+| `js/main.js`         | Global state, auth, router — **loads last**                       |
 
-**Regras obrigatórias:**
-- `main.js` é sempre o **último** `<script>` em `index.html` — os ficheiros de secção têm de estar carregados antes porque `sectionLoaders` referencia as funções directamente.
-- Ao adicionar uma nova secção: criar `js/<secção>.js`, adicionar `<script>` antes de `main.js` em `index.html`, e adicionar entrada em `sectionLoaders` e `SECTION_TOPBAR` em `main.js`.
-- **Nunca recriar inline** helpers que já existem em `componentes.js`. Usar sempre `emptyState(icone, msg, sub?)` para estados vazios com a classe `.empty-state`.
-- Estado local de secção (`tabActual`, `idActual`, etc.) fica no ficheiro da secção, não em `main.js`. Só `utilizadorActual` e `modalSalvarFn` ficam em `main.js`.
+**Mandatory rules:**
+
+- `main.js` is always the **last** `<script>` in `index.html` — section files must be loaded before it because `sectionLoaders` references their functions directly.
+- When adding a new section: create `js/<section>.js`, add `<script>` before `main.js` in `index.html`, and add an entry in `sectionLoaders` and `SECTION_TOPBAR` in `main.js`.
+- **Never recreate inline** helpers that already exist in `componentes.js`. Always use `emptyState(icon, msg, sub?)` for empty states with the `.empty-state` class.
+- Section-local state (`tabActual`, `idActual`, etc.) lives in the section file, not in `main.js`. Only `utilizadorActual` and `modalSalvarFn` live in `main.js`.
 
 ## Key Patterns
 
@@ -137,18 +138,18 @@ if (req.session.cod_funcionario === 0) {
 
 **Auth middleware:**
 
-- `autenticar` — qualquer utilizador autenticado
-- `exigirNivel('Administrador', 'Coordenador')` — restringe por nível (aceita N argumentos)
+- `autenticar` — any authenticated user
+- `exigirNivel('Administrador', 'Coordenador')` — restricts by level (accepts N arguments)
 
 **Oracle 10g SQL rules:**
 
-- Paginação: ROWNUM duplo (sem `FETCH FIRST` — é 12c+)
-- Sem `LISTAGG` (é 11g+)
-- Primary keys: `SEQ_NOME.NEXTVAL` + `RETURNING id INTO :id_out`
+- Pagination: double ROWNUM (no `FETCH FIRST` — that's 12c+)
+- No `LISTAGG` (that's 11g+)
+- Primary keys: `SEQ_NAME.NEXTVAL` + `RETURNING id INTO :id_out`
 - Bind out: `{ dir: oracledb.BIND_OUT, type: oracledb.NUMBER }`
-- Oracle devolve colunas em MAIÚSCULAS: `result.rows[0].COD_BIBLIOTECA`
+- Oracle returns columns in UPPERCASE: `result.rows[0].COD_BIBLIOTECA`
 
-**Paginação ROWNUM:**
+**ROWNUM pagination:**
 
 ```sql
 SELECT * FROM (
@@ -159,22 +160,22 @@ SELECT * FROM (
 -- binds: rn_max = offset + limit, rn_min = offset
 ```
 
-**Export (simples, não named):**
+**Export (simple, not named):**
 
 ```javascript
 module.exports = router;
 ```
 
-Named exports só em `doacoes.js` (caso especial com dois routers).
+Named exports only in `doacoes.js` (special case with two routers).
 
-**Montar em server.js:**
+**Mounting in server.js:**
 
 ```javascript
-// linha ~16 (imports)
+// line ~16 (imports)
 const xRouter = require('./routes/x');
-// linha ~51 (app.use)
+// line ~51 (app.use)
 app.use('/api/x', xRouter);
-// linha 67 (log de arranque) — actualizar a string de rotas
+// line 67 (startup log) — update the routes string
 ```
 
 ## Language
@@ -183,23 +184,23 @@ All code, comments, UI text, and API error messages are in Portuguese (Portugal)
 
 ## Session Discipline
 
-- Ler ROADMAP.md no início de cada sessão — trabalhar UMA tarefa de cada vez
-- Frontend está bloqueado (ver ROADMAP.md Fase 4) enquanto houver tarefas de backend
-- Cada sessão termina com commit — mesmo WIP
-- Não editar resources/docs/ a não ser que seja estritamente necessário
-- Para correcções de ficheiro único, executar directamente sem plan mode
+- Read ROADMAP.md at the start of each session — work ONE task at a time
+- Frontend is blocked (see ROADMAP.md Phase 4) while backend tasks remain
+- Each session ends with a commit — even WIP
+- Do not edit resources/docs/ unless strictly necessary
+- For single-file fixes, execute directly without plan mode
 
 ## Commits
 
-No final de cada alteração ou implementação concluída, fornecer sempre uma mensagem de commit pronta a usar, no formato:
+At the end of each completed change or implementation, always provide a ready-to-use commit message in the format:
 
 ```
-tipo(âmbito): descrição curta em português
+type(scope): short description in Portuguese
 
-Corpo opcional se necessário.
+Optional body if needed.
 ```
 
-Tipos: `feat`, `fix`, `refactor`, `docs`, `chore`. Exemplo:
+Types: `feat`, `fix`, `refactor`, `docs`, `chore`. Example:
 
 ```
 feat(transferencias): implementar route completa §8 — GET lista, POST solicitar, PATCH aprovar/rejeitar/concluir
