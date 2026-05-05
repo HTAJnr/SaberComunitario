@@ -57,6 +57,28 @@ NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 
 Oracle Instant Client must exist at `INSTANT_CLIENT_PATH` for the thick client mode (`oracledb.initOracleClient()`).
 
+## Frontend JS Structure
+
+`main.js` é o núcleo — estado global, helpers HTTP, auth, router, modais genéricos. Toda a lógica de secção vive no seu próprio ficheiro:
+
+| Ficheiro | Conteúdo |
+|---|---|
+| `js/componentes.js` | Helpers reutilizáveis (`emptyState`, etc.) — **carrega primeiro** |
+| `js/dashboard.js` | `carregarDashboard`, render helpers do dashboard |
+| `js/leitores.js` | Wizard, drawer, modais de leitor |
+| `js/materiais.js` | CRUD de materiais |
+| `js/emprestimos.js` | Empréstimos e devoluções |
+| `js/funcionarios.js` | CRUD de funcionários |
+| `js/eventos.js` | Eventos e participações |
+| `js/doacoes.js` | Doações, doadores, certificados |
+| `js/main.js` | Estado global, auth, router — **carrega por último** |
+
+**Regras obrigatórias:**
+- `main.js` é sempre o **último** `<script>` em `index.html` — os ficheiros de secção têm de estar carregados antes porque `sectionLoaders` referencia as funções directamente.
+- Ao adicionar uma nova secção: criar `js/<secção>.js`, adicionar `<script>` antes de `main.js` em `index.html`, e adicionar entrada em `sectionLoaders` e `SECTION_TOPBAR` em `main.js`.
+- **Nunca recriar inline** helpers que já existem em `componentes.js`. Usar sempre `emptyState(icone, msg, sub?)` para estados vazios com a classe `.empty-state`.
+- Estado local de secção (`tabActual`, `idActual`, etc.) fica no ficheiro da secção, não em `main.js`. Só `utilizadorActual` e `modalSalvarFn` ficam em `main.js`.
+
 ## Key Patterns
 
 **Modal pattern in frontend**: Each CRUD section builds form HTML dynamically, injects into `#modal-conteudo`, then reads values by element ID on submit.
