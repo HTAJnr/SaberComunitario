@@ -221,7 +221,7 @@ const sectionLoaders = {
   funcionarios:    carregarFuncionarios,
   eventos:         carregarEventos,
   doacoes:         carregarDoacoes,
-  transferencias:  () => {},
+  transferencias:  () => carregarTransferencias('todas'),
 };
 
 const SECTION_TOPBAR = {

@@ -1,7 +1,82 @@
 <section id="section-transferencias" class="section hidden">
-  <div class="empty-state" style="margin-top:80px">
-    <div class="empty-state-icon">⇆</div>
-    <div class="empty-state-text">Transferências</div>
-    <div class="empty-state-sub">Módulo em construção — TELA 05</div>
+
+  <!-- Barra de acções -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <input id="filtro-transf-q" type="text" placeholder="Pesquisar por material, origem ou destino…"
+           oninput="_renderizarTabelaTransf()"
+           class="input-field" style="flex:1;min-width:180px;max-width:280px"/>
+    <button onclick="abrirModalSolicitarTransf()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+      <i class="fa-solid fa-plus" style="margin-right:5px"></i>Solicitar Transferência
+    </button>
   </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button id="tab-transf-todas"     class="tab-btn tab-active" onclick="switchTabTransf('todas')">
+      <i class="fa-solid fa-list" style="margin-right:4px"></i>Todas
+    </button>
+    <button id="tab-transf-enviadas"  class="tab-btn" onclick="switchTabTransf('enviadas')">
+      <i class="fa-solid fa-arrow-right" style="margin-right:4px"></i>Enviadas
+    </button>
+    <button id="tab-transf-recebidas" class="tab-btn" onclick="switchTabTransf('recebidas')">
+      <i class="fa-solid fa-arrow-left" style="margin-right:4px"></i>Recebidas
+    </button>
+  </div>
+
+  <!-- Tabela -->
+  <div class="panel">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Material</th>
+          <th>Origem</th>
+          <th>Destino</th>
+          <th>Solicitante</th>
+          <th>Data</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tabela-transferencias"></tbody>
+    </table>
+  </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-transf" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-transf-overlay" onclick="fecharDrawerTransf()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer — Detalhe da Transferência -->
+  <div id="drawer-transf" class="drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:13px;font-weight:600;color:#111">Detalhe da Transferência</span>
+      <button onclick="fecharDrawerTransf()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="drawer-transf-conteudo"></div>
+  </div>
+
+  <!-- Modal overlay — Solicitar (05-B) + Rejeitar -->
+  <div id="modal-transf-overlay" class="modal-overlay hidden" onclick="fecharModalTransf(event)">
+    <div class="modal" style="width:540px">
+      <div class="modal-header">
+        <span id="modal-transf-titulo" class="modal-title"></span>
+        <button onclick="fecharModalTransf()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-transf-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-transf-erro-msg"></span>
+      </div>
+      <div id="modal-transf-conteudo"></div>
+      <div id="modal-transf-footer" style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px"></div>
+    </div>
+  </div>
+
 </section>

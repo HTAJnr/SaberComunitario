@@ -32,7 +32,7 @@
 - [x] TELA 02 — Leitores (wizard 02-B, drawer 02-C com 5 tabs, modais 02-D/E/F)
 - [x] TELA 03 — Empréstimos (wizard 03-D com prazo calculado, modal devolução 03-C com preview multa)
 - [ ] TELA 04 — Materiais (wizard 04-D com 3 steps, drawer 04-B com 3 tabs)
-- [ ] TELA 05 — Transferências
+- [x] TELA 05 — Transferências (tabs Enviadas/Recebidas/Todas, drawer detalhe, modal solicitar, aprovar/rejeitar/concluir)
 - [ ] TELA 06 — Eventos (com horários e recursos dinâmicos)
 - [ ] TELA 07 — Doações (wizard 07-D com doador anónimo)
 - [ ] TELA 08 — Programas de Alfabetização
