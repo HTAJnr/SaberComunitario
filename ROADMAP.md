@@ -29,7 +29,7 @@
 
 > Ver `resources/docs/SCREENS.md` para especificação completa de cada tela.
 
-- [ ] TELA 02 — Leitores (wizard 02-B, drawer 02-C com 5 tabs, modais 02-D/E/F)
+- [x] TELA 02 — Leitores (wizard 02-B, drawer 02-C com 5 tabs, modais 02-D/E/F)
 - [ ] TELA 03 — Empréstimos (wizard 03-D com prazo calculado, modal devolução 03-C com preview multa)
 - [ ] TELA 04 — Materiais (wizard 04-D com 3 steps, drawer 04-B com 3 tabs)
 - [ ] TELA 05 — Transferências
