@@ -6,7 +6,7 @@ CREATE INDEX ie_prazo ON EMPRESTIMO(prazo_devolucao);
 CREATE INDEX ie_dt_dev ON EMPRESTIMO(data_devolucao);
 
 -- MATERIAL
-CREATE INDEX im_categ ON MATERIAL_BIBLIOGRAFICO(id_categoria);
+CREATE INDEX im_categ ON MATERIAL_BIBLIOGRAFICO(cod_categoria);
 CREATE INDEX im_bib ON MATERIAL_BIBLIOGRAFICO(cod_biblioteca);
 CREATE INDEX im_tit ON MATERIAL_BIBLIOGRAFICO(titulo);
 CREATE INDEX im_aut ON MATERIAL_BIBLIOGRAFICO(autor);
@@ -36,7 +36,6 @@ CREATE INDEX ip_ev ON PARTICIPACAO_EVENTO(id_evento);
 
 -- FUNCIONÁRIO
 CREATE INDEX if_bib ON FUNCIONARIO(cod_biblioteca);
-CREATE INDEX if_codlib ON FUNCIONARIO(cod_biblioteca);
 CREATE INDEX if_func ON FUNCIONARIO(id_funcao);
 CREATE INDEX if_form   ON FUNCIONARIO(formacao);
 
@@ -81,8 +80,3 @@ CREATE INDEX ifh_func ON FUNCIONARIO_HABILIDADE(cod_funcionario);
 -- EVENTO
 CREATE INDEX iev_status ON EVENTO(status_evento);
 CREATE INDEX iev_resp   ON EVENTO(cod_funcionario_responsavel);
-CREATE INDEX iev_bib    ON EVENTO(cod_biblioteca);
-
--- MATERIAL_BIBLIOGRAFICO
-CREATE INDEX imb_bib  ON MATERIAL_BIBLIOGRAFICO(cod_biblioteca);
-CREATE INDEX imb_est  ON MATERIAL_BIBLIOGRAFICO(estado_material_conservacao);

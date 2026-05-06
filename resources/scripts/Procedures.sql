@@ -88,21 +88,6 @@ EXCEPTION
 END;
 /
 
--- PROCEDURE: cadastrar_biblioteca
--- Regista nova biblioteca; usa sequencia para ID
-CREATE OR REPLACE PROCEDURE cadastrar_biblioteca (
-    p_nome           IN VARCHAR2,
-    p_localizacao    IN VARCHAR2,
-    p_contacto       IN VARCHAR2,
-    p_id_coordenador IN NUMBER
-) AS
-BEGIN
-    INSERT INTO BIBLIOTECA (cod_biblioteca, nome_biblioteca, localizacao, contacto_biblioteca, id_responsavel)
-    VALUES (SEQ_BIBLIOTECA.NEXTVAL, p_nome, p_localizacao, p_contacto, p_id_coordenador);
-    COMMIT;
-END;
-/
-
 -- PROCEDURE: inserir_leitor
 -- Insere leitor + cod_biblioteca (obrigatorio); formatacao de contacto feita no backend
 CREATE OR REPLACE PROCEDURE inserir_leitor (

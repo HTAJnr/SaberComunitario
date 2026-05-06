@@ -1,7 +1,7 @@
 -- ==========================================
 -- DROPS DAS SEQUÊNCIAS
 -- ==========================================
-DROP SEQUENCE SEQ_BIBLIOTECA;
+DROP SEQUENCE SEQ_HORARIO_BIB;
 DROP SEQUENCE SEQ_CATEGORIA;
 DROP SEQUENCE SEQ_CERTIFICADO;
 DROP SEQUENCE SEQ_DOACAO;
