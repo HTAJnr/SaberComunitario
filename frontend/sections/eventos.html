@@ -1,22 +1,97 @@
-<section id="section-eventos" class="section p-6 hidden">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-bold">Eventos</h2>
-    <button onclick="abrirModalEvento()" class="btn-primary">
-      <i class="fa-solid fa-plus mr-1"></i> Novo Evento
+<section id="section-eventos" class="section hidden">
+
+  <!-- Barra de acções -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <input id="filtro-ev-q" type="text" placeholder="Pesquisar por título ou local…"
+           oninput="_renderizarTabelaEventos()"
+           class="input-field" style="flex:1;min-width:180px;max-width:280px"/>
+    <button onclick="abrirModalCriarEvento()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+      <i class="fa-solid fa-plus" style="margin-right:5px"></i>Novo Evento
     </button>
   </div>
-  <div class="card overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr class="border-b border-slate-700 text-slate-400">
-        <th class="text-left py-2 px-3">Nome</th>
-        <th class="text-left py-2 px-3">Data Início</th>
-        <th class="text-left py-2 px-3">Tipo</th>
-        <th class="text-left py-2 px-3">Público</th>
-        <th class="text-left py-2 px-3">Inscritos/Cap.</th>
-        <th class="text-left py-2 px-3">Biblioteca</th>
-        <th class="text-left py-2 px-3">Acções</th>
-      </tr></thead>
+
+  <!-- Tabs de status -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button id="tab-ev-todos"     class="tab-btn tab-active" onclick="carregarEventos('todos')">
+      <i class="fa-solid fa-list" style="margin-right:4px"></i>Todos
+    </button>
+    <button id="tab-ev-planeado"  class="tab-btn" onclick="carregarEventos('Planeado')">
+      <i class="fa-solid fa-clock" style="margin-right:4px"></i>Planeados
+    </button>
+    <button id="tab-ev-realizado" class="tab-btn" onclick="carregarEventos('Realizado')">
+      <i class="fa-solid fa-circle-check" style="margin-right:4px"></i>Realizados
+    </button>
+    <button id="tab-ev-cancelado" class="tab-btn" onclick="carregarEventos('Cancelado')">
+      <i class="fa-solid fa-ban" style="margin-right:4px"></i>Cancelados
+    </button>
+  </div>
+
+  <!-- Tabela -->
+  <div class="panel">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Data</th>
+          <th>Local</th>
+          <th>Público</th>
+          <th>Inscritos/Cap.</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody id="tabela-eventos"></tbody>
     </table>
   </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-ev" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-ev-overlay" onclick="fecharDrawerEvento()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer 06-B — Detalhe do Evento -->
+  <div id="drawer-ev" class="drawer" style="width:420px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span id="drawer-ev-titulo" style="font-size:13px;font-weight:600;color:#111">Evento</span>
+      <button onclick="fecharDrawerEvento()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Tabs do drawer -->
+    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;flex-wrap:wrap">
+      <button id="dtab-ev-info"          class="tab-btn tab-active" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerEvento('info')">Info</button>
+      <button id="dtab-ev-horarios"      class="tab-btn"            style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerEvento('horarios')">Horários</button>
+      <button id="dtab-ev-participantes" class="tab-btn"            style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerEvento('participantes')">Participantes</button>
+      <button id="dtab-ev-avaliacoes"    class="tab-btn"            style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerEvento('avaliacoes')">Avaliações</button>
+    </div>
+
+    <div id="drawer-ev-conteudo" style="overflow-y:auto;max-height:calc(100vh - 190px)"></div>
+  </div>
+
+  <!-- Modal overlay 06-C — Criar / Editar Evento -->
+  <div id="modal-ev-overlay" class="modal-overlay hidden" onclick="fecharModalEvento(event)">
+    <div class="modal" style="width:600px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span id="modal-ev-titulo" class="modal-title">Novo Evento</span>
+        <button onclick="fecharModalEvento()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-ev-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-ev-erro-msg"></span>
+      </div>
+      <div id="modal-ev-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+      <div id="modal-ev-footer" style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0"></div>
+    </div>
+  </div>
+
 </section>

@@ -33,6 +33,7 @@ router.get('/', autenticar, async (req, res) => {
       `SELECT e.ID_EVENTO,
               e.TITULO_EVENTO  AS NOME,
               e.DATA_EVENTO    AS DATA_INICIO,
+              e.LOCAL_EVENTO, e.CAPACIDADE,
               e.DESCRICAO_EVENTO, e.PUBLICO_ALVO, e.RECORRENTE,
               e.STATUS_EVENTO, e.COD_BIBLIOTECA,
               b.NOME_BIBLIOTECA,
@@ -427,6 +428,85 @@ router.post('/:id/avaliacoes', autenticar, async (req, res) => {
     if (conn) await conn.rollback();
     console.error(`\x1b[31m[EVENTOS POST /${req.params.id}/avaliacoes] ERRO ao registar avaliação\x1b[0m`);
     console.error('     BD: EVENTO + PARTICIPACAO_EVENTO + INSERT AVALIACAO_EVENTO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+router.get('/:id/horarios', autenticar, async (req, res) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT ID_HORARIO_EV, DIA_SEMANA,
+              TO_CHAR(DATA_OCORRENCIA,'YYYY-MM-DD') AS DATA_OCORRENCIA,
+              HORA_INICIO, HORA_FIM
+         FROM HORARIO_EVENTO
+        WHERE ID_EVENTO = :id
+        ORDER BY DATA_OCORRENCIA, HORA_INICIO`,
+      { id: req.params.id },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`\x1b[31m[EVENTOS GET /${req.params.id}/horarios] ERRO\x1b[0m`);
+    console.error('     BD: HORARIO_EVENTO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+router.get('/:id/avaliacoes', autenticar, async (req, res) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT av.ID_AVALIACAO, av.NUM_CARTAO, av.NOTA, av.COMENTARIO,
+              TO_CHAR(av.DATA_AVALIACAO,'YYYY-MM-DD') AS DATA_AVALIACAO,
+              l.NOME_COMPLETO AS NOME_LEITOR
+         FROM AVALIACAO_EVENTO av
+         JOIN LEITOR l ON l.NUM_CARTAO = av.NUM_CARTAO
+        WHERE av.ID_EVENTO = :id
+        ORDER BY av.DATA_AVALIACAO DESC`,
+      { id: req.params.id },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`\x1b[31m[EVENTOS GET /${req.params.id}/avaliacoes] ERRO\x1b[0m`);
+    console.error('     BD: AVALIACAO_EVENTO + LEITOR');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+router.patch('/:id/participantes/:num_cartao/presenca', autenticar, async (req, res) => {
+  const { presenca } = req.body;
+  if (!presenca || !['S', 'N'].includes(presenca))
+    return res.status(400).json({ erro: 'presenca deve ser "S" ou "N".' });
+  let conn;
+  try {
+    conn = await getConnection();
+    const upd = await conn.execute(
+      `UPDATE PARTICIPACAO_EVENTO
+          SET PRESENCA_CONFIRMACAO = :presenca
+        WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
+      { presenca, id: req.params.id, nc: req.params.num_cartao }
+    );
+    if (upd.rowsAffected === 0)
+      return res.status(404).json({ erro: 'Inscrição não encontrada.' });
+    await conn.commit();
+    res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error(`\x1b[31m[EVENTOS PATCH /${req.params.id}/participantes/${req.params.num_cartao}/presenca] ERRO\x1b[0m`);
+    console.error('     BD: UPDATE PARTICIPACAO_EVENTO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
