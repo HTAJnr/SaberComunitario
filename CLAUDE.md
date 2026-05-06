@@ -208,11 +208,52 @@ All code, comments, UI text, and API error messages are in Portuguese (Portugal)
 
 ## Session Discipline
 
-- Read ROADMAP.md at the start of each session — work ONE task at a time
-- Frontend is blocked (see ROADMAP.md Phase 4) while backend tasks remain
+- Work ONE task at a time
 - Each session ends with a commit — even WIP
-- Do not edit resources/docs/ unless strictly necessary
 - For single-file fixes, execute directly without plan mode
+
+## Permissions Matrix
+
+`nivel_acesso` comes from `FUNCAO_FUNCIONARIO.nivel_acesso`: `'Administrador'` | `'Coordenador'` | `'Bibliotecario'` | `'Assistente'`
+
+| Módulo                            | Admin | Coord | Biblio | Assist |
+| --------------------------------- | ----- | ----- | ------ | ------ |
+| Dashboard (rede)                  | ✓     | —     | —      | —      |
+| Dashboard (biblioteca)            | ✓     | ✓     | ✓      | ✓      |
+| Leitores — ver lista              | ✓     | ✓     | ✓      | ✓      |
+| Leitores — cadastrar              | ✓     | ✓     | ✓      | ✓      |
+| Leitores — editar                 | ✓     | ✓     | ✓      | —      |
+| Leitores — eliminar               | ✓     | —     | —      | —      |
+| Leitores — alterar status         | ✓     | ✓     | —      | —      |
+| Empréstimos — ver                 | ✓     | ✓     | ✓      | ✓      |
+| Empréstimos — criar               | ✓     | ✓     | ✓      | ✓      |
+| Empréstimos — devolver            | ✓     | ✓     | ✓      | ✓      |
+| Empréstimos — eliminar            | ✓     | —     | —      | —      |
+| Multas — marcar paga              | ✓     | ✓     | ✓      | —      |
+| Materiais — ver                   | ✓     | ✓     | ✓      | ✓      |
+| Materiais — adicionar             | ✓     | ✓     | ✓      | —      |
+| Materiais — editar                | ✓     | ✓     | ✓      | —      |
+| Materiais — eliminar              | ✓     | ✓     | —      | —      |
+| Transferências — ver              | ✓     | ✓     | —      | —      |
+| Transferências — solicitar        | ✓     | ✓     | —      | —      |
+| Transferências — aprovar/rejeitar | ✓     | ✓     | —      | —      |
+| Eventos — ver                     | ✓     | ✓     | ✓      | ✓      |
+| Eventos — criar/editar            | ✓     | ✓     | ✓      | —      |
+| Eventos — cancelar                | ✓     | ✓     | —      | —      |
+| Eventos — gerir participantes     | ✓     | ✓     | ✓      | ✓      |
+| Doações — ver                     | ✓     | ✓     | ✓      | —      |
+| Doações — registar                | ✓     | ✓     | —      | —      |
+| Certificados — emitir             | ✓     | ✓     | —      | —      |
+| Programas — ver                   | ✓     | ✓     | ✓      | ✓      |
+| Programas — criar/editar          | ✓     | ✓     | —      | —      |
+| Programas — gerir participantes   | ✓     | ✓     | ✓      | —      |
+| Funcionários — ver                | ✓     | ✓     | —      | —      |
+| Funcionários — cadastrar/editar   | ✓     | ✓     | —      | —      |
+| Funcionários — eliminar           | ✓     | —     | —      | —      |
+| Permissões — ver/gerir            | ✓     | —     | —      | —      |
+| Bibliotecas (rede)                | ✓     | —     | —      | —      |
+| Biblioteca (própria)              | ✓     | ✓     | —      | —      |
+| Suspensões — reduzir              | ✓     | ✓     | —      | —      |
 
 ## Commits
 
