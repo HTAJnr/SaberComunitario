@@ -1,21 +1,126 @@
-<section id="section-funcionarios" class="section p-6 hidden">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-bold">Funcionários</h2>
-    <button onclick="abrirModalFuncionario()" class="btn-primary">
-      <i class="fa-solid fa-user-plus mr-1"></i> Novo Funcionário
+<section id="section-funcionarios" class="section hidden">
+
+  <!-- Barra de acções -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <input id="filtro-func-q" type="text" placeholder="Pesquisar por nome…"
+           oninput="_renderizarTabelaFuncionarios()"
+           class="input-field" style="flex:1;min-width:180px;max-width:280px"/>
+    <button onclick="abrirWizardFunc()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+      <i class="fa-solid fa-user-plus" style="margin-right:5px"></i>Cadastrar Funcionário
     </button>
   </div>
-  <div class="card overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr class="border-b border-slate-700 text-slate-400">
-        <th class="text-left py-2 px-3">ID</th>
-        <th class="text-left py-2 px-3">Nome</th>
-        <th class="text-left py-2 px-3">Email</th>
-        <th class="text-left py-2 px-3">Função</th>
-        <th class="text-left py-2 px-3">Biblioteca</th>
-        <th class="text-left py-2 px-3">Acções</th>
-      </tr></thead>
+
+  <!-- Tabela 09-A -->
+  <div class="panel">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Código</th>
+          <th>Nome</th>
+          <th>Função</th>
+          <th>Nível de Acesso</th>
+          <th>Biblioteca</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody id="tabela-funcionarios"></tbody>
     </table>
   </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-func" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-func-overlay" onclick="fecharDrawerFunc()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer 09-B — Perfil do Funcionário -->
+  <div id="drawer-func" class="drawer" style="width:420px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:13px;font-weight:600;color:#111">Perfil do Funcionário</span>
+      <button onclick="fecharDrawerFunc()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="drawer-func-conteudo" style="overflow-y:auto;max-height:calc(100vh - 120px)"></div>
+  </div>
+
+  <!-- Modal 09-C — Editar Funcionário -->
+  <div id="modal-func-overlay" class="modal-overlay hidden" onclick="fecharModalFunc(event)">
+    <div class="modal" style="width:620px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title">Editar Funcionário</span>
+        <button onclick="fecharModalFunc()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-func-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-func-erro-msg"></span>
+      </div>
+      <div id="modal-func-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
+        <button class="btn-secondary" onclick="fecharModalFunc()">Cancelar</button>
+        <button class="btn-primary" onclick="_submeterModalFunc()">
+          <i class="fa-solid fa-floppy-disk" style="margin-right:5px"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 09-D — Gerir Permissões -->
+  <div id="modal-perm-overlay" class="modal-overlay hidden" onclick="fecharModalPerm(event)">
+    <div class="modal" style="width:660px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title">Gerir Permissões</span>
+        <button onclick="fecharModalPerm()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-perm-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-perm-erro-msg"></span>
+      </div>
+      <div id="modal-perm-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
+        <button class="btn-secondary" onclick="fecharModalPerm()">Cancelar</button>
+        <button class="btn-primary" onclick="_submeterModalPerm()">
+          <i class="fa-solid fa-shield-halved" style="margin-right:5px"></i>Guardar permissão
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard 09-E — Cadastrar Funcionário -->
+  <div id="modal-wiz-func-overlay" class="modal-overlay hidden" onclick="fecharWizardFunc(event)">
+    <div class="modal" style="width:580px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title">Cadastrar Funcionário</span>
+        <button onclick="fecharWizardFunc()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-wiz-func-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-wiz-func-erro-msg"></span>
+      </div>
+      <div id="wiz-func-indicador" style="display:flex;align-items:center;justify-content:center;gap:0;margin:10px 0 18px"></div>
+      <div id="wiz-func-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+      <div id="wiz-func-rodape" style="margin-top:18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+        <button id="wiz-func-btn-recuar" class="btn-secondary" onclick="_wizFuncRecuar()" style="display:none">
+          <i class="fa-solid fa-arrow-left" style="margin-right:5px"></i>Anterior
+        </button>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn-secondary" onclick="fecharWizardFunc()">Cancelar</button>
+          <button id="wiz-func-btn-avancar" class="btn-primary" onclick="_wizFuncAvancar()">
+            Próximo <i class="fa-solid fa-arrow-right" style="margin-left:5px"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </section>
