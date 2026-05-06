@@ -37,5 +37,5 @@
 - [x] TELA 07 — Doações (wizard 07-D com doador anónimo)
 - [x] TELA 08 — Programas de Alfabetização
 - [x] TELA 09 — Funcionários (wizard 09-E, modal permissões 09-D com preview)
-- [ ] TELA 10 — Permissões
-- [ ] TELA 11 — Biblioteca (vista Admin rede + vista Coord própria)
+- [x] TELA 10 — Permissões
+- [x] TELA 11 — Biblioteca (vista Admin rede + vista Coord própria)

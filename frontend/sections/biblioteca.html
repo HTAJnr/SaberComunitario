@@ -1,0 +1,121 @@
+<section id="section-biblioteca" class="section hidden">
+
+  <!-- ── Vista Admin: Rede de Bibliotecas ── -->
+  <div id="bib-painel-admin" style="display:none">
+
+    <!-- Barra de acções -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <input id="filtro-bib-q" type="text" placeholder="Pesquisar por nome ou código…"
+             oninput="_renderizarTabelaBibliotecas()"
+             class="input-field" style="flex:1;min-width:180px;max-width:300px"/>
+      <button id="btn-adicionar-bib" onclick="abrirWizardBib()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+        <i class="fa-solid fa-plus" style="margin-right:5px"></i>Adicionar à rede
+      </button>
+    </div>
+
+    <!-- Tabela 11-A -->
+    <div class="panel">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Província</th>
+            <th>Região</th>
+            <th>Capacidade</th>
+            <th>Responsável</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tabela-bibliotecas"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- ── Vista Coord: A Minha Biblioteca ── -->
+  <div id="bib-painel-coord" style="display:none">
+    <div id="bib-card-conteudo"></div>
+  </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-bib" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-bib-overlay" onclick="fecharDrawerBiblioteca()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer 11-B — Detalhe da Biblioteca -->
+  <div id="drawer-bib" class="drawer" style="width:440px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:13px;font-weight:600;color:#111">Detalhe da Biblioteca</span>
+      <button onclick="fecharDrawerBiblioteca()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px">
+      <button id="dtab-bib-info" class="tab-btn tab-active" onclick="mudarTabDrawerBib('info')">Informação</button>
+      <button id="dtab-bib-horarios" class="tab-btn" onclick="mudarTabDrawerBib('horarios')">Horários</button>
+      <button id="dtab-bib-responsaveis" class="tab-btn" onclick="mudarTabDrawerBib('responsaveis')">Responsáveis</button>
+    </div>
+
+    <div id="drawer-bib-conteudo" style="overflow-y:auto;max-height:calc(100vh - 190px)"></div>
+  </div>
+
+  <!-- Modal 11-C — Editar Biblioteca -->
+  <div id="modal-bib-overlay" class="modal-overlay hidden" onclick="fecharModalBib(event)">
+    <div class="modal" style="width:600px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span id="modal-bib-titulo" class="modal-title">Editar Biblioteca</span>
+        <button onclick="fecharModalBib()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-bib-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-bib-erro-msg"></span>
+      </div>
+      <div id="modal-bib-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
+        <button class="btn-secondary" onclick="fecharModalBib()">Cancelar</button>
+        <button class="btn-primary" onclick="_submeterModalBib()">
+          <i class="fa-solid fa-floppy-disk" style="margin-right:5px"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard 11-D — Adicionar Biblioteca (Admin) -->
+  <div id="wiz-bib-overlay" class="modal-overlay hidden" onclick="fecharWizardBib(event)">
+    <div class="modal" style="width:560px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title">Adicionar Biblioteca à Rede</span>
+        <button onclick="fecharWizardBib()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="wiz-bib-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="wiz-bib-erro-msg"></span>
+      </div>
+      <div id="wiz-bib-indicador" style="display:flex;align-items:center;justify-content:center;gap:0;margin:10px 0 18px"></div>
+      <div id="wiz-bib-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+      <div style="margin-top:18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+        <button id="wiz-bib-btn-recuar" class="btn-secondary" onclick="_recuarWizBib()" style="display:none">
+          <i class="fa-solid fa-arrow-left" style="margin-right:5px"></i>Anterior
+        </button>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn-secondary" onclick="fecharWizardBib()">Cancelar</button>
+          <button id="wiz-bib-btn-avancar" class="btn-primary" onclick="_avancarWizBib()">
+            Próximo <i class="fa-solid fa-arrow-right" style="margin-left:5px"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>

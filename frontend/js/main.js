@@ -229,6 +229,7 @@ const sectionLoaders = {
   transferencias:  () => carregarTransferencias('todas'),
   programas:       carregarProgramas,
   permissoes:      carregarPermissoes,
+  biblioteca:      carregarBibliotecas,
 };
 
 const SECTION_TOPBAR = {
@@ -242,6 +243,7 @@ const SECTION_TOPBAR = {
   transferencias: { titulo: 'Transferências' },
   programas:      { titulo: 'Programas' },
   permissoes:     { titulo: 'Permissões' },
+  biblioteca:     { titulo: 'Biblioteca' },
 };
 
 function configurarNavPorRole() {
@@ -256,17 +258,19 @@ function configurarNavPorRole() {
     if (el) el.style.display = '';
   };
 
-  ['transferencias', 'funcionarios', 'doacoes', 'permissoes'].forEach(show);
+  ['transferencias', 'funcionarios', 'doacoes', 'permissoes', 'biblioteca'].forEach(show);
 
   if (nivel === 'Assistente') {
     hide('transferencias');
     hide('funcionarios');
     hide('doacoes');
     hide('permissoes');
+    hide('biblioteca');
   } else if (nivel === 'Bibliotecario') {
     hide('transferencias');
     hide('funcionarios');
     hide('permissoes');
+    hide('biblioteca');
   } else if (nivel === 'Coordenador') {
     hide('permissoes');
   }
@@ -333,7 +337,7 @@ function mostrarErroModal(msg) {
 // INICIALIZAÇÃO
 // ════════════════════════════════════════════════
 async function inicializarHTML() {
-  const seccoes = ['dashboard','leitores','materiais','emprestimos','funcionarios','eventos','doacoes','transferencias','programas','permissoes'];
+  const seccoes = ['dashboard','leitores','materiais','emprestimos','funcionarios','eventos','doacoes','transferencias','programas','permissoes','biblioteca'];
 
   const loginHtml = await fetch('sections/login.html').then(r => r.text());
   document.getElementById('app').insertAdjacentHTML('beforebegin', loginHtml);
