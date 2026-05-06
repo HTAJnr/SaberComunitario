@@ -19,11 +19,9 @@ const _PROVINCIAS = [
 ];
 
 function _badgeRegiao(provincia) {
-  const sul    = ['Maputo Cidade','Maputo Provincia','Gaza','Inhambane'];
-  const centro = ['Sofala','Manica','Tete','Zambezia'];
-  if (sul.includes(provincia))    return `<span class="bdg bdg-activo">Sul</span>`;
-  if (centro.includes(provincia)) return `<span class="bdg bdg-adulto">Centro</span>`;
-  return `<span class="bdg">Norte</span>`;
+  const r = regiaoDeProvinccia(provincia);
+  const cls = { Sul: 'bdg-activo', Centro: 'bdg-adulto', Norte: '' };
+  return `<span class="bdg ${cls[r] || ''}">${r}</span>`;
 }
 
 function _bsecao(titulo) {

@@ -116,9 +116,7 @@ function _renderizarTabelaFuncionarios() {
 }
 
 function _linhaFunc(r) {
-  const av = `<div style="width:32px;height:32px;border-radius:50%;background:var(--theme-accent);
-    color:#fff;display:flex;align-items:center;justify-content:center;
-    font-size:11px;font-weight:700;flex-shrink:0">${iniciais(r.NOME)}</div>`;
+  const av = avatarCirculo(r.NOME, 32);
 
   return `<tr>
     <td style="padding:6px 10px">${av}</td>
@@ -229,9 +227,7 @@ function _renderizarPerfilFunc(d) {
   const avatarHtml = `
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;
       padding:14px;background:var(--surface-raised);border-radius:10px">
-      <div style="width:52px;height:52px;border-radius:50%;background:var(--theme-accent);
-        color:#fff;display:flex;align-items:center;justify-content:center;
-        font-size:18px;font-weight:700;flex-shrink:0">${iniciais(d.NOME_FUNCIONARIO)}</div>
+      ${avatarCirculo(d.NOME_FUNCIONARIO, 52)}
       <div>
         <div style="font-size:10px;font-family:monospace;color:var(--text-muted);margin-bottom:2px">${d.COD_FUNCIONARIO}</div>
         <div style="font-size:15px;font-weight:600;color:var(--text-primary)">${d.NOME_FUNCIONARIO || '—'}</div>

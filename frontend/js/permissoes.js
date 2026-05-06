@@ -30,9 +30,7 @@ function _renderizarTabelaPermissoes() {
 }
 
 function _linhaPermissao(r) {
-  const av = `<div style="width:32px;height:32px;border-radius:50%;background:var(--theme-accent);
-    color:#fff;display:flex;align-items:center;justify-content:center;
-    font-size:11px;font-weight:700;flex-shrink:0">${iniciais(r.NOME)}</div>`;
+  const av = avatarCirculo(r.NOME, 32);
 
   return `<tr>
     <td style="padding:6px 10px">${av}</td>

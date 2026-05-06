@@ -16,18 +16,8 @@ let _wizBibOpts     = '';
 
 // ── Helpers de apresentação ────────────────────
 
-function _dcampo(label, valor, estilo) {
-  return `<div style="display:flex;justify-content:space-between;align-items:baseline;
-                      padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
-    <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
-    <span style="text-align:right;${estilo || ''}">${valor ?? '—'}</span>
-  </div>`;
-}
-
-function _dsecao(titulo) {
-  return `<div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
-                      letter-spacing:.06em;margin:14px 0 6px">${titulo}</div>`;
-}
+const _dcampo = campoDetalhe;
+const _dsecao = secaoDetalhe;
 
 function _badgeTipoDoador(tipo) {
   if (!tipo) return '—';

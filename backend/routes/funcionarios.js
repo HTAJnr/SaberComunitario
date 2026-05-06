@@ -13,7 +13,7 @@ function gerarEmail(nome) {
   return `${local}@sabercomunitario.mz`;
 }
 
-router.get('/funcoes', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+router.get('/funcoes', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -33,7 +33,7 @@ router.get('/funcoes', exigirNivel('Administrador', 'Coordenador'), async (req, 
   }
 });
 
-router.get('/bibliotecas', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+router.get('/bibliotecas', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();

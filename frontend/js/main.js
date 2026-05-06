@@ -98,11 +98,7 @@ function iniciais(nome) {
 }
 
 function calcularRegiao(provincia) {
-  const SUL    = ['Maputo Cidade', 'Maputo Provincia', 'Gaza', 'Inhambane'];
-  const CENTRO = ['Sofala', 'Manica', 'Tete', 'Zambezia'];
-  if (SUL.includes(provincia))    return 'Sul';
-  if (CENTRO.includes(provincia)) return 'Centro';
-  return 'Norte';
+  return regiaoDeProvinccia(provincia);
 }
 
 function setTopbar(titulo, sub) {
@@ -136,11 +132,7 @@ function bdgTipo(tipo) {
 // AUTH
 // ════════════════════════════════════════════════
 function calcularTema(provincia) {
-  const SUL    = ['Maputo Cidade', 'Maputo Provincia', 'Gaza', 'Inhambane'];
-  const CENTRO = ['Sofala', 'Manica', 'Tete', 'Zambezia'];
-  if (SUL.includes(provincia))    return 'theme-sul';
-  if (CENTRO.includes(provincia)) return 'theme-centro';
-  return 'theme-norte';
+  return 'theme-' + regiaoDeProvinccia(provincia).toLowerCase();
 }
 
 async function init() {

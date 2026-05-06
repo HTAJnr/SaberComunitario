@@ -273,6 +273,14 @@ router.post('/:id/certificado', exigirNivel('Administrador', 'Coordenador'), asy
     if (doacaoResult.rows.length === 0)
       return res.status(404).json({ erro: 'Doação não encontrada.' });
 
+    const existeResult = await conn.execute(
+      `SELECT COUNT(*) AS TOTAL FROM CERTIFICADO_DOACAO WHERE ID_DOACAO = :id`,
+      { id: parseInt(req.params.id) },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (existeResult.rows[0].TOTAL > 0)
+      return res.status(409).json({ erro: 'Já existe um certificado para esta doação. Use a opção de reemissão.' });
+
     const seqResult = await conn.execute(
       `SELECT SEQ_CERTIFICADO.NEXTVAL AS SEQ FROM DUAL`,
       [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
