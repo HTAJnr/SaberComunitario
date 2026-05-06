@@ -35,6 +35,39 @@ function secaoDetalhe(titulo) {
                       letter-spacing:.06em;margin:14px 0 6px">${titulo}</div>`;
 }
 
+// ── Wizard indicador de passos ────────────────────
+function wizardIndicador(stepActual, total, labels) {
+  const hasLabels = labels && labels.length > 0;
+  const circles = Array.from({ length: total }, (_, i) => {
+    const n = i + 1;
+    const activo   = n === stepActual;
+    const concluido = n < stepActual;
+    const bg      = (activo || concluido) ? 'var(--theme-accent)' : 'var(--border)';
+    const txtCor  = (activo || concluido) ? '#fff' : 'var(--text-muted)';
+    const labelCor = activo ? 'var(--text-primary)' : 'var(--text-muted)';
+    const fw = activo ? '600' : '400';
+    return { n, activo, concluido, bg, txtCor, labelCor, fw };
+  });
+
+  const parts = [];
+  circles.forEach((c, i) => {
+    parts.push(`<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:26px;height:26px;border-radius:50%;background:${c.bg};color:${c.txtCor};
+                  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">
+        ${c.concluido ? '<i class="fa-solid fa-check" style="font-size:10px"></i>' : c.n}
+      </div>
+      ${hasLabels && labels[i] ? `<span style="font-size:10px;color:${c.labelCor};font-weight:${c.fw};white-space:nowrap;text-align:center">${labels[i]}</span>` : ''}
+    </div>`);
+    if (i < total - 1) {
+      parts.push(`<div style="flex:1;height:1px;background:var(--border);align-self:flex-start;margin-top:13px${hasLabels ? '' : ''}"></div>`);
+    }
+  });
+
+  return `<div style="display:flex;align-items:flex-start;gap:4px;padding:12px 16px 8px;justify-content:center">
+    ${parts.join('')}
+  </div>`;
+}
+
 // ── Avatar circular ───────────────────────────────
 function avatarCirculo(nome, tamanho) {
   const t   = tamanho || 32;

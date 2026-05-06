@@ -280,14 +280,14 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res)
   }
 });
 
-// POST / — cria funcionário; gera cod, email e hash da senha; insere habilidades + horários
+// POST / — cria funcionário; gera cod, email e senha auto; insere habilidades + horários
 router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
-  const { nome_funcionario, senha, contacto, genero, data_nasc, id_funcao, cod_biblioteca,
+  const { nome_funcionario, contacto, genero, data_nasc, id_funcao, cod_biblioteca,
           data_contratacao, endereco, formacao, experiencia,
           habilidades, horarios } = req.body;
 
-  if (!nome_funcionario || !senha) {
-    return res.status(400).json({ erro: 'Nome e senha são obrigatórios.' });
+  if (!nome_funcionario) {
+    return res.status(400).json({ erro: 'Nome é obrigatório.' });
   }
   if (!contacto) {
     return res.status(400).json({ erro: 'contacto é obrigatório.' });
@@ -299,7 +299,9 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
 
   let conn;
   try {
-    const senhaHash = await bcrypt.hash(senha, 10);
+    const crypto = require('crypto');
+    const senhaTemporaria = crypto.randomBytes(6).toString('base64').slice(0, 10);
+    const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
     const email = gerarEmail(nome_funcionario);
 
     conn = await getConnection();
@@ -347,11 +349,39 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
     }
 
     await conn.commit();
-    res.status(201).json({ ok: true, cod_funcionario: codFuncionario, email });
+    res.status(201).json({ ok: true, cod_funcionario: codFuncionario, email, senha_temporaria: senhaTemporaria });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('\x1b[31m[FUNCIONARIOS POST /] ERRO ao criar funcionário\x1b[0m');
     console.error('     BD: INSERT FUNCIONARIO + FUNCIONARIO_HABILIDADE + HORARIO_FUNCIONARIO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+// PATCH /:id/senha — altera senha do funcionário
+router.patch('/:id/senha', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+  const { nova_senha } = req.body;
+  if (!nova_senha || nova_senha.length < 6) {
+    return res.status(400).json({ erro: 'A senha deve ter pelo menos 6 caracteres.' });
+  }
+  let conn;
+  try {
+    const senhaHash = await bcrypt.hash(nova_senha, 10);
+    conn = await getConnection();
+    const result = await conn.execute(
+      `UPDATE FUNCIONARIO SET SENHA = :senha WHERE COD_FUNCIONARIO = :id`,
+      { senha: senhaHash, id: req.params.id }
+    );
+    if (result.rowsAffected === 0) return res.status(404).json({ erro: 'Funcionário não encontrado.' });
+    await conn.commit();
+    res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error('\x1b[31m[FUNCIONARIOS PATCH /:id/senha]\x1b[0m');
+    console.error('     BD: FUNCIONARIO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {

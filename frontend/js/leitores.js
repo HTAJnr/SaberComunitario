@@ -110,13 +110,7 @@ function abrirWizardLeitor() {
 }
 
 function _wizardIndicador(step) {
-  const titulos = ['Dados Base', 'Tipo e Detalhes', 'Confirmação'];
-  const dots = [1,2,3].map(i => {
-    const cls = i < step ? 'done' : i === step ? 'active' : 'pending';
-    return `<div class="step-dot ${cls}"></div>${i < 3 ? '<div class="step-line"></div>' : ''}`;
-  }).join('');
-  return `<div class="wizard-steps">${dots}</div>
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Passo ${step} de 3 — ${titulos[step-1]}</div>`;
+  return wizardIndicador(step, 3, ['Dados Base', 'Tipo e Detalhes', 'Confirmação']);
 }
 
 function _renderizarWizardStep() {
@@ -220,7 +214,7 @@ function _renderizarCamposTipo() {
         <label class="form-label">Nível de literacia</label>
         <select id="wz-nivel-literacia" class="input-field">
           <option value="">—</option>
-          ${['Analfabeto','Alfabetizado','Básico','Médio','Superior'].map(v=>`<option ${_wizardDados.nivel_literacia===v?'selected':''}>${v}</option>`).join('')}
+          ${['Basico','Funcional','Avancado'].map(v=>`<option ${_wizardDados.nivel_literacia===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </div>
       <div class="form-group">
@@ -242,7 +236,7 @@ function _renderizarCamposTipo() {
           <label class="form-label">Nível de literacia</label>
           <select id="wz-nivel-literacia" class="input-field">
             <option value="">—</option>
-            ${['Analfabeto','Alfabetizado','Básico','Médio','Superior'].map(v=>`<option ${_wizardDados.nivel_literacia===v?'selected':''}>${v}</option>`).join('')}
+            ${['Basico','Funcional','Avancado'].map(v=>`<option ${_wizardDados.nivel_literacia===v?'selected':''}>${v}</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
@@ -253,7 +247,7 @@ function _renderizarCamposTipo() {
           <label class="form-label">Nível de ensino</label>
           <select id="wz-nivel-ensino" class="input-field">
             <option value="">—</option>
-            ${['Pré-escolar','Primário','Secundário','Superior'].map(v=>`<option ${_wizardDados.nivel_ensino===v?'selected':''}>${v}</option>`).join('')}
+            ${['Primario','Secundario','Tecnico','Universitario'].map(v=>`<option ${_wizardDados.nivel_ensino===v?'selected':''}>${v}</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
@@ -466,7 +460,7 @@ async function abrirModalEditarLeitor(numCartao) {
         <label class="form-label">Nível de ensino</label>
         <select id="ef-nivel-ensino" class="input-field">
           <option value="">—</option>
-          ${['Pré-escolar','Primário','Secundário','Superior'].map(v=>`<option ${leitor.NIVEL_ENSINO===v?'selected':''}>${v}</option>`).join('')}
+          ${['Primario','Secundario','Tecnico','Universitario'].map(v=>`<option ${leitor.NIVEL_ENSINO===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </div>
       <div class="form-group">

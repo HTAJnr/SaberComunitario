@@ -365,7 +365,21 @@ function _renderizarDrawerInfoBib(d) {
       <div style="font-weight:600;color:var(--text-muted);margin-bottom:3px">Serviços</div>
       <div>${d.SERVICOS || '<em style="color:var(--text-muted)">Não especificados</em>'}</div>
     </div>
+
+    ${utilizadorActual?.NIVEL_ACESSO === 'Administrador' ? `
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <button onclick="_desativarBiblioteca('${d.COD_BIBLIOTECA}')"
+              style="width:100%;padding:9px;border:1px solid #ef4444;color:#ef4444;background:transparent;border-radius:7px;cursor:not-allowed;font-size:12px;font-weight:500;opacity:.6"
+              disabled title="Funcionalidade ainda não disponível no backend">
+        <i class="fa-solid fa-power-off" style="margin-right:6px"></i>Desativar Biblioteca
+      </button>
+      <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:5px">Disponível em breve</div>
+    </div>` : ''}
   `;
+}
+
+function _desativarBiblioteca(cod) {
+  toast('Funcionalidade de desativação ainda não disponível.', 'erro');
 }
 
 function _renderizarDrawerHorariosBib(d) {
@@ -561,19 +575,9 @@ function fecharWizardBib(evt) {
 }
 
 function _renderizarWizBib() {
-  const total   = 2;
-  const titulos = ['Dados da Biblioteca', 'Confirmação'];
-
-  const dots = [1, 2].map(i => {
-    const cls = i < _wizBibStep ? 'done' : i === _wizBibStep ? 'active' : 'pending';
-    return `<div class="step-dot ${cls}"></div>${i < 2 ? '<div class="step-line"></div>' : ''}`;
-  }).join('');
-
+  const total = 2;
   document.getElementById('wiz-bib-indicador').innerHTML =
-    `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:100%">
-      <div class="wizard-steps">${dots}</div>
-      <div style="font-size:11px;color:var(--text-muted)">Passo ${_wizBibStep} de ${total} — ${titulos[_wizBibStep - 1]}</div>
-    </div>`;
+    wizardIndicador(_wizBibStep, total, ['Dados da Biblioteca', 'Confirmação']);
 
   const btnRecuar  = document.getElementById('wiz-bib-btn-recuar');
   const btnAvancar = document.getElementById('wiz-bib-btn-avancar');

@@ -80,6 +80,30 @@ Oracle Instant Client must exist at `INSTANT_CLIENT_PATH` for the thick client m
 - **Never recreate inline** helpers that already exist in `componentes.js`. Always use `emptyState(icon, msg, sub?)` for empty states with the `.empty-state` class.
 - Section-local state (`tabActual`, `idActual`, etc.) lives in the section file, not in `main.js`. Only `utilizadorActual` and `modalSalvarFn` live in `main.js`.
 
+## Code Quality Rules
+
+**DRY — Don't Repeat Yourself:**
+- Before writing any helper, badge, layout block, or utility function, search for an existing equivalent.
+- If a pattern appears (or will appear) in 2+ places, it belongs in `componentes.js`. Create it there and import via the existing script-load order.
+- The shared helpers currently in `componentes.js`: `emptyState`, `campoDetalhe`, `secaoDetalhe`, `avatarCirculo`, `regiaoDeProvinccia`, `PROVINCIAS_SUL`, `PROVINCIAS_CENTRO`. Use these — never redefine inline.
+
+**Frontend / Backend separation:**
+- The backend must never contain hardcoded UI strings, HTML fragments, or presentation logic. It returns data; the frontend renders it.
+- API responses use neutral field names and values (e.g., status codes as strings like `'Activo'`). Display labels, badge classes, and formatting live exclusively in frontend JS.
+
+**Before touching the frontend — always check:**
+1. The DB create script (`resources/` or `sql/`) to know the exact table/column names and constraints.
+2. The corresponding backend route to know what the API actually returns (field names, shape, pagination).
+
+**Before touching the backend — always check:**
+1. The DB create script to confirm table structure, column types, constraints, sequences, and triggers that may fire automatically.
+
+**Business rules — always verify:**
+- Check for triggers that run automatically (e.g., certificate auto-generation on donation insert).
+- Check for existing guards/validations so you don't duplicate or conflict with them.
+- If a route writes data that has a FK dependency, confirm the referenced row exists before inserting.
+- Return the correct HTTP status: 400 bad input, 404 not found, 409 conflict (duplicate / already exists), 403 forbidden.
+
 ## Key Patterns
 
 **Modal pattern in frontend**: Each CRUD section builds form HTML dynamically, injects into `#modal-conteudo`, then reads values by element ID on submit.

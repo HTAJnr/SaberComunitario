@@ -166,11 +166,21 @@ function mostrarApp() {
   document.getElementById('sidebar-avatar').textContent = iniciais(nome);
   document.getElementById('sidebar-library-name').textContent =
     utilizadorActual.NOME_BIBLIOTECA || '';
-  document.getElementById('sidebar-region-label').textContent = `Região · ${regiao}`;
-  document.getElementById('topbar-region-pill').textContent = regiao;
+
+  const isDemo = String(utilizadorActual.COD_FUNCIONARIO) === '0';
+  const regionLabel = document.getElementById('sidebar-region-label');
+  if (isDemo) {
+    regionLabel.style.display = 'none';
+  } else {
+    regionLabel.style.display = '';
+    regionLabel.textContent = `Região · ${regiao}`;
+  }
+
+  document.getElementById('topbar-region-pill').textContent = `${regiao} · ${prov}`;
 
   configurarNavPorRole();
   configurarNavegacao();
+  _carregarNotificacoes();
   navegarPara(location.hash.slice(1) || 'dashboard');
 }
 
@@ -322,6 +332,60 @@ function mostrarErroModal(msg) {
   document.getElementById('modal-erro-msg').textContent = msg;
   document.getElementById('modal-erro').classList.remove('hidden');
 }
+
+// ════════════════════════════════════════════════
+// NOTIFICAÇÕES / BADGES
+// ════════════════════════════════════════════════
+async function _carregarNotificacoes() {
+  try {
+    const stats = await get('/api/dashboard/biblioteca');
+    const pendentes = [];
+
+    const emp = Number(stats.EMPRESTIMOS_VENCIDOS || 0);
+    const trf = Number(stats.TRANSFERENCIAS_PENDENTES || 0);
+
+    const badgeEmp = document.getElementById('nav-badge-emprestimos');
+    if (badgeEmp) {
+      if (emp > 0) { badgeEmp.textContent = emp; badgeEmp.classList.remove('hidden'); }
+      else badgeEmp.classList.add('hidden');
+    }
+
+    const badgeTrf = document.getElementById('nav-badge-transferencias');
+    if (badgeTrf) {
+      if (trf > 0) { badgeTrf.textContent = trf; badgeTrf.classList.remove('hidden'); }
+      else badgeTrf.classList.add('hidden');
+    }
+
+    if (emp > 0) pendentes.push({ label: `${emp} empréstimo${emp > 1 ? 's' : ''} vencido${emp > 1 ? 's' : ''}`, section: 'emprestimos' });
+    if (trf > 0) pendentes.push({ label: `${trf} transferência${trf > 1 ? 's' : ''} pendente${trf > 1 ? 's' : ''}`, section: 'transferencias' });
+
+    const dot = document.getElementById('notif-dot');
+    const lista = document.getElementById('notif-lista');
+    if (dot) dot.classList.toggle('hidden', pendentes.length === 0);
+    if (lista) {
+      lista.innerHTML = pendentes.length === 0
+        ? `<div style="padding:14px;font-size:12px;color:var(--text-muted);text-align:center">Sem pendências</div>`
+        : pendentes.map(p => `
+            <div class="ctx-menu-item" onclick="_toggleNotifPanel();navegarPara('${p.section}')"
+                 style="padding:10px 14px;font-size:12px;cursor:pointer;border-bottom:0.5px solid var(--border)">
+              <i class="fa-solid fa-circle-dot" style="color:#ef4444;margin-right:8px;font-size:8px"></i>${p.label}
+            </div>`).join('');
+    }
+  } catch { /* silencioso — dados de notificação são best-effort */ }
+}
+
+function _toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  if (panel) panel.classList.toggle('hidden');
+}
+
+document.addEventListener('click', (e) => {
+  const btn = document.getElementById('notif-btn');
+  const panel = document.getElementById('notif-panel');
+  if (panel && btn && !btn.contains(e.target) && !panel.contains(e.target)) {
+    panel.classList.add('hidden');
+  }
+});
 
 // ════════════════════════════════════════════════
 // INICIALIZAÇÃO

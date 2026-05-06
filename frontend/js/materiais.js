@@ -513,25 +513,7 @@ async function abrirWizardMat() {
 }
 
 function _wzMatIndicador(step) {
-  const labels = ['Dados Base','Tipo','Origem'];
-  return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:18px;font-size:11px">
-    ${labels.map((lbl, i) => {
-      const n = i + 1;
-      const ativo   = n === step;
-      const passado = n < step;
-      const cor = ativo ? '#818cf8' : passado ? '#22c55e' : '#475569';
-      const bg  = ativo ? '#818cf820' : passado ? '#22c55e20' : 'transparent';
-      return `
-        <div style="display:flex;align-items:center;gap:4px">
-          <div style="width:20px;height:20px;border-radius:50%;background:${bg};border:1.5px solid ${cor};
-                      display:flex;align-items:center;justify-content:center;font-weight:600;color:${cor};font-size:11px">
-            ${passado ? '<i class="fa-solid fa-check" style="font-size:9px"></i>' : n}
-          </div>
-          <span style="color:${ativo?'#818cf8':'#64748b'}">${lbl}</span>
-        </div>
-        ${i < 2 ? '<div style="flex:1;height:1px;background:var(--border);min-width:12px"></div>' : ''}`;
-    }).join('')}
-  </div>`;
+  return wizardIndicador(step, 3, ['Dados Base', 'Tipo', 'Origem']);
 }
 
 function _renderizarWzMatStep(step) {

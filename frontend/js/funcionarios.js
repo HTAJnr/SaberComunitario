@@ -117,17 +117,18 @@ function _renderizarTabelaFuncionarios() {
 
 function _linhaFunc(r) {
   const av = avatarCirculo(r.NOME, 32);
+  const cod = r.COD_FUNCIONARIO || '';
 
-  return `<tr>
+  return `<tr style="cursor:pointer" onclick="abrirDrawerFunc('${cod}')">
     <td style="padding:6px 10px">${av}</td>
-    <td style="font-family:monospace;font-size:11px;color:var(--text-secondary)">${r.COD_FUNCIONARIO || '—'}</td>
+    <td style="font-family:monospace;font-size:11px;color:var(--text-secondary)">${cod || '—'}</td>
     <td style="font-weight:500">${r.NOME || '—'}</td>
     <td style="color:var(--text-secondary)">${r.FUNCAO || '—'}</td>
     <td>${_badgeNivel(r.NIVEL_ACESSO)}</td>
     <td style="color:var(--text-muted)">${r.NOME_BIBLIOTECA || '—'}</td>
     <td><span class="bdg bdg-activo">Activo</span></td>
     <td style="text-align:right;padding-right:10px">
-      <button class="btn-ghost btn-sm" onclick="abrirCtxMenuFunc(event,'${r.COD_FUNCIONARIO}')">···</button>
+      <button class="btn-ghost btn-sm" onclick="event.stopPropagation();abrirCtxMenuFunc(event,'${cod}')">···</button>
     </td>
   </tr>`;
 }
@@ -282,7 +283,16 @@ function _renderizarPerfilFunc(d) {
     horarioHtml += `<span style="font-size:12px;color:var(--text-muted)">Sem horário definido</span>`;
   }
 
-  return avatarHtml + dadosPessoais + dadosProfissionais + habilHtml + horarioHtml;
+  const acoes = `<div style="display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+    <button class="btn-ghost" style="flex:1" onclick="abrirModalEditarFunc('${d.COD_FUNCIONARIO}')">
+      <i class="fa-solid fa-pen" style="margin-right:5px"></i>Editar
+    </button>
+    <button class="btn-ghost" style="flex:1" onclick="abrirModalAlterarSenhaFunc('${d.COD_FUNCIONARIO}')">
+      <i class="fa-solid fa-key" style="margin-right:5px"></i>Alterar Senha
+    </button>
+  </div>`;
+
+  return avatarHtml + dadosPessoais + dadosProfissionais + habilHtml + horarioHtml + acoes;
 }
 
 // ════════════════════════════════════════════════
@@ -334,7 +344,7 @@ async function abrirModalEditarFunc(cod) {
         <label class="form-label">Género</label>
         <select id="ef-genero" class="input-field">
           <option value="">— Seleccionar —</option>
-          ${['Masculino','Feminino','Outro'].map(g =>
+          ${['Masculino','Feminino'].map(g =>
             `<option value="${g}" ${dados?.GENERO === g ? 'selected' : ''}>${g}</option>`).join('')}
         </select>
       </div>
@@ -644,17 +654,9 @@ function fecharWizardFunc(evt) {
 
 function _renderizarWizFunc() {
   // Indicador
-  const titulos = ['Dados Pessoais', 'Dados Profissionais', 'Confirmação'];
   const total = 3;
-  const dots = [1, 2, 3].map(i => {
-    const cls = i < _wizFuncStep ? 'done' : i === _wizFuncStep ? 'active' : 'pending';
-    return `<div class="step-dot ${cls}"></div>${i < 3 ? '<div class="step-line"></div>' : ''}`;
-  }).join('');
   document.getElementById('wiz-func-indicador').innerHTML =
-    `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:100%">
-      <div class="wizard-steps">${dots}</div>
-      <div style="font-size:11px;color:var(--text-muted)">Passo ${_wizFuncStep} de 3 — ${titulos[_wizFuncStep - 1]}</div>
-    </div>`;
+    wizardIndicador(_wizFuncStep, total, ['Dados Pessoais', 'Dados Profissionais', 'Confirmação']);
 
   // Botões
   const btnRecuar  = document.getElementById('wiz-func-btn-recuar');
@@ -699,7 +701,7 @@ function _wizFuncStep1Html() {
         <label class="form-label">Género</label>
         <select id="wf1-genero" class="input-field">
           <option value="">— Seleccionar —</option>
-          ${['Masculino','Feminino','Outro'].map(g =>
+          ${['Masculino','Feminino'].map(g =>
             `<option value="${g}" ${d.genero === g ? 'selected' : ''}>${g}</option>`).join('')}
         </select>
       </div>
@@ -711,11 +713,6 @@ function _wizFuncStep1Html() {
         <label class="form-label">Contacto *</label>
         <input id="wf1-contacto" class="input-field" placeholder="Ex: +258 84 000 0000"
                value="${d.contacto || ''}"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Senha *</label>
-        <input id="wf1-senha" type="password" class="input-field" placeholder="Mínimo 6 caracteres"
-               value="${d.senha || ''}"/>
       </div>
       <div class="form-group" style="grid-column:1/-1">
         <label class="form-label">Endereço</label>
@@ -837,7 +834,7 @@ function _wizFuncStep3Html() {
       </div>
       <div style="margin-top:12px;padding:8px;background:var(--theme-accent-light);border-radius:6px;font-size:11px;color:#58a6ff">
         <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
-        O código de funcionário e o email serão gerados automaticamente pelo sistema.
+        Código, email e senha temporária serão gerados automaticamente. As credenciais serão mostradas após confirmação.
       </div>
     </div>`;
 }
@@ -909,16 +906,13 @@ function _wizFuncAvancar() {
   if (_wizFuncStep === 1) {
     const nome     = document.getElementById('wf1-nome')?.value?.trim();
     const contacto = document.getElementById('wf1-contacto')?.value?.trim();
-    const senha    = document.getElementById('wf1-senha')?.value;
     if (!nome)     { _mostrarErroFunc('modal-wiz-func-erro', 'modal-wiz-func-erro-msg', 'Nome é obrigatório.'); return; }
     if (!contacto) { _mostrarErroFunc('modal-wiz-func-erro', 'modal-wiz-func-erro-msg', 'Contacto é obrigatório.'); return; }
-    if (!senha)    { _mostrarErroFunc('modal-wiz-func-erro', 'modal-wiz-func-erro-msg', 'Senha é obrigatória.'); return; }
 
     _wizFuncDados.nome_funcionario = nome;
     _wizFuncDados.genero           = document.getElementById('wf1-genero')?.value || undefined;
     _wizFuncDados.data_nasc        = document.getElementById('wf1-data-nasc')?.value || undefined;
     _wizFuncDados.contacto         = contacto;
-    _wizFuncDados.senha            = senha;
     _wizFuncDados.endereco         = document.getElementById('wf1-endereco')?.value || undefined;
   }
 
@@ -948,7 +942,6 @@ async function _wizFuncConfirmar() {
 
   const body = {
     nome_funcionario: _wizFuncDados.nome_funcionario,
-    senha:            _wizFuncDados.senha,
     contacto:         _wizFuncDados.contacto,
     genero:           _wizFuncDados.genero,
     data_nasc:        _wizFuncDados.data_nasc,
@@ -972,8 +965,8 @@ async function _wizFuncConfirmar() {
     const resp = await post('/api/funcionarios', body);
 
     document.getElementById('modal-wiz-func-overlay').classList.add('hidden');
-    toast(`Funcionário criado! Código: ${resp.cod_funcionario} · Email: ${resp.email}`);
     carregarFuncionarios();
+    _mostrarModalCredenciais(resp.email, resp.senha_temporaria, resp.cod_funcionario);
   } catch (err) {
     _mostrarErroFunc('modal-wiz-func-erro', 'modal-wiz-func-erro-msg', err.message);
     const btnAvancar = document.getElementById('wiz-func-btn-avancar');
@@ -981,5 +974,93 @@ async function _wizFuncConfirmar() {
       btnAvancar.disabled = false;
       btnAvancar.innerHTML = `<i class="fa-solid fa-check" style="margin-right:5px"></i>Confirmar e Criar`;
     }
+  }
+}
+
+// ════════════════════════════════════════════════
+// 09-G — MODAL CREDENCIAIS (pós-criação)
+// ════════════════════════════════════════════════
+function _mostrarModalCredenciais(email, senha, cod) {
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-credenciais-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--surface);border-radius:12px;padding:28px 24px;width:360px;max-width:94vw;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <i class="fa-solid fa-circle-check" style="color:#22c55e;font-size:20px"></i>
+        <div>
+          <div style="font-weight:600;font-size:14px;color:var(--text-primary)">Funcionário criado</div>
+          <div style="font-size:11px;color:var(--text-muted)">${cod}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">
+        Guarde estas credenciais — a senha temporária não será mostrada novamente.
+      </div>
+      ${_credRow('Email', email)}
+      ${_credRow('Senha temporária', senha)}
+      <button onclick="document.getElementById('modal-credenciais-overlay').remove()"
+              class="btn-primary" style="width:100%;margin-top:16px">
+        <i class="fa-solid fa-check" style="margin-right:6px"></i>Fechar
+      </button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function _credRow(label, valor) {
+  return `<div style="margin-bottom:10px">
+    <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">${label}</div>
+    <div style="display:flex;align-items:center;gap:8px;background:var(--canvas);border:1px solid var(--border);border-radius:6px;padding:8px 10px">
+      <span id="cred-${label.replace(/ /g,'-')}" style="flex:1;font-family:monospace;font-size:12px;word-break:break-all">${valor || '—'}</span>
+      <button onclick="navigator.clipboard.writeText('${valor || ''}').then(()=>toast('Copiado!'))"
+              class="btn-ghost btn-sm" title="Copiar">
+        <i class="fa-solid fa-copy"></i>
+      </button>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+// 09-H — ALTERAR SENHA (via drawer)
+// ════════════════════════════════════════════════
+function abrirModalAlterarSenhaFunc(cod) {
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-senha-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--surface);border-radius:12px;padding:24px;width:340px;max-width:94vw;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+      <div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:16px">
+        <i class="fa-solid fa-key" style="margin-right:8px;color:var(--theme-accent)"></i>Alterar Senha
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nova senha *</label>
+        <input id="nova-senha-input" type="password" class="input-field" placeholder="Mínimo 6 caracteres"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar nova senha *</label>
+        <input id="nova-senha-conf" type="password" class="input-field" placeholder="Repita a senha"/>
+      </div>
+      <div id="senha-err" class="hidden" style="font-size:11px;color:#ef4444;margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="document.getElementById('modal-senha-overlay').remove()" class="btn-ghost" style="flex:1">Cancelar</button>
+        <button onclick="_confirmarAlterarSenha('${cod}')" class="btn-primary" style="flex:1">Alterar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('nova-senha-input')?.focus();
+}
+
+async function _confirmarAlterarSenha(cod) {
+  const nova = document.getElementById('nova-senha-input')?.value;
+  const conf = document.getElementById('nova-senha-conf')?.value;
+  const errEl = document.getElementById('senha-err');
+  if (!nova || nova.length < 6) { errEl.textContent = 'A senha deve ter pelo menos 6 caracteres.'; errEl.classList.remove('hidden'); return; }
+  if (nova !== conf)            { errEl.textContent = 'As senhas não coincidem.'; errEl.classList.remove('hidden'); return; }
+  try {
+    await patch(`/api/funcionarios/${cod}/senha`, { nova_senha: nova });
+    document.getElementById('modal-senha-overlay')?.remove();
+    toast('Senha alterada com sucesso.');
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
   }
 }

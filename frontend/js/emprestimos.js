@@ -267,13 +267,7 @@ function abrirWizardEmprestimo() {
 }
 
 function _wzEmpIndicador(step) {
-  const titulos = ['Seleccionar Leitor', 'Seleccionar Material', 'Confirmar'];
-  const dots = [1, 2, 3].map(i => {
-    const cls = i < step ? 'done' : i === step ? 'active' : 'pending';
-    return `<div class="step-dot ${cls}"></div>${i < 3 ? '<div class="step-line"></div>' : ''}`;
-  }).join('');
-  return `<div class="wizard-steps">${dots}</div>
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Passo ${step} de 3 — ${titulos[step - 1]}</div>`;
+  return wizardIndicador(step, 3, ['Selec. Leitor', 'Selec. Material', 'Confirmar']);
 }
 
 async function _wzEmpRenderStep() {
