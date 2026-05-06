@@ -342,6 +342,11 @@ async function abrirModalEditarFunc(cod) {
             `<option value="${g}" ${dados?.GENERO === g ? 'selected' : ''}>${g}</option>`).join('')}
         </select>
       </div>
+      <div class="form-group">
+        <label class="form-label">Data de Nascimento</label>
+        <input id="ef-data-nasc" type="date" class="input-field"
+               value="${dados?.DATA_NASC ? dados.DATA_NASC.toString().slice(0,10) : ''}"/>
+      </div>
       <div class="form-group" style="grid-column:1/-1">
         <label class="form-label">Endereço</label>
         <input id="ef-endereco" class="input-field" value="${dados?.ENDERECO || ''}"/>
@@ -479,6 +484,7 @@ async function _submeterModalFunc() {
     nome_funcionario: nome,
     contacto:         document.getElementById('ef-contacto')?.value || undefined,
     genero:           document.getElementById('ef-genero')?.value || undefined,
+    data_nasc:        document.getElementById('ef-data-nasc')?.value || undefined,
     endereco:         document.getElementById('ef-endereco')?.value || undefined,
     formacao:         document.getElementById('ef-formacao')?.value || undefined,
     experiencia:      document.getElementById('ef-experiencia')?.value || undefined,
@@ -702,6 +708,10 @@ function _wizFuncStep1Html() {
         </select>
       </div>
       <div class="form-group">
+        <label class="form-label">Data de Nascimento</label>
+        <input id="wf1-data-nasc" type="date" class="input-field" value="${d.data_nasc || ''}"/>
+      </div>
+      <div class="form-group">
         <label class="form-label">Contacto *</label>
         <input id="wf1-contacto" class="input-field" placeholder="Ex: +258 84 000 0000"
                value="${d.contacto || ''}"/>
@@ -811,6 +821,7 @@ function _wizFuncStep3Html() {
         <tbody>
           ${linha('Nome', d.nome_funcionario)}
           ${linha('Género', d.genero)}
+          ${linha('Data de Nascimento', d.data_nasc ? fmtData(d.data_nasc) : null)}
           ${linha('Contacto', d.contacto)}
           ${linha('Endereço', d.endereco)}
           ${linha('Formação', d.formacao)}
@@ -909,6 +920,7 @@ function _wizFuncAvancar() {
 
     _wizFuncDados.nome_funcionario = nome;
     _wizFuncDados.genero           = document.getElementById('wf1-genero')?.value || undefined;
+    _wizFuncDados.data_nasc        = document.getElementById('wf1-data-nasc')?.value || undefined;
     _wizFuncDados.contacto         = contacto;
     _wizFuncDados.senha            = senha;
     _wizFuncDados.endereco         = document.getElementById('wf1-endereco')?.value || undefined;
@@ -943,6 +955,7 @@ async function _wizFuncConfirmar() {
     senha:            _wizFuncDados.senha,
     contacto:         _wizFuncDados.contacto,
     genero:           _wizFuncDados.genero,
+    data_nasc:        _wizFuncDados.data_nasc,
     endereco:         _wizFuncDados.endereco,
     formacao:         _wizFuncDados.formacao,
     experiencia:      _wizFuncDados.experiencia,

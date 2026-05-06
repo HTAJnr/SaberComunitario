@@ -282,7 +282,7 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res)
 
 // POST / — cria funcionário; gera cod, email e hash da senha; insere habilidades + horários
 router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
-  const { nome_funcionario, senha, contacto, genero, id_funcao, cod_biblioteca,
+  const { nome_funcionario, senha, contacto, genero, data_nasc, id_funcao, cod_biblioteca,
           data_contratacao, endereco, formacao, experiencia,
           habilidades, horarios } = req.body;
 
@@ -305,18 +305,19 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
     conn = await getConnection();
     const result = await conn.execute(
       `INSERT INTO FUNCIONARIO
-         (COD_FUNCIONARIO, NOME_FUNCIONARIO, EMAIL, SENHA, CONTACTO, GENERO,
+         (COD_FUNCIONARIO, NOME_FUNCIONARIO, EMAIL, SENHA, CONTACTO, GENERO, DATA_NASC,
           ENDERECO, FORMACAO, EXPERIENCIA,
           ID_FUNCAO, COD_BIBLIOTECA, DATA_CONTRATACAO)
        VALUES
          ('FUC' || TO_CHAR(SYSDATE,'YYYY') || LPAD(TO_CHAR(SEQ_FUNCIONARIO.NEXTVAL),4,'0'),
-          :nome, :email, :senha, :contacto, :genero,
+          :nome, :email, :senha, :contacto, :genero, TO_DATE(:dnasc,'YYYY-MM-DD'),
           :endereco, :formacao, :experiencia,
           :id_funcao, :cod_bib, NVL(TO_DATE(:dent,'YYYY-MM-DD'), SYSDATE))
        RETURNING COD_FUNCIONARIO INTO :cod_out`,
       {
         nome: nome_funcionario, email, senha: senhaHash,
         contacto: contacto || null, genero: genero || 'Masculino',
+        dnasc: data_nasc || null,
         endereco: endereco || null, formacao: formacao || null, experiencia: experiencia || null,
         id_funcao: id_funcao || null, cod_bib: codBib,
         dent: data_contratacao || null,
@@ -360,7 +361,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
 
 // PATCH /:id — edita dados pessoais, habilidades, horários (email e nivel_acesso nunca editáveis aqui)
 router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
-  const { nome_funcionario, contacto, genero, endereco, formacao, experiencia,
+  const { nome_funcionario, contacto, genero, data_nasc, endereco, formacao, experiencia,
           id_funcao, cod_biblioteca, habilidades, horarios } = req.body;
   let conn;
   try {
@@ -370,6 +371,7 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, re
          NOME_FUNCIONARIO = NVL(:nome, NOME_FUNCIONARIO),
          CONTACTO         = NVL(:contacto, CONTACTO),
          GENERO           = NVL(:genero, GENERO),
+         DATA_NASC        = CASE WHEN :dnasc IS NOT NULL THEN TO_DATE(:dnasc,'YYYY-MM-DD') ELSE DATA_NASC END,
          ENDERECO         = NVL(:endereco, ENDERECO),
          FORMACAO         = NVL(:formacao, FORMACAO),
          EXPERIENCIA      = NVL(:experiencia, EXPERIENCIA),
@@ -378,7 +380,8 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, re
        WHERE COD_FUNCIONARIO = :id`,
       {
         nome: nome_funcionario || null, contacto: contacto || null,
-        genero: genero || null, endereco: endereco || null,
+        genero: genero || null, dnasc: data_nasc || null,
+        endereco: endereco || null,
         formacao: formacao || null, experiencia: experiencia || null,
         id_funcao: id_funcao || null, cod_bib: cod_biblioteca || null,
         id: req.params.id
