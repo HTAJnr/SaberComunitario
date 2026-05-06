@@ -23,8 +23,9 @@ async function api(path, opts = {}) {
 }
 const get  = (p)    => api(p);
 const post = (p, b) => api(p, { method: 'POST', body: b });
-const put  = (p, b) => api(p, { method: 'PUT', body: b });
-const del  = (p)    => api(p, { method: 'DELETE' });
+const put   = (p, b) => api(p, { method: 'PUT',   body: b });
+const patch = (p, b) => api(p, { method: 'PATCH', body: b });
+const del   = (p)    => api(p, { method: 'DELETE' });
 
 // ── Toast ─────────────────────────────────────
 function toast(msg, tipo = 'ok') {
@@ -226,6 +227,7 @@ const sectionLoaders = {
   eventos:         carregarEventos,
   doacoes:         carregarDoacoes,
   transferencias:  () => carregarTransferencias('todas'),
+  programas:       carregarProgramas,
 };
 
 const SECTION_TOPBAR = {
@@ -237,6 +239,7 @@ const SECTION_TOPBAR = {
   eventos:        { titulo: 'Eventos' },
   doacoes:        { titulo: 'Doações' },
   transferencias: { titulo: 'Transferências' },
+  programas:      { titulo: 'Programas' },
 };
 
 function configurarNavPorRole() {

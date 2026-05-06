@@ -1,0 +1,155 @@
+<section id="section-programas" class="section hidden">
+
+  <!-- Barra de acções -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <input id="filtro-prog-q" type="text" placeholder="Pesquisar por nome…"
+           oninput="_renderizarTabelaProgramas()"
+           class="input-field" style="flex:1;min-width:180px;max-width:280px"/>
+    <div id="btn-novo-prog-wrap">
+      <button onclick="abrirModalProg(null)" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+        <i class="fa-solid fa-plus" style="margin-right:5px"></i>Novo Programa
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabela 08-A -->
+  <div class="panel">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nome</th>
+          <th>Público-alvo</th>
+          <th style="text-align:center">Duração</th>
+          <th style="text-align:center">Participantes</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tabela-programas"></tbody>
+    </table>
+  </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-prog" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-prog-overlay" onclick="fecharDrawerProg()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer 08-B — Detalhe do Programa -->
+  <div id="drawer-prog" class="drawer" style="width:460px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span id="drawer-prog-titulo" style="font-size:13px;font-weight:600;color:#111">Programa</span>
+      <button onclick="fecharDrawerProg()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Tabs do drawer -->
+    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;flex-wrap:wrap">
+      <button id="dtab-prog-info" class="tab-btn tab-active" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerProg('info')">Info</button>
+      <button id="dtab-prog-niveis" class="tab-btn" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerProg('niveis')">Níveis</button>
+      <button id="dtab-prog-participantes" class="tab-btn" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerProg('participantes')">Participantes</button>
+      <button id="dtab-prog-materiais" class="tab-btn" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerProg('materiais')">Materiais</button>
+      <button id="dtab-prog-funcionarios" class="tab-btn" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerProg('funcionarios')">Funcionários</button>
+    </div>
+
+    <div id="drawer-prog-conteudo" style="overflow-y:auto;max-height:calc(100vh - 210px)"></div>
+  </div>
+
+  <!-- Modal 08-C — Criar / Editar Programa -->
+  <div id="modal-prog-overlay" class="modal-overlay hidden" onclick="fecharModalProg(event)">
+    <div class="modal" style="width:620px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span id="modal-prog-titulo" class="modal-title">Novo Programa</span>
+        <button onclick="fecharModalProg()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-prog-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-prog-erro-msg"></span>
+      </div>
+      <div id="modal-prog-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
+        <button class="btn-secondary" onclick="fecharModalProg()">Cancelar</button>
+        <button class="btn-primary" onclick="_submeterModalProg()">
+          <i class="fa-solid fa-floppy-disk" style="margin-right:5px"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Inscrever Leitor -->
+  <div id="modal-inscr-overlay" class="modal-overlay hidden" onclick="fecharModalInscrever(event)">
+    <div class="modal" style="width:420px">
+      <div class="modal-header">
+        <span class="modal-title">Inscrever Leitor</span>
+        <button onclick="fecharModalInscrever()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-inscr-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-inscr-erro-msg"></span>
+      </div>
+      <div style="padding:4px 0">
+        <label class="form-label">Número de Cartão *</label>
+        <input id="inscr-num-cartao" type="text" class="input-field" placeholder="Ex: LC-2024-0001"
+               style="margin-bottom:12px"/>
+        <label class="form-label">Nível Inicial</label>
+        <select id="inscr-nivel" class="input-field" style="margin-bottom:4px">
+          <option value="">— Sem nível —</option>
+        </select>
+      </div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn-secondary" onclick="fecharModalInscrever()">Cancelar</button>
+        <button class="btn-primary" onclick="_submeterInscricao()">
+          <i class="fa-solid fa-user-plus" style="margin-right:5px"></i>Inscrever
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Actualizar Participante -->
+  <div id="modal-part-overlay" class="modal-overlay hidden" onclick="fecharModalPart(event)">
+    <div class="modal" style="width:400px">
+      <div class="modal-header">
+        <span class="modal-title">Actualizar Participante</span>
+        <button onclick="fecharModalPart()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-part-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-part-erro-msg"></span>
+      </div>
+      <div style="padding:4px 0">
+        <label class="form-label">Nível Actual</label>
+        <select id="part-nivel" class="input-field" style="margin-bottom:12px">
+          <option value="">— Sem nível —</option>
+        </select>
+        <label class="form-label">Estado</label>
+        <select id="part-estado" class="input-field">
+          <option value="Activo">Activo</option>
+          <option value="Concluido">Concluído</option>
+          <option value="Desistiu">Desistiu</option>
+        </select>
+      </div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn-secondary" onclick="fecharModalPart()">Cancelar</button>
+        <button class="btn-primary" onclick="_submeterActualizacaoPart()">
+          <i class="fa-solid fa-floppy-disk" style="margin-right:5px"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+</section>

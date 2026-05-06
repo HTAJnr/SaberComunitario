@@ -179,6 +179,128 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
   }
 });
 
+// GET /api/programas/:cod — detalhe completo
+router.get('/:cod', autenticar, async (req, res) => {
+  let conn;
+  try {
+    const cod = req.params.cod;
+    conn = await getConnection();
+
+    const progResult = await conn.execute(
+      `SELECT p.cod_programa, p.nome_programa, p.descricao, p.publico_alvo,
+              p.duracao_semanas, p.metodologia, p.resultados_esperados, p.estado_programa,
+              p.cod_biblioteca, b.nome_biblioteca
+         FROM PROGRAMA_ALFABETIZACAO p
+         JOIN BIBLIOTECA b ON b.cod_biblioteca = p.cod_biblioteca
+        WHERE p.cod_programa = :cod`,
+      { cod },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (progResult.rows.length === 0) {
+      return res.status(404).json({ erro: true, codigo: 'PROGRAMA_NAO_ENCONTRADO', mensagem: 'Programa não encontrado.' });
+    }
+
+    const niveisResult = await conn.execute(
+      `SELECT id_nivel, nome_nivel, descricao, ordem
+         FROM NIVEL_PROGRESSAO
+        WHERE cod_programa = :cod
+        ORDER BY ordem`,
+      { cod },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const matResult = await conn.execute(
+      `SELECT pm.cod_material, pm.observacoes, m.titulo, m.autor
+         FROM PROGRAMA_MATERIAL pm
+         JOIN MATERIAL m ON m.cod_material = pm.cod_material
+        WHERE pm.cod_programa = :cod`,
+      { cod },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const funcResult = await conn.execute(
+      `SELECT pf.papel, f.cod_funcionario, f.nome_completo
+         FROM PROGRAMA_FUNCIONARIO pf
+         JOIN FUNCIONARIO f ON f.cod_funcionario = pf.cod_funcionario
+        WHERE pf.cod_programa = :cod`,
+      { cod },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    res.json({
+      programa:     progResult.rows[0],
+      niveis:       niveisResult.rows,
+      materiais:    matResult.rows,
+      funcionarios: funcResult.rows
+    });
+  } catch (err) {
+    erroInterno(res, err, 'GET /:cod');
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
+// PATCH /api/programas/:cod — editar campos / mudar estado
+router.patch('/:cod', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+  let conn;
+  try {
+    const cod_funcionario = req.session.cod_funcionario;
+    if (cod_funcionario === 0) {
+      return res.status(400).json({ erro: true, codigo: 'DEMO_BLOQUEADO', mensagem: 'Utilizador demo não pode editar programas.' });
+    }
+
+    const cod = req.params.cod;
+    const { nome_programa, descricao, publico_alvo, duracao_semanas,
+            metodologia, resultados_esperados, estado_programa } = req.body;
+
+    if (publico_alvo && !PUBLICOS_VALIDOS.includes(publico_alvo)) {
+      return res.status(400).json({ erro: true, codigo: 'PUBLICO_INVALIDO', mensagem: `publico_alvo deve ser um de: ${PUBLICOS_VALIDOS.join(', ')}.` });
+    }
+    if (estado_programa && !ESTADOS_PROG_VALIDOS.includes(estado_programa)) {
+      return res.status(400).json({ erro: true, codigo: 'ESTADO_INVALIDO', mensagem: `estado_programa deve ser um de: ${ESTADOS_PROG_VALIDOS.join(', ')}.` });
+    }
+
+    conn = await getConnection();
+
+    const check = await conn.execute(
+      `SELECT cod_programa FROM PROGRAMA_ALFABETIZACAO WHERE cod_programa = :cod`,
+      { cod },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (check.rows.length === 0) {
+      return res.status(404).json({ erro: true, codigo: 'PROGRAMA_NAO_ENCONTRADO', mensagem: 'Programa não encontrado.' });
+    }
+
+    const setClauses = [];
+    const binds = { cod };
+
+    if (nome_programa)         { setClauses.push('nome_programa = :nome');           binds.nome       = nome_programa; }
+    if (descricao !== undefined){ setClauses.push('descricao = :desc');               binds.desc       = descricao || null; }
+    if (publico_alvo)          { setClauses.push('publico_alvo = :publico');          binds.publico    = publico_alvo; }
+    if (duracao_semanas !== undefined) { setClauses.push('duracao_semanas = :dur');   binds.dur        = duracao_semanas || null; }
+    if (metodologia !== undefined)     { setClauses.push('metodologia = :met');       binds.met        = metodologia || null; }
+    if (resultados_esperados !== undefined) { setClauses.push('resultados_esperados = :res'); binds.res = resultados_esperados || null; }
+    if (estado_programa)       { setClauses.push('estado_programa = :estado');        binds.estado     = estado_programa; }
+
+    if (setClauses.length === 0) {
+      return res.status(400).json({ erro: true, codigo: 'NADA_A_ACTUALIZAR', mensagem: 'Nenhum campo para actualizar.' });
+    }
+
+    await conn.execute(
+      `UPDATE PROGRAMA_ALFABETIZACAO SET ${setClauses.join(', ')} WHERE cod_programa = :cod`,
+      binds
+    );
+
+    await conn.commit();
+    res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    erroInterno(res, err, 'PATCH /:cod');
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
 // GET /api/programas/:cod/participantes
 router.get('/:cod/participantes', autenticar, async (req, res) => {
   let conn;
