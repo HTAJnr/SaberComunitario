@@ -68,7 +68,7 @@ function _linhaTransf(r) {
     <td>${fmtData(r.DATA_SOLICITACAO)}</td>
     <td>${estadoBdg}</td>
     <td style="text-align:right">
-      <button class="btn-secondary btn-sm"
+      <button class="btn-ghost btn-sm"
               onclick="abrirCtxMenuTransf(event,${r.ID_TRANSFERENCIA})">···</button>
     </td>
   </tr>`;
@@ -131,7 +131,7 @@ function abrirDrawerTransf(id) {
 
   if (!_drawerTransf) {
     document.getElementById('drawer-transf-conteudo').innerHTML =
-      '<p style="text-align:center;color:#888;font-size:12px;padding:24px">Não encontrado.</p>';
+      '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">Não encontrado.</p>';
     return;
   }
 
@@ -144,13 +144,13 @@ function _renderizarDrawerTransf() {
   function campo(label, valor, estilo = '') {
     return `<div style="display:flex;justify-content:space-between;align-items:baseline;
                         padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
-      <span style="color:#888;flex-shrink:0;margin-right:8px">${label}</span>
+      <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
       <span style="text-align:right;${estilo}">${valor ?? '—'}</span>
     </div>`;
   }
 
   function secao(titulo) {
-    return `<div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;
+    return `<div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                         letter-spacing:.06em;margin:14px 0 6px">${titulo}</div>`;
   }
 
@@ -193,7 +193,7 @@ function _renderizarDrawerTransf() {
 
   if (t.MOTIVO) {
     html += `${secao('Motivo')}
-    <div style="font-size:12px;color:#444;padding:6px 0;line-height:1.5">${t.MOTIVO}</div>`;
+    <div style="font-size:12px;color:var(--text-secondary);padding:6px 0;line-height:1.5">${t.MOTIVO}</div>`;
   }
 
   document.getElementById('drawer-transf-conteudo').innerHTML = html;
@@ -222,12 +222,12 @@ function abrirModalSolicitarTransf() {
         <input id="transf-mat-q" type="text" class="input-field" style="flex:1"
                placeholder="Título ou código…"
                onkeydown="if(event.key==='Enter'){event.preventDefault();_pesquisarMaterialTransf();}"/>
-        <button class="btn-secondary" onclick="_pesquisarMaterialTransf()">
+        <button class="btn-ghost" onclick="_pesquisarMaterialTransf()">
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
       </div>
       <div id="transf-mat-lista" style="margin-top:6px"></div>
-      <div id="transf-mat-sel-label" style="font-size:12px;color:#2e7d32;margin-top:4px"></div>
+      <div id="transf-mat-sel-label" style="font-size:12px;color:#3fb27a;margin-top:4px"></div>
     </div>
     <div style="margin-bottom:14px">
       <label class="form-label">Biblioteca de destino</label>
@@ -244,7 +244,7 @@ function abrirModalSolicitarTransf() {
   `;
 
   document.getElementById('modal-transf-footer').innerHTML = `
-    <button class="btn-secondary" onclick="fecharModalTransf()">Cancelar</button>
+    <button class="btn-ghost" onclick="fecharModalTransf()">Cancelar</button>
     <button class="btn-primary" onclick="_confirmarSolicitarTransf()">
       <i class="fa-solid fa-paper-plane" style="margin-right:5px"></i>Solicitar
     </button>
@@ -258,26 +258,26 @@ async function _pesquisarMaterialTransf() {
   const q = (document.getElementById('transf-mat-q')?.value || '').trim();
   if (!q) return;
   const lista = document.getElementById('transf-mat-lista');
-  lista.innerHTML = '<p style="font-size:12px;color:#888">A pesquisar…</p>';
+  lista.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">A pesquisar…</p>';
   try {
     const res = await get(`/api/materiais?q=${encodeURIComponent(q)}&limit=5`);
     _transfMatRes = res.materiais || res || [];
     if (!_transfMatRes.length) {
-      lista.innerHTML = '<p style="font-size:12px;color:#888">Nenhum resultado.</p>';
+      lista.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">Nenhum resultado.</p>';
       return;
     }
     lista.innerHTML = `<div style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;margin-top:2px">
       ${_transfMatRes.map(m => `
         <div onclick="_selecionarMaterialTransf('${m.COD_MATERIAL}','${(m.TITULO || '').replace(/'/g,"\\'")}','${(m.BIBLIOTECA_NOME || '').replace(/'/g,"\\'")}' )"
-             style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #f0f0f0;
+             style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border-soft);
                     display:flex;justify-content:space-between;align-items:center"
              onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
           <span><strong class="mono">${m.COD_MATERIAL}</strong> — ${m.TITULO || '—'}</span>
-          <span style="color:#888;font-size:11px">${m.BIBLIOTECA_NOME || ''}</span>
+          <span style="color:var(--text-muted);font-size:11px">${m.BIBLIOTECA_NOME || ''}</span>
         </div>`).join('')}
     </div>`;
   } catch (err) {
-    lista.innerHTML = `<p style="font-size:12px;color:#c62828">Erro: ${err.message}</p>`;
+    lista.innerHTML = `<p style="font-size:12px;color:#f85149">Erro: ${err.message}</p>`;
   }
 }
 
@@ -286,7 +286,7 @@ function _selecionarMaterialTransf(cod, titulo, bib) {
   document.getElementById('transf-mat-lista').innerHTML = '';
   document.getElementById('transf-mat-sel-label').innerHTML =
     `<i class="fa-solid fa-circle-check" style="margin-right:4px"></i>
-     <strong class="mono">${cod}</strong> — ${titulo} <span style="color:#888">(${bib})</span>`;
+     <strong class="mono">${cod}</strong> — ${titulo} <span style="color:var(--text-muted)">(${bib})</span>`;
 }
 
 async function _carregarBibliotecasTransf() {
@@ -351,15 +351,15 @@ function abrirModalRejeitarTransf(id) {
 
   document.getElementById('modal-transf-conteudo').innerHTML = `
     <div>
-      <label class="form-label">Motivo da rejeição <span style="color:#c62828">*</span></label>
+      <label class="form-label">Motivo da rejeição <span style="color:#f85149">*</span></label>
       <textarea id="transf-rejeitar-motivo" class="input-field" rows="4"
                 placeholder="Indique o motivo…" style="resize:vertical"></textarea>
     </div>
   `;
 
   document.getElementById('modal-transf-footer').innerHTML = `
-    <button class="btn-secondary" onclick="fecharModalTransf()">Cancelar</button>
-    <button class="btn-primary" style="background:#c62828" onclick="_confirmarRejeitarTransf(${id})">
+    <button class="btn-ghost" onclick="fecharModalTransf()">Cancelar</button>
+    <button class="btn-primary" style="background:#2d1015;color:#f85149;border:0.5px solid #5c2020" onclick="_confirmarRejeitarTransf(${id})">
       <i class="fa-solid fa-circle-xmark" style="margin-right:5px"></i>Rejeitar
     </button>
   `;

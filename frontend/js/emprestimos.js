@@ -88,16 +88,16 @@ function _linhaEmp(r) {
   const podeDev   = !devolvido;
   const podePagar = multa > 0 && r.MULTA_PAGA === 'N';
 
-  return `<tr style="${atrasado && !devolvido ? 'background:#fef7f5' : ''}">
-    <td style="font-family:monospace;font-size:10px;color:#888">${r.ID_EMPRESTIMO}</td>
+  return `<tr style="${atrasado && !devolvido ? 'background:var(--surface-raised)' : ''}">
+    <td style="font-family:monospace;font-size:10px;color:var(--text-muted)">${r.ID_EMPRESTIMO}</td>
     <td style="font-weight:500">${r.NOME_LEITOR || r.NUM_CARTAO || '—'}</td>
     <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.TITULO || '—'}</td>
-    <td style="color:#888;font-size:11px">${fmtData(r.DATA_RETIRADA || r.DATA_EMP)}</td>
+    <td style="color:var(--text-muted);font-size:11px">${fmtData(r.DATA_RETIRADA || r.DATA_EMP)}</td>
     <td>${prazoBdg}</td>
     <td>${estadoBdg}</td>
     <td>${multaHtml}</td>
     <td style="text-align:right">
-      <button class="btn-secondary btn-sm"
+      <button class="btn-ghost btn-sm"
               onclick="abrirCtxMenuEmp(event,${r.ID_EMPRESTIMO},${podeDev},${podePagar})">···</button>
     </td>
   </tr>`;
@@ -149,13 +149,13 @@ async function abrirDrawerEmp(id) {
   document.getElementById('drawer-emp-overlay').style.display = 'block';
   document.getElementById('drawer-emp').classList.add('open');
   document.getElementById('drawer-emp-conteudo').innerHTML =
-    '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
   try {
     _drawerEmp = await get(`/api/emprestimos/${id}`);
     _renderizarDrawerEmp();
   } catch (err) {
     document.getElementById('drawer-emp-conteudo').innerHTML =
-      `<p style="color:#a32d2d;font-size:12px;padding:8px">${err.message}</p>`;
+      `<p style="color:#f85149;font-size:12px;padding:8px">${err.message}</p>`;
   }
 }
 
@@ -174,20 +174,20 @@ function _renderizarDrawerEmp() {
   function campo(label, valor, estilo = '') {
     return `<div style="display:flex;justify-content:space-between;align-items:baseline;
                         padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
-      <span style="color:#888;flex-shrink:0;margin-right:8px">${label}</span>
-      <span style="font-weight:500;color:#111;text-align:right;${estilo}">${valor}</span>
+      <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
+      <span style="font-weight:500;color:var(--text-primary);text-align:right;${estilo}">${valor}</span>
     </div>`;
   }
 
   function secao(titulo) {
-    return `<div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;
+    return `<div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                         letter-spacing:.06em;margin:14px 0 6px">${titulo}</div>`;
   }
 
   document.getElementById('drawer-emp-conteudo').innerHTML = `
     <div style="margin-bottom:16px">
-      <div style="font-size:10px;color:#888;margin-bottom:2px">Empréstimo</div>
-      <div style="font-family:monospace;font-size:22px;font-weight:700;color:#111">#${e.ID_EMPRESTIMO}</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">Empréstimo</div>
+      <div style="font-family:monospace;font-size:22px;font-weight:700;color:var(--text-primary)">#${e.ID_EMPRESTIMO}</div>
     </div>
 
     ${secao('Leitor')}
@@ -202,19 +202,19 @@ function _renderizarDrawerEmp() {
     ${secao('Datas')}
     ${campo('Retirada',  fmtData(e.DATA_RETIRADA))}
     ${campo('Prazo',     fmtData(e.PRAZO_DEVOLUCAO || e.DATA_DEVOLUCAO_PREV),
-            atrasado && !devolvido ? 'color:#a32d2d' : '')}
+            atrasado && !devolvido ? 'color:#f85149' : '')}
     ${devolvido
-      ? campo('Devolvido', fmtData(e.DATA_DEVOLUCAO), 'color:#0f6e56')
+      ? campo('Devolvido', fmtData(e.DATA_DEVOLUCAO), 'color:var(--theme-accent-text)')
       : atrasado
-        ? campo('Atraso', `${e.DIAS_ATRASO} dias`, 'color:#a32d2d') : ''}
+        ? campo('Atraso', `${e.DIAS_ATRASO} dias`, 'color:#f85149') : ''}
 
     ${secao('Estado Material')}
     ${campo('Saída',   e.ESTADO_MATERIAL_SAIDA   || '—')}
     ${e.ESTADO_MATERIAL_RETORNO
       ? campo('Retorno', e.ESTADO_MATERIAL_RETORNO) : ''}
     ${e.OBSERVACOES_DEVOLUCAO
-      ? `<div style="margin-top:6px;padding:6px 8px;background:#f7f7f5;border-radius:6px;
-                     font-size:11px;color:#555">${e.OBSERVACOES_DEVOLUCAO}</div>` : ''}
+      ? `<div style="margin-top:6px;padding:6px 8px;background:var(--surface-raised);border-radius:6px;
+                     font-size:11px;color:var(--text-secondary)">${e.OBSERVACOES_DEVOLUCAO}</div>` : ''}
 
     ${multa > 0 ? `
     <div style="margin-top:14px;padding:12px;
@@ -223,7 +223,7 @@ function _renderizarDrawerEmp() {
       ${secao('Multa').replace('margin:14px 0 6px', 'margin:0 0 6px')}
       ${campo('Valor',   fmtMoeda(multa), 'color:#e07820')}
       ${campo('Paga',    e.MULTA_PAGA === 'S' ? 'Sim' : 'Não',
-              e.MULTA_PAGA === 'S' ? 'color:#0f6e56' : 'color:#a32d2d')}
+              e.MULTA_PAGA === 'S' ? 'color:var(--theme-accent-text)' : 'color:#f85149')}
       ${e.DATA_PAGAMENTO_MULTA ? campo('Data pag.', fmtData(e.DATA_PAGAMENTO_MULTA)) : ''}
     </div>` : ''}
   `;
@@ -273,7 +273,7 @@ function _wzEmpIndicador(step) {
     return `<div class="step-dot ${cls}"></div>${i < 3 ? '<div class="step-line"></div>' : ''}`;
   }).join('');
   return `<div class="wizard-steps">${dots}</div>
-    <div style="font-size:11px;color:#888;margin-bottom:16px">Passo ${step} de 3 — ${titulos[step - 1]}</div>`;
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Passo ${step} de 3 — ${titulos[step - 1]}</div>`;
 }
 
 async function _wzEmpRenderStep() {
@@ -288,7 +288,7 @@ async function _wzEmpRenderStep() {
         <div style="display:flex;gap:8px">
           <input id="wzl-cartao" class="input-field" style="flex:1" placeholder="Ex: MAP20240001"
                  onkeydown="if(event.key==='Enter')_wzEmpValidarLeitor()"/>
-          <button class="btn-secondary btn-sm" onclick="_wzEmpValidarLeitor()" style="white-space:nowrap;flex-shrink:0">
+          <button class="btn-ghost btn-sm" onclick="_wzEmpValidarLeitor()" style="white-space:nowrap;flex-shrink:0">
             <i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>Verificar
           </button>
         </div>
@@ -307,7 +307,7 @@ async function _wzEmpRenderStep() {
         <div style="display:flex;gap:8px">
           <input id="wzm-search" class="input-field" style="flex:1" placeholder="Título, autor ou código…"
                  onkeydown="if(event.key==='Enter')_wzEmpPesquisarMaterial()"/>
-          <button class="btn-secondary btn-sm" onclick="_wzEmpPesquisarMaterial()" style="white-space:nowrap;flex-shrink:0">
+          <button class="btn-ghost btn-sm" onclick="_wzEmpPesquisarMaterial()" style="white-space:nowrap;flex-shrink:0">
             <i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>Pesquisar
           </button>
         </div>
@@ -324,7 +324,7 @@ async function _wzEmpRenderStep() {
 
   } else {
     conteudo.innerHTML = _wzEmpIndicador(3) +
-      `<div id="wzc-conteudo"><p style="text-align:center;color:#888;font-size:12px;padding:16px">A calcular prazo…</p></div>`;
+      `<div id="wzc-conteudo"><p style="text-align:center;color:var(--text-muted);font-size:12px;padding:16px">A calcular prazo…</p></div>`;
     footer.innerHTML = `
       <button class="btn-ghost" onclick="_wzEmpRecuar()">
         <i class="fa-solid fa-arrow-left" style="margin-right:4px"></i>Anterior
@@ -341,7 +341,7 @@ async function _wzEmpValidarLeitor() {
   if (!val) return;
   const card = document.getElementById('wzl-card');
   if (!card) return;
-  card.innerHTML = '<p style="color:#888;font-size:12px">A validar…</p>';
+  card.innerHTML = '<p style="color:var(--text-muted);font-size:12px">A validar…</p>';
   const btnProximo = document.getElementById('wzl-btn-proximo');
   if (btnProximo) btnProximo.disabled = true;
   _wzEmpLeitorValidado = false;
@@ -365,29 +365,29 @@ async function _wzEmpValidarLeitor() {
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
           <div class="avatar-initials" style="width:36px;height:36px;font-size:13px">${iniciais(nome)}</div>
           <div>
-            <div style="font-weight:600;font-size:13px;color:#111">${nome}</div>
-            <div style="font-family:monospace;font-size:10px;color:#888">${_wzEmpLeitor.NUM_CARTAO}</div>
+            <div style="font-weight:600;font-size:13px;color:var(--text-primary)">${nome}</div>
+            <div style="font-family:monospace;font-size:10px;color:var(--text-muted)">${_wzEmpLeitor.NUM_CARTAO}</div>
           </div>
         </div>
         ${_wzEmpLeitor.TIPO_LEITOR ? `
-        <div style="font-size:11px;color:#555;margin-bottom:6px">
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px">
           Tipo: ${_wzEmpLeitor.TIPO_LEITOR}
           · Pontualidade: ${_wzEmpLeitor.HISTORICO_PONTUALIDADE || '—'}
           ${_wzEmpLeitor.DISTANCIA_BIBLIOTECA
             ? ` · ${_wzEmpLeitor.DISTANCIA_BIBLIOTECA} km da biblioteca` : ''}
         </div>` : ''}
         ${!pode
-          ? `<div style="padding:7px 10px;background:#fcebeb;border-radius:5px;font-size:12px;color:#a32d2d">
+          ? `<div style="padding:7px 10px;background:#fcebeb;border-radius:5px;font-size:12px;color:#f85149">
                <i class="fa-solid fa-circle-xmark" style="margin-right:5px"></i>${validacao.motivo || 'Leitor não pode realizar empréstimo.'}
              </div>`
-          : `<div style="padding:7px 10px;background:#e1f5ee;border-radius:5px;font-size:12px;color:#0f6e56">
+          : `<div style="padding:7px 10px;background:#e1f5ee;border-radius:5px;font-size:12px;color:var(--theme-accent-text)">
                <i class="fa-solid fa-circle-check" style="margin-right:5px"></i>Leitor disponível para empréstimo.
              </div>`}
       </div>`;
 
     if (btnProximo) btnProximo.disabled = !pode;
   } catch (err) {
-    card.innerHTML = `<div style="padding:8px 10px;background:#fcebeb;border-radius:6px;font-size:12px;color:#a32d2d">
+    card.innerHTML = `<div style="padding:8px 10px;background:#fcebeb;border-radius:6px;font-size:12px;color:#f85149">
       ${err.message}
     </div>`;
     _wzEmpLeitor = null;
@@ -399,7 +399,7 @@ async function _wzEmpPesquisarMaterial() {
   if (!q) return;
   const lista = document.getElementById('wzm-lista');
   if (!lista) return;
-  lista.innerHTML = '<p style="color:#888;font-size:12px">A pesquisar…</p>';
+  lista.innerHTML = '<p style="color:var(--text-muted);font-size:12px">A pesquisar…</p>';
   try {
     const res = await get(`/api/materiais?search=${encodeURIComponent(q)}`);
     _wzEmpMateriaisRes = (Array.isArray(res) ? res : (res.materiais || []))
@@ -407,22 +407,22 @@ async function _wzEmpPesquisarMaterial() {
       .slice(0, 8);
 
     if (!_wzEmpMateriaisRes.length) {
-      lista.innerHTML = '<p style="color:#888;font-size:12px;padding:6px 0">Nenhum material disponível encontrado.</p>';
+      lista.innerHTML = '<p style="color:var(--text-muted);font-size:12px;padding:6px 0">Nenhum material disponível encontrado.</p>';
       return;
     }
     lista.innerHTML =
       `<div style="border:0.5px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:8px">` +
       _wzEmpMateriaisRes.map((m, i) => `
         <div class="ctx-menu-item" style="border-bottom:0.5px solid #f0f0f0" onclick="_wzEmpSelecionarMaterial(${i})">
-          <div style="font-weight:500;font-size:12px;color:#111">${m.TITULO || '—'}</div>
-          <div style="font-size:10px;color:#888">
+          <div style="font-weight:500;font-size:12px;color:var(--text-primary)">${m.TITULO || '—'}</div>
+          <div style="font-size:10px;color:var(--text-muted)">
             ${m.AUTOR ? m.AUTOR + ' · ' : ''}
             <span style="font-family:monospace">${m.COD_MATERIAL || ''}</span>
             ${m.TIPO_MATERIAL || m.TIPO ? ' · ' + (m.TIPO_MATERIAL || m.TIPO) : ''}
           </div>
         </div>`).join('') + `</div>`;
   } catch (err) {
-    lista.innerHTML = `<div style="padding:8px;background:#fcebeb;border-radius:6px;font-size:12px;color:#a32d2d">${err.message}</div>`;
+    lista.innerHTML = `<div style="padding:8px;background:#fcebeb;border-radius:6px;font-size:12px;color:#f85149">${err.message}</div>`;
   }
 }
 
@@ -437,9 +437,9 @@ function _wzEmpSelecionarMaterial(idx) {
   const card = document.getElementById('wzm-card');
   if (!card) return;
   card.innerHTML = `
-    <div style="border:0.5px solid #d1e8d6;border-radius:8px;padding:12px;background:#f3faf5">
-      <div style="font-weight:600;font-size:13px;color:#111;margin-bottom:4px">${mat.TITULO || '—'}</div>
-      <div style="font-size:11px;color:#555;margin-bottom:8px">
+    <div style="border:0.5px solid #1a5a3a;border-radius:8px;padding:12px;background:#0d2d1f">
+      <div style="font-weight:600;font-size:13px;color:var(--text-primary);margin-bottom:4px">${mat.TITULO || '—'}</div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">
         ${mat.AUTOR || ''}${mat.EDITORA ? ' · ' + mat.EDITORA : ''}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
@@ -448,12 +448,12 @@ function _wzEmpSelecionarMaterial(idx) {
         ${mat.ESTADO_MATERIAL_CONSERVACAO
           ? `<span class="bdg">${mat.ESTADO_MATERIAL_CONSERVACAO}</span>` : ''}
         ${mat.LOCALIZACAO_ESTANTE
-          ? `<span style="font-size:10px;color:#888">
+          ? `<span style="font-size:10px;color:var(--text-muted)">
                <i class="fa-solid fa-location-dot" style="margin-right:3px"></i>${mat.LOCALIZACAO_ESTANTE}
              </span>` : ''}
       </div>
       ${mat.NIVEL_LEITURA
-        ? `<div style="font-size:11px;color:#888;margin-bottom:8px">Nível de leitura: ${mat.NIVEL_LEITURA}</div>` : ''}
+        ? `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Nível de leitura: ${mat.NIVEL_LEITURA}</div>` : ''}
       <button class="btn-ghost btn-sm"
               onclick="_wzEmpMaterial=null;document.getElementById('wzm-card').innerHTML='';document.getElementById('wzm-btn-proximo').disabled=true">
         <i class="fa-solid fa-xmark" style="margin-right:4px"></i>Mudar material
@@ -468,7 +468,7 @@ async function _wzEmpCarregarStep3() {
   const nc = _wzEmpLeitor?.NUM_CARTAO;
   if (!nc) {
     document.getElementById('wzc-conteudo').innerHTML =
-      '<p style="color:#a32d2d;font-size:12px">Leitor não identificado.</p>';
+      '<p style="color:#f85149;font-size:12px">Leitor não identificado.</p>';
     return;
   }
   try {
@@ -476,28 +476,28 @@ async function _wzEmpCarregarStep3() {
     const det   = prazo.detalhes || {};
     document.getElementById('wzc-conteudo').innerHTML = `
       <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:12px;background:white;margin-bottom:12px">
-        <div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;
+        <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:8px">Resumo</div>
         <div style="font-size:12px;display:flex;justify-content:space-between;
                     padding:4px 0;border-bottom:0.5px solid #f0f0f0">
-          <span style="color:#888">Leitor</span>
-          <span style="font-weight:500;color:#111">${_wzEmpLeitor.NOME_COMPLETO || _wzEmpLeitor.NOME_LEITOR || nc}</span>
+          <span style="color:var(--text-muted)">Leitor</span>
+          <span style="font-weight:500;color:var(--text-primary)">${_wzEmpLeitor.NOME_COMPLETO || _wzEmpLeitor.NOME_LEITOR || nc}</span>
         </div>
         <div style="font-size:12px;display:flex;justify-content:space-between;padding:4px 0">
-          <span style="color:#888">Material</span>
-          <span style="font-weight:500;color:#111">${_wzEmpMaterial?.TITULO || '—'}</span>
+          <span style="color:var(--text-muted)">Material</span>
+          <span style="font-weight:500;color:var(--text-primary)">${_wzEmpMaterial?.TITULO || '—'}</span>
         </div>
       </div>
       <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:12px;background:white;
-                  margin-bottom:14px;font-family:monospace;font-size:12px;color:#555;line-height:1.9">
+                  margin-bottom:14px;font-family:monospace;font-size:12px;color:var(--text-secondary);line-height:1.9">
         14 dias (base)<br>
         + ${det.geografico || 0} dias (distância)<br>
         ${(det.professor || 0) > 0   ? `+ ${det.professor} dias (professor)<br>` : ''}
         ${(det.pontualidade || 0) < 0 ? `${det.pontualidade} dias (pontualidade)<br>` : ''}
         <span style="display:block;border-top:0.5px solid #e5e5e5;margin-top:4px;padding-top:6px;
-                     font-size:13px;color:#111;font-weight:700">
+                     font-size:13px;color:var(--text-primary);font-weight:700">
           = ${prazo.dias_prazo} dias →
-          <span style="color:#0f6e56">${fmtData(prazo.prazo_devolucao)}</span>
+          <span style="color:var(--theme-accent-text)">${fmtData(prazo.prazo_devolucao)}</span>
         </span>
       </div>
       <div class="form-group">
@@ -509,7 +509,7 @@ async function _wzEmpCarregarStep3() {
       </div>`;
   } catch (err) {
     document.getElementById('wzc-conteudo').innerHTML =
-      `<div style="padding:8px;background:#fcebeb;border-radius:6px;font-size:12px;color:#a32d2d">${err.message}</div>`;
+      `<div style="padding:8px;background:#fcebeb;border-radius:6px;font-size:12px;color:#f85149">${err.message}</div>`;
   }
 }
 
@@ -556,7 +556,7 @@ async function abrirModalDevolucao(id) {
   _devolucaoId = id;
   abrirModalEmpBase('Registar Devolução');
   document.getElementById('modal-emp-conteudo').innerHTML =
-    '<p style="text-align:center;color:#888;font-size:12px;padding:16px">A carregar…</p>';
+    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:16px">A carregar…</p>';
   try {
     _devolucaoEmp = await get(`/api/emprestimos/${id}`);
     _renderizarFormDevolucao();
@@ -571,23 +571,23 @@ function _renderizarFormDevolucao() {
 
   document.getElementById('modal-emp-conteudo').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-      <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:10px;background:#f7f7f5">
-        <div style="font-size:9px;font-weight:500;color:#aaa;text-transform:uppercase;
+      <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:10px;background:var(--surface-raised)">
+        <div style="font-size:9px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:4px">Leitor</div>
-        <div style="font-weight:600;font-size:12px;color:#111">${e.NOME_LEITOR || '—'}</div>
-        <div style="font-family:monospace;font-size:10px;color:#888">${e.NUM_CARTAO || '—'}</div>
+        <div style="font-weight:600;font-size:12px;color:var(--text-primary)">${e.NOME_LEITOR || '—'}</div>
+        <div style="font-family:monospace;font-size:10px;color:var(--text-muted)">${e.NUM_CARTAO || '—'}</div>
       </div>
-      <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:10px;background:#f7f7f5">
-        <div style="font-size:9px;font-weight:500;color:#aaa;text-transform:uppercase;
+      <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:10px;background:var(--surface-raised)">
+        <div style="font-size:9px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:4px">Material</div>
-        <div style="font-weight:600;font-size:12px;color:#111;
+        <div style="font-weight:600;font-size:12px;color:var(--text-primary);
                     overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.TITULO || '—'}</div>
-        <div style="font-size:10px;color:#888">Saída: ${e.ESTADO_MATERIAL_SAIDA || '—'}</div>
+        <div style="font-size:10px;color:var(--text-muted)">Saída: ${e.ESTADO_MATERIAL_SAIDA || '—'}</div>
       </div>
     </div>
     ${atrasado ? `
-    <div style="background:#fef2f2;border:0.5px solid #f5c6c6;border-radius:6px;
-                padding:8px 12px;margin-bottom:12px;font-size:12px;color:#a32d2d">
+    <div style="background:#2d1015;border:0.5px solid #5c2020;border-radius:6px;
+                padding:8px 12px;margin-bottom:12px;font-size:12px;color:#f85149">
       <i class="fa-solid fa-clock" style="margin-right:6px"></i>
       <b>${e.DIAS_ATRASO} dias de atraso</b>
       ${e.DIAS_ATRASO > 60
@@ -633,31 +633,31 @@ async function _previewDevolucaoEmp() {
     prev.innerHTML = `
       <div style="border:0.5px solid ${temMulta ? '#e07820' : '#d1e8d6'};border-radius:8px;
                   padding:12px;background:${temMulta ? '#fffbf5' : '#f3faf5'}">
-        <div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;
+        <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:8px">Preview da Multa</div>
         <div style="font-size:12px;display:flex;justify-content:space-between;margin-bottom:4px">
-          <span style="color:#555">
+          <span style="color:var(--text-secondary)">
             Por atraso (${res.dias_atraso || 0} dias × ${fmtMoeda(res.detalhes?.taxa_diaria || 0)})
           </span>
-          <span style="${(res.multa_atraso || 0) > 0 ? 'color:#e07820;font-weight:500' : 'color:#888'}">
+          <span style="${(res.multa_atraso || 0) > 0 ? 'color:#e07820;font-weight:500' : 'color:var(--text-muted)'}">
             ${fmtMoeda(res.multa_atraso || 0)}
           </span>
         </div>
         <div style="font-size:12px;display:flex;justify-content:space-between;margin-bottom:8px">
-          <span style="color:#555">Por estado do material</span>
-          <span style="${(res.multa_dano || 0) > 0 ? 'color:#e07820;font-weight:500' : 'color:#888'}">
+          <span style="color:var(--text-secondary)">Por estado do material</span>
+          <span style="${(res.multa_dano || 0) > 0 ? 'color:#e07820;font-weight:500' : 'color:var(--text-muted)'}">
             ${fmtMoeda(res.multa_dano || 0)}
           </span>
         </div>
         <div style="font-size:13px;display:flex;justify-content:space-between;
                     border-top:0.5px solid #e5e5e5;padding-top:6px;font-weight:700">
-          <span style="color:#111">Total</span>
-          <span style="${temMulta ? 'color:#e07820' : 'color:#0f6e56'}">
+          <span style="color:var(--text-primary)">Total</span>
+          <span style="${temMulta ? 'color:#e07820' : 'color:var(--theme-accent-text)'}">
             ${fmtMoeda(res.multa_total || 0)}
           </span>
         </div>
         ${grave ? `
-        <div style="margin-top:8px;font-size:11px;color:#a32d2d">
+        <div style="margin-top:8px;font-size:11px;color:#f85149">
           <i class="fa-solid fa-triangle-exclamation" style="margin-right:4px"></i>
           Material será marcado como Indisponível no catálogo.
         </div>` : ''}

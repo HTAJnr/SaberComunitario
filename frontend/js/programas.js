@@ -19,13 +19,13 @@ let _partCartao    = null;
 function _pcampo(label, valor, estilo) {
   return `<div style="display:flex;justify-content:space-between;align-items:baseline;
                       padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
-    <span style="color:#888;flex-shrink:0;margin-right:8px">${label}</span>
+    <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
     <span style="text-align:right;${estilo || ''}">${valor ?? '—'}</span>
   </div>`;
 }
 
 function _psecao(titulo) {
-  return `<div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;
+  return `<div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                       letter-spacing:.06em;margin:14px 0 6px">${titulo}</div>`;
 }
 
@@ -43,7 +43,7 @@ function _badgeEstadoProg(estado) {
 
 function _badgePublico(publico) {
   if (!publico) return '—';
-  return `<span class="bdg" style="background:#e0e7ff;color:#4338ca;font-size:10px">${publico}</span>`;
+  return `<span class="bdg" style="background:#1a1035;color:#a78bfa;font-size:10px">${publico}</span>`;
 }
 
 function _badgeEstadoPart(estado) {
@@ -88,14 +88,14 @@ function _renderizarTabelaProgramas() {
 function _linhaProg(r) {
   const dur = r.DURACAO_SEMANAS ? `${r.DURACAO_SEMANAS} sem.` : '—';
   return `<tr>
-    <td style="font-size:11px;color:#aaa;font-family:monospace">${r.COD_PROGRAMA}</td>
+    <td style="font-size:11px;color:var(--text-muted);font-family:monospace">${r.COD_PROGRAMA}</td>
     <td style="font-weight:500">${r.NOME_PROGRAMA || '—'}</td>
     <td>${_badgePublico(r.PUBLICO_ALVO)}</td>
-    <td style="text-align:center;color:#888">${dur}</td>
-    <td style="text-align:center;color:#888">${r.TOTAL_PARTICIPANTES_ACTIVOS ?? 0}</td>
+    <td style="text-align:center;color:var(--text-muted)">${dur}</td>
+    <td style="text-align:center;color:var(--text-muted)">${r.TOTAL_PARTICIPANTES_ACTIVOS ?? 0}</td>
     <td>${_badgeEstadoProg(r.ESTADO_PROGRAMA)}</td>
     <td style="text-align:right">
-      <button class="btn-secondary btn-sm" onclick="abrirCtxMenuProg(event,'${r.COD_PROGRAMA}')">···</button>
+      <button class="btn-ghost btn-sm" onclick="abrirCtxMenuProg(event,'${r.COD_PROGRAMA}')">···</button>
     </td>
   </tr>`;
 }
@@ -184,14 +184,14 @@ async function abrirDrawerProg(cod) {
   );
 
   const conteudo = document.getElementById('drawer-prog-conteudo');
-  conteudo.innerHTML = '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+  conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
 
   try {
     _progDetalhe = await get(`/api/programas/${cod}`);
     document.getElementById('drawer-prog-titulo').textContent = _progDetalhe.programa?.NOME_PROGRAMA || 'Programa';
     _renderizarInfoProg(_progDetalhe);
   } catch (err) {
-    conteudo.innerHTML = `<p style="text-align:center;color:#c62828;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
+    conteudo.innerHTML = `<p style="text-align:center;color:#f85149;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
   }
 }
 
@@ -226,11 +226,11 @@ function _renderizarInfoProg(d) {
     ${_pcampo('Estado', _badgeEstadoProg(p.ESTADO_PROGRAMA))}
     ${_pcampo('Público-alvo', _badgePublico(p.PUBLICO_ALVO))}
     ${_pcampo('Duração', p.DURACAO_SEMANAS ? `${p.DURACAO_SEMANAS} semanas` : '—')}
-    ${p.DESCRICAO ? `${_psecao('Descrição')}<div style="font-size:12px;color:#555;line-height:1.5">${p.DESCRICAO}</div>` : ''}
+    ${p.DESCRICAO ? `${_psecao('Descrição')}<div style="font-size:12px;color:var(--text-secondary);line-height:1.5">${p.DESCRICAO}</div>` : ''}
     ${_psecao('Biblioteca')}
     ${_pcampo('Biblioteca', p.NOME_BIBLIOTECA || p.COD_BIBLIOTECA || '—')}
-    ${p.METODOLOGIA ? `${_psecao('Metodologia')}<div style="font-size:12px;color:#555;line-height:1.5">${p.METODOLOGIA}</div>` : ''}
-    ${p.RESULTADOS_ESPERADOS ? `${_psecao('Resultados Esperados')}<div style="font-size:12px;color:#555;line-height:1.5">${p.RESULTADOS_ESPERADOS}</div>` : ''}
+    ${p.METODOLOGIA ? `${_psecao('Metodologia')}<div style="font-size:12px;color:var(--text-secondary);line-height:1.5">${p.METODOLOGIA}</div>` : ''}
+    ${p.RESULTADOS_ESPERADOS ? `${_psecao('Resultados Esperados')}<div style="font-size:12px;color:var(--text-secondary);line-height:1.5">${p.RESULTADOS_ESPERADOS}</div>` : ''}
   `;
 }
 
@@ -248,7 +248,7 @@ function _renderizarNiveisProg(d) {
                      display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0">${n.ORDEM ?? i + 1}</span>
         <span style="font-size:13px;font-weight:500">${n.NOME_NIVEL || '—'}</span>
       </div>
-      ${n.DESCRICAO ? `<p style="font-size:11px;color:#888;margin:0 0 0 30px;line-height:1.4">${n.DESCRICAO}</p>` : ''}
+      ${n.DESCRICAO ? `<p style="font-size:11px;color:var(--text-muted);margin:0 0 0 30px;line-height:1.4">${n.DESCRICAO}</p>` : ''}
     </div>
   `).join('');
 }
@@ -262,14 +262,14 @@ async function _renderizarParticipantesProg() {
   const podeGerir = ['Administrador', 'Coordenador'].includes(nivel);
   const podeInscrever = ['Administrador', 'Coordenador', 'Bibliotecario'].includes(nivel);
 
-  conteudo.innerHTML = '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+  conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
 
   try {
     const parts = await get(`/api/programas/${cod}/participantes`);
 
     const niveis = _progDetalhe?.niveis || [];
     const btnInscrever = podeInscrever
-      ? `<button onclick="abrirModalInscrever('${cod}')" class="btn-secondary" style="font-size:11px;margin-bottom:10px">
+      ? `<button onclick="abrirModalInscrever('${cod}')" class="btn-ghost" style="font-size:11px;margin-bottom:10px">
            <i class="fa-solid fa-user-plus" style="margin-right:4px"></i>Inscrever Leitor
          </button>`
       : '';
@@ -281,16 +281,16 @@ async function _renderizarParticipantesProg() {
 
     const rows = parts.map(p => {
       const accoesGestao = podeGerir
-        ? `<button onclick="abrirModalActualizarPart('${cod}','${p.NUM_CARTAO}')" class="btn-secondary btn-sm" title="Actualizar">
+        ? `<button onclick="abrirModalActualizarPart('${cod}','${p.NUM_CARTAO}')" class="btn-ghost btn-sm" title="Actualizar">
              <i class="fa-solid fa-pen"></i>
            </button>`
         : '';
       return `<tr>
-        <td style="font-size:11px;font-family:monospace;color:#aaa">${p.NUM_CARTAO}</td>
+        <td style="font-size:11px;font-family:monospace;color:var(--text-muted)">${p.NUM_CARTAO}</td>
         <td style="font-weight:500">${p.NOME_COMPLETO || '—'}</td>
-        <td style="font-size:11px;color:#888">${p.NOME_NIVEL || '—'}</td>
+        <td style="font-size:11px;color:var(--text-muted)">${p.NOME_NIVEL || '—'}</td>
         <td>${_badgeEstadoPart(p.ESTADO_PARTICIPACAO)}</td>
-        <td style="color:#888;font-size:11px">${fmtData(p.DATA_INSCRICAO)}</td>
+        <td style="color:var(--text-muted);font-size:11px">${fmtData(p.DATA_INSCRICAO)}</td>
         <td style="text-align:right">${accoesGestao}</td>
       </tr>`;
     }).join('');
@@ -312,7 +312,7 @@ async function _renderizarParticipantesProg() {
       </table>
     `;
   } catch (err) {
-    conteudo.innerHTML = `<p style="text-align:center;color:#c62828;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
+    conteudo.innerHTML = `<p style="text-align:center;color:#f85149;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
   }
 }
 
@@ -328,10 +328,10 @@ function _renderizarMateriaisProg(d) {
       <thead><tr><th>Código</th><th>Título</th><th>Autor</th><th>Observações</th></tr></thead>
       <tbody>
         ${mats.map(m => `<tr>
-          <td style="font-size:11px;font-family:monospace;color:#aaa">${m.COD_MATERIAL}</td>
+          <td style="font-size:11px;font-family:monospace;color:var(--text-muted)">${m.COD_MATERIAL}</td>
           <td style="font-weight:500">${m.TITULO || '—'}</td>
-          <td style="color:#888">${m.AUTOR || '—'}</td>
-          <td style="color:#888;font-size:11px">${m.OBSERVACOES || '—'}</td>
+          <td style="color:var(--text-muted)">${m.AUTOR || '—'}</td>
+          <td style="color:var(--text-muted);font-size:11px">${m.OBSERVACOES || '—'}</td>
         </tr>`).join('')}
       </tbody>
     </table>
@@ -350,7 +350,7 @@ function _renderizarFuncionariosProg(d) {
       <thead><tr><th>Código</th><th>Nome</th><th>Papel</th></tr></thead>
       <tbody>
         ${funcs.map(f => `<tr>
-          <td style="font-size:11px;font-family:monospace;color:#aaa">${f.COD_FUNCIONARIO}</td>
+          <td style="font-size:11px;font-family:monospace;color:var(--text-muted)">${f.COD_FUNCIONARIO}</td>
           <td style="font-weight:500">${f.NOME_COMPLETO || '—'}</td>
           <td>${_badgePapel(f.PAPEL)}</td>
         </tr>`).join('')}
@@ -451,8 +451,8 @@ function _renderizarModalProgConteudo(dados) {
     <!-- Níveis dinâmicos -->
     <div style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.05em">Níveis de Progressão</span>
-        <button type="button" onclick="_adicionarNivelWiz()" class="btn-secondary" style="font-size:11px">
+        <span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em">Níveis de Progressão</span>
+        <button type="button" onclick="_adicionarNivelWiz()" class="btn-ghost" style="font-size:11px">
           <i class="fa-solid fa-plus" style="margin-right:4px"></i>Adicionar Nível
         </button>
       </div>
@@ -462,8 +462,8 @@ function _renderizarModalProgConteudo(dados) {
     <!-- Materiais dinâmicos -->
     <div style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.05em">Materiais</span>
-        <button type="button" onclick="_adicionarMatWiz()" class="btn-secondary" style="font-size:11px">
+        <span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em">Materiais</span>
+        <button type="button" onclick="_adicionarMatWiz()" class="btn-ghost" style="font-size:11px">
           <i class="fa-solid fa-plus" style="margin-right:4px"></i>Adicionar Material
         </button>
       </div>
@@ -473,8 +473,8 @@ function _renderizarModalProgConteudo(dados) {
     <!-- Funcionários dinâmicos -->
     <div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.05em">Funcionários</span>
-        <button type="button" onclick="_adicionarFuncWiz()" class="btn-secondary" style="font-size:11px">
+        <span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em">Funcionários</span>
+        <button type="button" onclick="_adicionarFuncWiz()" class="btn-ghost" style="font-size:11px">
           <i class="fa-solid fa-plus" style="margin-right:4px"></i>Adicionar Funcionário
         </button>
       </div>
@@ -504,7 +504,7 @@ function _renderizarNiveisWiz() {
   const lista = document.getElementById('prog-niveis-lista');
   if (!lista) return;
   if (!_progNiveisWiz.length) {
-    lista.innerHTML = '<p style="font-size:11px;color:#aaa;font-style:italic">Sem níveis adicionados.</p>';
+    lista.innerHTML = '<p style="font-size:11px;color:var(--text-muted);font-style:italic">Sem níveis adicionados.</p>';
     return;
   }
   lista.innerHTML = _progNiveisWiz.map((n, i) => `
@@ -522,7 +522,7 @@ function _renderizarNiveisWiz() {
                  style="width:80px"/>
         </div>
         <button type="button" onclick="_removerNivelWiz(${i})"
-                style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:2px">
+                style="background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;padding:2px">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -546,7 +546,7 @@ function _renderizarMatWiz() {
   const lista = document.getElementById('prog-mat-lista');
   if (!lista) return;
   if (!_progMatWiz.length) {
-    lista.innerHTML = '<p style="font-size:11px;color:#aaa;font-style:italic">Sem materiais adicionados.</p>';
+    lista.innerHTML = '<p style="font-size:11px;color:var(--text-muted);font-style:italic">Sem materiais adicionados.</p>';
     return;
   }
   lista.innerHTML = _progMatWiz.map((m, i) => `
@@ -558,7 +558,7 @@ function _renderizarMatWiz() {
              value="${m.observacoes}" oninput="_progMatWiz[${i}].observacoes=this.value"
              style="flex:2"/>
       <button type="button" onclick="_removerMatWiz(${i})"
-              style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:2px">
+              style="background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;padding:2px">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
@@ -581,7 +581,7 @@ function _renderizarFuncWiz() {
   const lista = document.getElementById('prog-func-lista');
   if (!lista) return;
   if (!_progFuncWiz.length) {
-    lista.innerHTML = '<p style="font-size:11px;color:#aaa;font-style:italic">Sem funcionários adicionados.</p>';
+    lista.innerHTML = '<p style="font-size:11px;color:var(--text-muted);font-style:italic">Sem funcionários adicionados.</p>';
     return;
   }
   lista.innerHTML = _progFuncWiz.map((f, i) => `
@@ -596,7 +596,7 @@ function _renderizarFuncWiz() {
         ).join('')}
       </select>
       <button type="button" onclick="_removerFuncWiz(${i})"
-              style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:2px">
+              style="background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;padding:2px">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>

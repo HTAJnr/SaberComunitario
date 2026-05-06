@@ -54,7 +54,7 @@ function _linhaEvento(r) {
   const bdgPub = publico ? `<span class="bdg bdg-activo-emp" style="font-size:10px">${publico}</span>` : '—';
 
   const rec = (r.RECORRENTE || 'N') === 'S'
-    ? '<i class="fa-solid fa-rotate" title="Recorrente" style="color:#6366f1;margin-left:4px"></i>'
+    ? '<i class="fa-solid fa-rotate" title="Recorrente" style="color:#a78bfa;margin-left:4px"></i>'
     : '';
 
   const insc = r.INSCRITOS ?? '—';
@@ -70,7 +70,7 @@ function _linhaEvento(r) {
     <td>${insc}/${cap}</td>
     <td>${bdgStatus}</td>
     <td style="text-align:right">
-      <button class="btn-secondary btn-sm"
+      <button class="btn-ghost btn-sm"
               onclick="abrirCtxMenuEvento(event,${r.ID_EVENTO})">···</button>
     </td>
   </tr>`;
@@ -139,14 +139,14 @@ async function abrirDrawerEvento(id) {
   });
 
   const conteudo = document.getElementById('drawer-ev-conteudo');
-  conteudo.innerHTML = '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+  conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
 
   try {
     _drawerEvData = await get(`/api/eventos/${id}`);
     document.getElementById('drawer-ev-titulo').textContent = _drawerEvData.TITULO_EVENTO || 'Evento';
     _renderizarDrawerInfoEvento(_drawerEvData);
   } catch (err) {
-    conteudo.innerHTML = `<p style="text-align:center;color:#c62828;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
+    conteudo.innerHTML = `<p style="text-align:center;color:#f85149;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
   }
 }
 
@@ -172,13 +172,13 @@ function mudarTabDrawerEvento(tab) {
 function _campo(label, valor, estilo) {
   return `<div style="display:flex;justify-content:space-between;align-items:baseline;
                       padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
-    <span style="color:#888;flex-shrink:0;margin-right:8px">${label}</span>
+    <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
     <span style="text-align:right;${estilo || ''}">${valor ?? '—'}</span>
   </div>`;
 }
 
 function _secao(titulo) {
-  return `<div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;
+  return `<div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                       letter-spacing:.06em;margin:14px 0 6px">${titulo}</div>`;
 }
 
@@ -201,7 +201,7 @@ function _renderizarDrawerInfoEvento(ev) {
     ${ev.MEDIA_AVALIACAO ? _campo('Avaliação média', '★ ' + ev.MEDIA_AVALIACAO) : ''}
     ${ev.DESCRICAO_EVENTO ? `
     ${_secao('Descrição')}
-    <div style="font-size:12px;color:#444;padding:6px 0;line-height:1.5">${ev.DESCRICAO_EVENTO}</div>` : ''}
+    <div style="font-size:12px;color:var(--text-secondary);padding:6px 0;line-height:1.5">${ev.DESCRICAO_EVENTO}</div>` : ''}
     ${_secao('Biblioteca e Responsável')}
     ${_campo('Biblioteca',   ev.NOME_BIBLIOTECA)}
     ${_campo('Responsável',  ev.NOME_RESPONSAVEL)}
@@ -210,7 +210,7 @@ function _renderizarDrawerInfoEvento(ev) {
 
 async function _renderizarDrawerHorariosEvento(id) {
   const conteudo = document.getElementById('drawer-ev-conteudo');
-  conteudo.innerHTML = '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+  conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
   try {
     const rows = await get(`/api/eventos/${id}/horarios`);
     if (!rows.length) {
@@ -222,21 +222,21 @@ async function _renderizarDrawerHorariosEvento(id) {
         ${rows.map(h => `
           <div style="padding:8px 0;border-bottom:0.5px solid #f0f0f0">
             <div style="font-weight:500">${h.DIA_SEMANA || '—'}
-              ${h.DATA_OCORRENCIA ? `<span style="color:#888;font-weight:400"> — ${h.DATA_OCORRENCIA}</span>` : ''}
+              ${h.DATA_OCORRENCIA ? `<span style="color:var(--text-muted);font-weight:400"> — ${h.DATA_OCORRENCIA}</span>` : ''}
             </div>
-            <div style="color:#888;margin-top:2px">
+            <div style="color:var(--text-muted);margin-top:2px">
               ${h.HORA_INICIO || '—'} → ${h.HORA_FIM || '—'}
             </div>
           </div>`).join('')}
       </div>`;
   } catch (err) {
-    conteudo.innerHTML = `<p style="color:#c62828;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
+    conteudo.innerHTML = `<p style="color:#f85149;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
   }
 }
 
 async function _renderizarDrawerParticipantesEvento(id) {
   const conteudo = document.getElementById('drawer-ev-conteudo');
-  conteudo.innerHTML = '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+  conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
   try {
     const rows = await get(`/api/eventos/${id}/participantes`);
     const nivel = utilizadorActual?.NIVEL_ACESSO || '';
@@ -248,7 +248,7 @@ async function _renderizarDrawerParticipantesEvento(id) {
           const pres   = p.PRESENCA_CONFIRMACAO === 'S';
           const bdgPres = pres
             ? '<span class="bdg bdg-devolvido" style="font-size:10px">Presente</span>'
-            : '<span class="bdg" style="font-size:10px;background:#e5e7eb;color:#555">Pendente</span>';
+            : '<span class="bdg" style="font-size:10px;background:#e5e7eb;color:var(--text-secondary)">Pendente</span>';
           const toggleLabel = pres ? 'Anular presença' : 'Confirmar presença';
           return `
             <div style="display:flex;align-items:center;justify-content:space-between;
@@ -257,7 +257,7 @@ async function _renderizarDrawerParticipantesEvento(id) {
                 <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                   ${p.NOME_LEITOR || '—'}
                 </div>
-                <div style="font-size:11px;color:#888">
+                <div style="font-size:11px;color:var(--text-muted)">
                   <span class="mono">${p.NUM_CARTAO}</span>
                   · ${fmtData(p.DATA_INSCRICAO)}
                   · ${bdgPres}
@@ -266,12 +266,12 @@ async function _renderizarDrawerParticipantesEvento(id) {
               <div style="display:flex;gap:4px;flex-shrink:0">
                 ${podeGerir ? `
                 <button onclick="_confirmarPresenca(${id},'${p.NUM_CARTAO}','${pres?'N':'S'}')"
-                        class="btn-secondary btn-sm" style="font-size:10px;white-space:nowrap"
+                        class="btn-ghost btn-sm" style="font-size:10px;white-space:nowrap"
                         title="${toggleLabel}">
                   <i class="fa-solid fa-${pres?'user-slash':'user-check'}"></i>
                 </button>` : ''}
                 <button onclick="_removerParticipanteEvento(${id},'${p.NUM_CARTAO}')"
-                        class="btn-secondary btn-sm" style="font-size:10px;color:#c62828">
+                        class="btn-ghost btn-sm" style="font-size:10px;color:#f85149">
                   <i class="fa-solid fa-user-minus"></i>
                 </button>
               </div>
@@ -290,13 +290,13 @@ async function _renderizarDrawerParticipantesEvento(id) {
       </div>
       <div id="ev-lista-part">${lista}</div>`;
   } catch (err) {
-    conteudo.innerHTML = `<p style="color:#c62828;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
+    conteudo.innerHTML = `<p style="color:#f85149;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
   }
 }
 
 async function _renderizarDrawerAvaliacoesEvento(id) {
   const conteudo = document.getElementById('drawer-ev-conteudo');
-  conteudo.innerHTML = '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+  conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
   try {
     const rows = await get(`/api/eventos/${id}/avaliacoes`);
     if (!rows.length) {
@@ -312,14 +312,14 @@ async function _renderizarDrawerAvaliacoesEvento(id) {
           <div style="padding:8px 0;border-bottom:0.5px solid #f0f0f0">
             <div style="display:flex;justify-content:space-between;align-items:baseline">
               <span style="font-weight:500">${a.NOME_LEITOR || a.NUM_CARTAO}</span>
-              <span style="color:#f59e0b;font-size:14px">${estrelas(a.NOTA || 0)}</span>
+              <span style="color:#d29922;font-size:14px">${estrelas(a.NOTA || 0)}</span>
             </div>
-            ${a.COMENTARIO ? `<div style="color:#555;margin-top:3px;line-height:1.4">${a.COMENTARIO}</div>` : ''}
-            <div style="color:#aaa;font-size:11px;margin-top:2px">${a.DATA_AVALIACAO || ''}</div>
+            ${a.COMENTARIO ? `<div style="color:var(--text-secondary);margin-top:3px;line-height:1.4">${a.COMENTARIO}</div>` : ''}
+            <div style="color:var(--text-muted);font-size:11px;margin-top:2px">${a.DATA_AVALIACAO || ''}</div>
           </div>`).join('')}
       </div>`;
   } catch (err) {
-    conteudo.innerHTML = `<p style="color:#c62828;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
+    conteudo.innerHTML = `<p style="color:#f85149;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
   }
 }
 
@@ -370,7 +370,7 @@ async function abrirModalCriarEvento() {
   _mostrarErroModalEvento('');
   await _renderizarFormEvento(null);
   document.getElementById('modal-ev-footer').innerHTML = `
-    <button class="btn-secondary" onclick="fecharModalEvento()">Cancelar</button>
+    <button class="btn-ghost" onclick="fecharModalEvento()">Cancelar</button>
     <button class="btn-primary" onclick="_salvarEvento(null)">
       <i class="fa-solid fa-floppy-disk" style="margin-right:5px"></i>Criar Evento
     </button>`;
@@ -383,20 +383,20 @@ async function abrirModalEditarEvento(id) {
   document.getElementById('modal-ev-titulo').textContent = 'Editar Evento';
   _mostrarErroModalEvento('');
   document.getElementById('modal-ev-conteudo').innerHTML =
-    '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
   document.getElementById('modal-ev-overlay').classList.remove('hidden');
 
   try {
     const ev = await get(`/api/eventos/${id}`);
     await _renderizarFormEvento(ev);
     document.getElementById('modal-ev-footer').innerHTML = `
-      <button class="btn-secondary" onclick="fecharModalEvento()">Cancelar</button>
+      <button class="btn-ghost" onclick="fecharModalEvento()">Cancelar</button>
       <button class="btn-primary" onclick="_salvarEvento(${id})">
         <i class="fa-solid fa-floppy-disk" style="margin-right:5px"></i>Guardar
       </button>`;
   } catch (err) {
     document.getElementById('modal-ev-conteudo').innerHTML =
-      `<p style="color:#c62828;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
+      `<p style="color:#f85149;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
   }
 }
 
@@ -431,13 +431,13 @@ async function _renderizarFormEvento(ev) {
     <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
 
       <div>
-        <label class="form-label">Título <span style="color:#c62828">*</span></label>
+        <label class="form-label">Título <span style="color:#f85149">*</span></label>
         <input id="evf-titulo" class="input-field" value="${ev ? (ev.TITULO_EVENTO || '') : ''}"/>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
-          <label class="form-label">Data <span style="color:#c62828">*</span></label>
+          <label class="form-label">Data <span style="color:#f85149">*</span></label>
           <input id="evf-data" type="date" class="input-field" value="${dataVal}"/>
         </div>
         <div>
@@ -448,13 +448,13 @@ async function _renderizarFormEvento(ev) {
       </div>
 
       <div>
-        <label class="form-label">Local <span style="color:#c62828">*</span></label>
+        <label class="form-label">Local <span style="color:#f85149">*</span></label>
         <input id="evf-local" class="input-field" value="${ev ? (ev.LOCAL_EVENTO || '') : ''}"/>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
-          <label class="form-label">Público-alvo <span style="color:#c62828">*</span></label>
+          <label class="form-label">Público-alvo <span style="color:#f85149">*</span></label>
           <select id="evf-publico" class="input-field">
             ${['Iniciantes','Intermedios','Avancados','Todos'].map(p =>
               `<option value="${p}"${ev && ev.PUBLICO_ALVO === p ? ' selected' : ''}>${p}</option>`
@@ -471,14 +471,14 @@ async function _renderizarFormEvento(ev) {
       </div>
 
       <div>
-        <label class="form-label">Biblioteca <span style="color:#c62828">*</span></label>
+        <label class="form-label">Biblioteca <span style="color:#f85149">*</span></label>
         ${podeEscolherBib
           ? `<select id="evf-bib" class="input-field">
                <option value="">— Seleccionar —</option>
                ${bibOpts}
              </select>`
           : `<input id="evf-bib" type="hidden" value="${utilizadorActual?.COD_BIBLIOTECA || ''}"/>
-             <div class="input-field" style="background:#f9fafb;color:#888;cursor:default">
+             <div class="input-field" style="background:#f9fafb;color:var(--text-muted);cursor:default">
                ${utilizadorActual?.NOME_BIBLIOTECA || 'Biblioteca própria'}
              </div>`}
       </div>
@@ -502,7 +502,7 @@ async function _renderizarFormEvento(ev) {
       <div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <label class="form-label" style="margin:0">Horários</label>
-          <button onclick="_adicionarHorario()" class="btn-secondary btn-sm" style="font-size:11px">
+          <button onclick="_adicionarHorario()" class="btn-ghost btn-sm" style="font-size:11px">
             <i class="fa-solid fa-plus" style="margin-right:3px"></i>Adicionar horário
           </button>
         </div>
@@ -513,7 +513,7 @@ async function _renderizarFormEvento(ev) {
       <div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <label class="form-label" style="margin:0">Recursos</label>
-          <button onclick="_adicionarRecurso()" class="btn-secondary btn-sm" style="font-size:11px">
+          <button onclick="_adicionarRecurso()" class="btn-ghost btn-sm" style="font-size:11px">
             <i class="fa-solid fa-plus" style="margin-right:3px"></i>Adicionar recurso
           </button>
         </div>
@@ -540,7 +540,7 @@ function _renderizarLinhasHorarios() {
              placeholder="Início" onchange="_evHorarios[${i}].hora_inicio=this.value"/>
       <input type="time" class="input-field" style="font-size:11px" value="${h.hora_fim||''}"
              placeholder="Fim" onchange="_evHorarios[${i}].hora_fim=this.value"/>
-      <button onclick="_removerHorario(${i})" style="background:none;border:none;cursor:pointer;color:#c62828;font-size:14px;padding:0 2px">
+      <button onclick="_removerHorario(${i})" style="background:none;border:none;cursor:pointer;color:#f85149;font-size:14px;padding:0 2px">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>`).join('');
@@ -565,7 +565,7 @@ function _renderizarLinhasRecursos() {
              value="${r.nome_recurso||''}" onchange="_evRecursos[${i}].nome_recurso=this.value"/>
       <input type="number" class="input-field" style="font-size:11px" placeholder="Qtd"
              value="${r.quantidade||''}" min="1" onchange="_evRecursos[${i}].quantidade=+this.value"/>
-      <button onclick="_removerRecurso(${i})" style="background:none;border:none;cursor:pointer;color:#c62828;font-size:14px;padding:0 2px">
+      <button onclick="_removerRecurso(${i})" style="background:none;border:none;cursor:pointer;color:#f85149;font-size:14px;padding:0 2px">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>`).join('');

@@ -19,14 +19,14 @@ let _wizFuncDados  = {};
 // ── Helpers de apresentação ───────────────────────
 function _fcampo(label, valor) {
   return `<div style="margin-bottom:10px">
-    <div style="font-size:10px;color:#888;font-weight:500;margin-bottom:2px">${label}</div>
-    <div style="font-size:13px;color:#111">${valor || '—'}</div>
+    <div style="font-size:10px;color:var(--text-muted);font-weight:500;margin-bottom:2px">${label}</div>
+    <div style="font-size:13px;color:var(--text-primary)">${valor || '—'}</div>
   </div>`;
 }
 
 function _fsecao(titulo) {
-  return `<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;
-    letter-spacing:.5px;margin:16px 0 8px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">
+  return `<div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;
+    letter-spacing:.5px;margin:16px 0 8px;border-bottom:1px solid var(--border);padding-bottom:4px">
     ${titulo}
   </div>`;
 }
@@ -122,14 +122,14 @@ function _linhaFunc(r) {
 
   return `<tr>
     <td style="padding:6px 10px">${av}</td>
-    <td style="font-family:monospace;font-size:11px;color:#666">${r.COD_FUNCIONARIO || '—'}</td>
+    <td style="font-family:monospace;font-size:11px;color:var(--text-secondary)">${r.COD_FUNCIONARIO || '—'}</td>
     <td style="font-weight:500">${r.NOME || '—'}</td>
-    <td style="color:#555">${r.FUNCAO || '—'}</td>
+    <td style="color:var(--text-secondary)">${r.FUNCAO || '—'}</td>
     <td>${_badgeNivel(r.NIVEL_ACESSO)}</td>
-    <td style="color:#777">${r.NOME_BIBLIOTECA || '—'}</td>
+    <td style="color:var(--text-muted)">${r.NOME_BIBLIOTECA || '—'}</td>
     <td><span class="bdg bdg-activo">Activo</span></td>
     <td style="text-align:right;padding-right:10px">
-      <button class="btn-secondary btn-sm" onclick="abrirCtxMenuFunc(event,'${r.COD_FUNCIONARIO}')">···</button>
+      <button class="btn-ghost btn-sm" onclick="abrirCtxMenuFunc(event,'${r.COD_FUNCIONARIO}')">···</button>
     </td>
   </tr>`;
 }
@@ -201,7 +201,7 @@ async function abrirDrawerFunc(cod) {
   const drawer  = document.getElementById('drawer-func');
   const conteudo = document.getElementById('drawer-func-conteudo');
 
-  conteudo.innerHTML = `<div style="text-align:center;padding:30px;color:#aaa">
+  conteudo.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted)">
     <i class="fa-solid fa-spinner fa-spin"></i> A carregar…
   </div>`;
   overlay.style.display = 'block';
@@ -211,7 +211,7 @@ async function abrirDrawerFunc(cod) {
     _funcDetalhe = await get(`/api/funcionarios/${cod}`);
     conteudo.innerHTML = _renderizarPerfilFunc(_funcDetalhe);
   } catch (err) {
-    conteudo.innerHTML = `<div style="color:#a32d2d;padding:20px">${err.message}</div>`;
+    conteudo.innerHTML = `<div style="color:#f85149;padding:20px">${err.message}</div>`;
   }
 }
 
@@ -228,15 +228,15 @@ function _renderizarPerfilFunc(d) {
 
   const avatarHtml = `
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;
-      padding:14px;background:#f8f9fa;border-radius:10px">
+      padding:14px;background:var(--surface-raised);border-radius:10px">
       <div style="width:52px;height:52px;border-radius:50%;background:var(--theme-accent);
         color:#fff;display:flex;align-items:center;justify-content:center;
         font-size:18px;font-weight:700;flex-shrink:0">${iniciais(d.NOME_FUNCIONARIO)}</div>
       <div>
-        <div style="font-size:10px;font-family:monospace;color:#888;margin-bottom:2px">${d.COD_FUNCIONARIO}</div>
-        <div style="font-size:15px;font-weight:600;color:#111">${d.NOME_FUNCIONARIO || '—'}</div>
+        <div style="font-size:10px;font-family:monospace;color:var(--text-muted);margin-bottom:2px">${d.COD_FUNCIONARIO}</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text-primary)">${d.NOME_FUNCIONARIO || '—'}</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-          <span style="font-size:12px;color:#555">${d.FUNCAO || '—'}</span>
+          <span style="font-size:12px;color:var(--text-secondary)">${d.FUNCAO || '—'}</span>
           ${_badgeNivel(d.NIVEL_ACESSO)}
         </div>
       </div>
@@ -264,26 +264,26 @@ function _renderizarPerfilFunc(d) {
       habilidades.map(h => `<span class="chip">${h}</span>`).join('') +
       `</div>`;
   } else {
-    habilHtml += `<span style="font-size:12px;color:#aaa">Sem habilidades registadas</span>`;
+    habilHtml += `<span style="font-size:12px;color:var(--text-muted)">Sem habilidades registadas</span>`;
   }
 
   let horarioHtml = _fsecao('Horário');
   if (horario.length) {
     horarioHtml += `<table style="width:100%;font-size:12px;border-collapse:collapse">
-      <thead><tr style="border-bottom:1px solid #e5e7eb">
-        <th style="text-align:left;padding:4px 8px;color:#888;font-weight:500">Dia</th>
-        <th style="text-align:left;padding:4px 8px;color:#888;font-weight:500">Entrada</th>
-        <th style="text-align:left;padding:4px 8px;color:#888;font-weight:500">Saída</th>
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="text-align:left;padding:4px 8px;color:var(--text-muted);font-weight:500">Dia</th>
+        <th style="text-align:left;padding:4px 8px;color:var(--text-muted);font-weight:500">Entrada</th>
+        <th style="text-align:left;padding:4px 8px;color:var(--text-muted);font-weight:500">Saída</th>
       </tr></thead>
       <tbody>` +
-      horario.map(h => `<tr style="border-bottom:1px solid #f0f0f0">
+      horario.map(h => `<tr style="border-bottom:1px solid var(--border-soft)">
         <td style="padding:5px 8px">${h.DIA_SEMANA}</td>
         <td style="padding:5px 8px;font-family:monospace">${h.HORA_ENTRADA || '—'}</td>
         <td style="padding:5px 8px;font-family:monospace">${h.HORA_SAIDA || '—'}</td>
       </tr>`).join('') +
       `</tbody></table>`;
   } else {
-    horarioHtml += `<span style="font-size:12px;color:#aaa">Sem horário definido</span>`;
+    horarioHtml += `<span style="font-size:12px;color:var(--text-muted)">Sem horário definido</span>`;
   }
 
   return avatarHtml + dadosPessoais + dadosProfissionais + habilHtml + horarioHtml;
@@ -328,7 +328,7 @@ async function abrirModalEditarFunc(cod) {
       <div class="form-group">
         <label class="form-label">Email (não editável)</label>
         <input class="input-field" value="${dados?.EMAIL || ''}" readonly
-               style="background:#f5f5f5;color:#999;cursor:not-allowed"/>
+               style="background:var(--surface-raised);color:var(--text-muted);cursor:not-allowed"/>
       </div>
       <div class="form-group">
         <label class="form-label">Contacto</label>
@@ -380,19 +380,19 @@ async function abrirModalEditarFunc(cod) {
     </div>
 
     <div style="margin-top:4px">
-      <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:8px">Habilidades</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">Habilidades</div>
       <div id="ef-habils-wrap" class="chips-wrap" style="margin-bottom:8px"></div>
       <div style="display:flex;gap:6px">
         <input id="ef-habil-input" class="input-field" style="flex:1" placeholder="Nova habilidade…"
                onkeydown="if(event.key==='Enter'){event.preventDefault();_adicionarHabilEdit();}"/>
-        <button class="btn-secondary" onclick="_adicionarHabilEdit()">+ Adicionar</button>
+        <button class="btn-ghost" onclick="_adicionarHabilEdit()">+ Adicionar</button>
       </div>
     </div>
 
     <div style="margin-top:18px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:11px;font-weight:600;color:#555">Horário Semanal</span>
-        <button class="btn-secondary" style="font-size:11px;padding:3px 10px" onclick="_adicionarHorEdit()">
+        <span style="font-size:11px;font-weight:600;color:var(--text-secondary)">Horário Semanal</span>
+        <button class="btn-ghost" style="font-size:11px;padding:3px 10px" onclick="_adicionarHorEdit()">
           + Dia
         </button>
       </div>
@@ -417,7 +417,7 @@ function _renderizarHabilEdit() {
     ? _funcHabilEdit.map((h, i) =>
         `<span class="chip">${h}<span class="chip-x" onclick="_removerHabilEdit(${i})"> ×</span></span>`
       ).join('')
-    : `<span style="font-size:11px;color:#aaa">Sem habilidades</span>`;
+    : `<span style="font-size:11px;color:var(--text-muted)">Sem habilidades</span>`;
 }
 
 function _adicionarHabilEdit() {
@@ -441,7 +441,7 @@ function _renderizarHorEdit() {
   const wrap = document.getElementById('ef-hor-wrap');
   if (!wrap) return;
   if (!_funcHorEdit.length) {
-    wrap.innerHTML = `<div style="font-size:12px;color:#aaa">Sem horário definido. Clique em "+ Dia" para adicionar.</div>`;
+    wrap.innerHTML = `<div style="font-size:12px;color:var(--text-muted)">Sem horário definido. Clique em "+ Dia" para adicionar.</div>`;
     return;
   }
   wrap.innerHTML = _funcHorEdit.map((h, i) => `
@@ -456,7 +456,7 @@ function _renderizarHorEdit() {
       <input type="time" class="input-field" style="font-size:12px"
              value="${h.hora_saida || ''}"
              oninput="_funcHorEdit[${i}].hora_saida=this.value"/>
-      <button style="background:none;border:none;color:#a32d2d;cursor:pointer;font-size:14px;padding:0 4px"
+      <button style="background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;padding:0 4px"
               onclick="_removerHorEdit(${i})">×</button>
     </div>`).join('');
 }
@@ -529,14 +529,14 @@ async function abrirModalPermissoes(cod) {
   const idFuncaoActual = dados?.ID_FUNCAO || '';
 
   document.getElementById('modal-perm-conteudo').innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f8f9fa;
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface-raised);
       border-radius:10px;margin-bottom:16px">
       <div style="width:40px;height:40px;border-radius:50%;background:var(--theme-accent);
         color:#fff;display:flex;align-items:center;justify-content:center;
         font-size:14px;font-weight:700;flex-shrink:0">${iniciais(dados?.NOME_FUNCIONARIO || '')}</div>
       <div>
         <div style="font-size:14px;font-weight:600">${dados?.NOME_FUNCIONARIO || '—'}</div>
-        <div style="font-size:12px;color:#666">${dados?.FUNCAO || '—'} · ${_badgeNivel(dados?.NIVEL_ACESSO)}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">${dados?.FUNCAO || '—'} · ${_badgeNivel(dados?.NIVEL_ACESSO)}</div>
       </div>
     </div>
 
@@ -551,7 +551,7 @@ async function abrirModalPermissoes(cod) {
       </select>
     </div>
 
-    <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:8px">
+    <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">
       Preview — Permissões deste nível
     </div>
     <div id="perm-preview" style="overflow-x:auto"></div>`;
@@ -571,12 +571,12 @@ function _actualizarPreviewPerm() {
   const key    = colKey[nivel];
 
   const check = (val) => val
-    ? `<span style="color:#0f6e56;font-weight:600">✓</span>`
-    : `<span style="color:#ccc">—</span>`;
+    ? `<span style="color:var(--theme-accent-text);font-weight:600">✓</span>`
+    : `<span style="color:var(--text-muted)">—</span>`;
 
   const linhas = _MATRIZ_PERM.map(m => {
-    const hl = key && m[key] ? 'background:#f0fdf7' : '';
-    return `<tr style="${hl};border-bottom:1px solid #f0f0f0">
+    const hl = key && m[key] ? 'background:var(--surface-raised)' : '';
+    return `<tr style="${hl};border-bottom:1px solid var(--border-soft)">
       <td style="padding:4px 8px;font-size:12px">${m.modulo}</td>
       <td style="text-align:center;padding:4px 8px">${check(m.admin)}</td>
       <td style="text-align:center;padding:4px 8px">${check(m.coord)}</td>
@@ -587,12 +587,12 @@ function _actualizarPreviewPerm() {
 
   preview.innerHTML = `
     <table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr style="border-bottom:2px solid #e5e7eb">
-        <th style="text-align:left;padding:5px 8px;color:#555">Módulo / Acção</th>
-        <th style="text-align:center;padding:5px 8px;color:#3b82f6">Admin</th>
-        <th style="text-align:center;padding:5px 8px;color:#d97706">Coord</th>
-        <th style="text-align:center;padding:5px 8px;color:#0f6e56">Biblio</th>
-        <th style="text-align:center;padding:5px 8px;color:#6b7280">Assist</th>
+      <thead><tr style="border-bottom:2px solid var(--border)">
+        <th style="text-align:left;padding:5px 8px;color:var(--text-secondary)">Módulo / Acção</th>
+        <th style="text-align:center;padding:5px 8px;color:#58a6ff">Admin</th>
+        <th style="text-align:center;padding:5px 8px;color:#d29922">Coord</th>
+        <th style="text-align:center;padding:5px 8px;color:var(--theme-accent-text)">Biblio</th>
+        <th style="text-align:center;padding:5px 8px;color:var(--text-muted)">Assist</th>
       </tr></thead>
       <tbody>${linhas}</tbody>
     </table>`;
@@ -657,7 +657,7 @@ function _renderizarWizFunc() {
   document.getElementById('wiz-func-indicador').innerHTML =
     `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:100%">
       <div class="wizard-steps">${dots}</div>
-      <div style="font-size:11px;color:#888">Passo ${_wizFuncStep} de 3 — ${titulos[_wizFuncStep - 1]}</div>
+      <div style="font-size:11px;color:var(--text-muted)">Passo ${_wizFuncStep} de 3 — ${titulos[_wizFuncStep - 1]}</div>
     </div>`;
 
   // Botões
@@ -689,7 +689,7 @@ function _renderizarWizFunc() {
 function _wizFuncStep1Html() {
   const d = _wizFuncDados;
   return `
-    <div style="margin-bottom:10px;padding:8px 12px;background:#eef6ff;border-radius:6px;font-size:11px;color:#2563eb">
+    <div style="margin-bottom:10px;padding:8px 12px;background:var(--theme-accent-light);border-radius:6px;font-size:11px;color:#58a6ff">
       <i class="fa-solid fa-circle-info" style="margin-right:5px"></i>
       O email de acesso será gerado automaticamente a partir do nome (ex: <em>ana.machava@sabercomunitario.mz</em>).
     </div>
@@ -773,19 +773,19 @@ function _wizFuncStep2Html() {
     </div>
 
     <div style="margin-top:4px">
-      <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:8px">Habilidades</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">Habilidades</div>
       <div id="wf2-habils-wrap" class="chips-wrap" style="margin-bottom:8px"></div>
       <div style="display:flex;gap:6px">
         <input id="wf2-habil-input" class="input-field" style="flex:1" placeholder="Nova habilidade…"
                onkeydown="if(event.key==='Enter'){event.preventDefault();_adicionarHabilWiz();}"/>
-        <button class="btn-secondary" onclick="_adicionarHabilWiz()">+ Adicionar</button>
+        <button class="btn-ghost" onclick="_adicionarHabilWiz()">+ Adicionar</button>
       </div>
     </div>
 
     <div style="margin-top:18px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:11px;font-weight:600;color:#555">Horário Semanal</span>
-        <button class="btn-secondary" style="font-size:11px;padding:3px 10px" onclick="_adicionarHorWiz()">
+        <span style="font-size:11px;font-weight:600;color:var(--text-secondary)">Horário Semanal</span>
+        <button class="btn-ghost" style="font-size:11px;padding:3px 10px" onclick="_adicionarHorWiz()">
           + Dia
         </button>
       </div>
@@ -799,7 +799,7 @@ function _wizFuncStep3Html() {
   const bib = (d._bibliotecas || []).find(b => b.COD_BIBLIOTECA === d.cod_biblioteca);
 
   const linha = (label, val) => val
-    ? `<tr><td style="padding:4px 8px;color:#888;font-size:12px;width:45%">${label}</td>
+    ? `<tr><td style="padding:4px 8px;color:var(--text-muted);font-size:12px;width:45%">${label}</td>
            <td style="padding:4px 8px;font-size:12px">${val}</td></tr>`
     : '';
 
@@ -812,8 +812,8 @@ function _wizFuncStep3Html() {
     : '—';
 
   return `
-    <div style="padding:14px;background:#f8f9fa;border-radius:10px">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:12px">
+    <div style="padding:14px;background:var(--surface-raised);border-radius:10px">
+      <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px">
         <i class="fa-solid fa-user-check" style="color:var(--theme-accent);margin-right:6px"></i>
         Confirmar dados do novo funcionário
       </div>
@@ -832,14 +832,14 @@ function _wizFuncStep3Html() {
         </tbody>
       </table>
       <div style="margin-top:12px">
-        <div style="font-size:11px;color:#888;margin-bottom:4px">Habilidades</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Habilidades</div>
         ${habilHtml}
       </div>
       <div style="margin-top:10px">
-        <div style="font-size:11px;color:#888;margin-bottom:4px">Horário</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Horário</div>
         <div style="font-size:12px">${horHtml}</div>
       </div>
-      <div style="margin-top:12px;padding:8px;background:#eef6ff;border-radius:6px;font-size:11px;color:#2563eb">
+      <div style="margin-top:12px;padding:8px;background:var(--theme-accent-light);border-radius:6px;font-size:11px;color:#58a6ff">
         <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
         O código de funcionário e o email serão gerados automaticamente pelo sistema.
       </div>
@@ -854,7 +854,7 @@ function _renderizarHabilWiz() {
     ? _funcHabilWiz.map((h, i) =>
         `<span class="chip">${h}<span class="chip-x" onclick="_removerHabilWiz(${i})"> ×</span></span>`
       ).join('')
-    : `<span style="font-size:11px;color:#aaa">Sem habilidades</span>`;
+    : `<span style="font-size:11px;color:var(--text-muted)">Sem habilidades</span>`;
 }
 
 function _adicionarHabilWiz() {
@@ -876,7 +876,7 @@ function _renderizarHorWiz() {
   const wrap = document.getElementById('wf2-hor-wrap');
   if (!wrap) return;
   if (!_funcHorWiz.length) {
-    wrap.innerHTML = `<div style="font-size:12px;color:#aaa">Clique em "+ Dia" para definir horário.</div>`;
+    wrap.innerHTML = `<div style="font-size:12px;color:var(--text-muted)">Clique em "+ Dia" para definir horário.</div>`;
     return;
   }
   wrap.innerHTML = _funcHorWiz.map((h, i) => `
@@ -891,7 +891,7 @@ function _renderizarHorWiz() {
       <input type="time" class="input-field" style="font-size:12px"
              value="${h.hora_saida || ''}"
              oninput="_funcHorWiz[${i}].hora_saida=this.value"/>
-      <button style="background:none;border:none;color:#a32d2d;cursor:pointer;font-size:14px;padding:0 4px"
+      <button style="background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;padding:0 4px"
               onclick="_removerHorWiz(${i})">×</button>
     </div>`).join('');
 }

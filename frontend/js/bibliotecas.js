@@ -27,13 +27,13 @@ function _badgeRegiao(provincia) {
 }
 
 function _bsecao(titulo) {
-  return `<div style="font-size:10px;font-weight:600;color:#aaa;text-transform:uppercase;
-    letter-spacing:.06em;padding:10px 0 4px;border-top:1px solid #f0f0f0;margin-top:8px">${titulo}</div>`;
+  return `<div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;
+    letter-spacing:.06em;padding:10px 0 4px;border-top:1px solid var(--border-soft);margin-top:8px">${titulo}</div>`;
 }
 
 function _bcampo(label, valor) {
   return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f8f8f8">
-    <span style="color:#888;font-size:12px">${label}</span>
+    <span style="color:var(--text-muted);font-size:12px">${label}</span>
     <span style="font-size:12px;text-align:right;max-width:55%">${valor ?? '—'}</span>
   </div>`;
 }
@@ -118,7 +118,7 @@ function _linhaBib(r) {
     <td>${resp}</td>
     <td><span class="bdg bdg-activo" style="font-size:10px">● Online</span></td>
     <td style="text-align:right">
-      <button class="btn-secondary btn-sm"
+      <button class="btn-ghost btn-sm"
               onclick="abrirCtxMenuBib(event,'${cod}')">···</button>
     </td>
   </tr>`;
@@ -141,13 +141,13 @@ function _renderizarCardBiblioteca(d) {
   ).join('');
 
   const responsaveis = (d.RESPONSAVEIS || []).map(r =>
-    `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0">
+    `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-soft)">
       <div style="width:34px;height:34px;border-radius:50%;background:var(--theme-accent);
         color:#fff;display:flex;align-items:center;justify-content:center;
         font-size:12px;font-weight:700;flex-shrink:0">${iniciais(r.NOME_FUNCIONARIO)}</div>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${r.NOME_FUNCIONARIO || '—'}</div>
-        <div style="font-size:11px;color:#888">${r.PAPEL || '—'} · ${r.DATA_FIM ? 'até ' + fmtData(r.DATA_FIM) : 'actual'}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${r.PAPEL || '—'} · ${r.DATA_FIM ? 'até ' + fmtData(r.DATA_FIM) : 'actual'}</div>
       </div>
     </div>`
   ).join('');
@@ -155,10 +155,10 @@ function _renderizarCardBiblioteca(d) {
   card.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div>
-        <div style="font-size:18px;font-weight:700;color:#111">${d.NOME_BIBLIOTECA || '—'}</div>
-        <div style="font-size:12px;font-family:monospace;color:#888;margin-top:2px">${d.COD_BIBLIOTECA || ''}</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-primary)">${d.NOME_BIBLIOTECA || '—'}</div>
+        <div style="font-size:12px;font-family:monospace;color:var(--text-muted);margin-top:2px">${d.COD_BIBLIOTECA || ''}</div>
       </div>
-      <button class="btn-secondary" onclick="abrirModalEditarBib('${d.COD_BIBLIOTECA}')">
+      <button class="btn-ghost" onclick="abrirModalEditarBib('${d.COD_BIBLIOTECA}')">
         <i class="fa-solid fa-pen" style="margin-right:5px"></i>Editar
       </button>
     </div>
@@ -167,7 +167,7 @@ function _renderizarCardBiblioteca(d) {
 
       <!-- Informação Geral -->
       <div class="panel">
-        <div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;
           letter-spacing:.06em;margin-bottom:10px">Informação Geral</div>
         ${_bcampo('Província', d.PROVINCIA)}
         ${_bcampo('Endereço', d.ENDERECO)}
@@ -178,7 +178,7 @@ function _renderizarCardBiblioteca(d) {
 
       <!-- Estatísticas -->
       <div class="panel">
-        <div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;
           letter-spacing:.06em;margin-bottom:10px">Estatísticas</div>
         ${_bcampo('Total de Materiais', d.STATS?.TOTAL_MATERIAIS ?? d.TOTAL_MATERIAIS ?? '—')}
         ${_bcampo('Total de Leitores', d.STATS?.TOTAL_LEITORES ?? d.TOTAL_LEITORES ?? '—')}
@@ -188,37 +188,37 @@ function _renderizarCardBiblioteca(d) {
 
       <!-- Infraestrutura & Serviços -->
       <div class="panel">
-        <div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;
           letter-spacing:.06em;margin-bottom:10px">Infraestrutura & Serviços</div>
-        <div style="font-size:12px;color:#555;margin-bottom:8px">
-          <span style="font-weight:600;color:#888;display:block;margin-bottom:3px">Infraestrutura</span>
-          ${d.INFRAESTRUTURA || '<em style="color:#bbb">Não especificada</em>'}
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">
+          <span style="font-weight:600;color:var(--text-muted);display:block;margin-bottom:3px">Infraestrutura</span>
+          ${d.INFRAESTRUTURA || '<em style="color:var(--text-muted)">Não especificada</em>'}
         </div>
-        <div style="font-size:12px;color:#555">
-          <span style="font-weight:600;color:#888;display:block;margin-bottom:3px">Serviços</span>
-          ${d.SERVICOS || '<em style="color:#bbb">Não especificados</em>'}
+        <div style="font-size:12px;color:var(--text-secondary)">
+          <span style="font-weight:600;color:var(--text-muted);display:block;margin-bottom:3px">Serviços</span>
+          ${d.SERVICOS || '<em style="color:var(--text-muted)">Não especificados</em>'}
         </div>
       </div>
 
       <!-- Responsáveis -->
       <div class="panel">
-        <div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;
           letter-spacing:.06em;margin-bottom:10px">Responsáveis</div>
-        ${responsaveis || `<div style="font-size:12px;color:#aaa">Sem responsáveis registados.</div>`}
+        ${responsaveis || `<div style="font-size:12px;color:var(--text-muted)">Sem responsáveis registados.</div>`}
       </div>
 
     </div>
 
     ${horarios ? `
     <div class="panel" style="margin-top:16px">
-      <div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;
+      <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;
         letter-spacing:.06em;margin-bottom:10px">Horários de Funcionamento</div>
       <table style="width:100%;border-collapse:collapse">
         <thead>
-          <tr style="border-bottom:1px solid #e5e7eb">
-            <th style="text-align:left;padding:4px 8px;font-size:11px;color:#888">Dia</th>
-            <th style="text-align:left;padding:4px 8px;font-size:11px;color:#888">Abertura</th>
-            <th style="text-align:left;padding:4px 8px;font-size:11px;color:#888">Fecho</th>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:4px 8px;font-size:11px;color:var(--text-muted)">Dia</th>
+            <th style="text-align:left;padding:4px 8px;font-size:11px;color:var(--text-muted)">Abertura</th>
+            <th style="text-align:left;padding:4px 8px;font-size:11px;color:var(--text-muted)">Fecho</th>
           </tr>
         </thead>
         <tbody>${horarios}</tbody>
@@ -288,7 +288,7 @@ async function abrirDrawerBiblioteca(cod) {
   const drawer   = document.getElementById('drawer-bib');
   const conteudo = document.getElementById('drawer-bib-conteudo');
 
-  conteudo.innerHTML = `<div style="text-align:center;padding:30px;color:#aaa">
+  conteudo.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted)">
     <i class="fa-solid fa-spinner fa-spin"></i> A carregar…
   </div>`;
   overlay.style.display = 'block';
@@ -302,7 +302,7 @@ async function abrirDrawerBiblioteca(cod) {
     _bibDetalhe = await get(`/api/bibliotecas/${cod}`);
     _renderizarDrawerBib();
   } catch (err) {
-    conteudo.innerHTML = `<div style="color:#a32d2d;padding:20px">${err.message}</div>`;
+    conteudo.innerHTML = `<div style="color:#f85149;padding:20px">${err.message}</div>`;
   }
 }
 
@@ -331,14 +331,14 @@ function _renderizarDrawerBib() {
 function _renderizarDrawerInfoBib(d) {
   const conteudo = document.getElementById('drawer-bib-conteudo');
   conteudo.innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f8f9fa;border-radius:10px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface-raised);border-radius:10px;margin-bottom:14px">
       <div style="width:44px;height:44px;border-radius:10px;background:var(--theme-accent);
         color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">
         <i class="fa-solid fa-building-columns"></i>
       </div>
       <div>
         <div style="font-size:15px;font-weight:700">${d.NOME_BIBLIOTECA || '—'}</div>
-        <div style="font-size:10px;font-family:monospace;color:#888">${d.COD_BIBLIOTECA || ''}</div>
+        <div style="font-size:10px;font-family:monospace;color:var(--text-muted)">${d.COD_BIBLIOTECA || ''}</div>
       </div>
     </div>
 
@@ -359,13 +359,13 @@ function _renderizarDrawerInfoBib(d) {
     ${_bcampo('Empréstimos Activos', d.STATS?.EMPRESTIMOS_ACTIVOS ?? '—')}
 
     ${_bsecao('Infraestrutura & Serviços')}
-    <div style="font-size:12px;color:#555;margin:6px 0 10px">
-      <div style="font-weight:600;color:#888;margin-bottom:3px">Infraestrutura</div>
-      <div>${d.INFRAESTRUTURA || '<em style="color:#bbb">Não especificada</em>'}</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin:6px 0 10px">
+      <div style="font-weight:600;color:var(--text-muted);margin-bottom:3px">Infraestrutura</div>
+      <div>${d.INFRAESTRUTURA || '<em style="color:var(--text-muted)">Não especificada</em>'}</div>
     </div>
-    <div style="font-size:12px;color:#555">
-      <div style="font-weight:600;color:#888;margin-bottom:3px">Serviços</div>
-      <div>${d.SERVICOS || '<em style="color:#bbb">Não especificados</em>'}</div>
+    <div style="font-size:12px;color:var(--text-secondary)">
+      <div style="font-weight:600;color:var(--text-muted);margin-bottom:3px">Serviços</div>
+      <div>${d.SERVICOS || '<em style="color:var(--text-muted)">Não especificados</em>'}</div>
     </div>
   `;
 }
@@ -378,7 +378,7 @@ function _renderizarDrawerHorariosBib(d) {
     return;
   }
   const linhas = horarios.map(h => `
-    <tr style="border-bottom:1px solid #f0f0f0">
+    <tr style="border-bottom:1px solid var(--border-soft)">
       <td style="padding:8px;font-size:13px;font-weight:500">${h.DIA_SEMANA}</td>
       <td style="padding:8px;font-size:13px">${h.HORA_ABERTURA || '—'}</td>
       <td style="padding:8px;font-size:13px">${h.HORA_FECHO || '—'}</td>
@@ -386,10 +386,10 @@ function _renderizarDrawerHorariosBib(d) {
   conteudo.innerHTML = `
     <table style="width:100%;border-collapse:collapse">
       <thead>
-        <tr style="border-bottom:2px solid #e5e7eb">
-          <th style="text-align:left;padding:8px;font-size:11px;color:#888">Dia</th>
-          <th style="text-align:left;padding:8px;font-size:11px;color:#888">Abertura</th>
-          <th style="text-align:left;padding:8px;font-size:11px;color:#888">Fecho</th>
+        <tr style="border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:8px;font-size:11px;color:var(--text-muted)">Dia</th>
+          <th style="text-align:left;padding:8px;font-size:11px;color:var(--text-muted)">Abertura</th>
+          <th style="text-align:left;padding:8px;font-size:11px;color:var(--text-muted)">Fecho</th>
         </tr>
       </thead>
       <tbody>${linhas}</tbody>
@@ -404,16 +404,16 @@ function _renderizarDrawerResponsaveisBib(d) {
     return;
   }
   conteudo.innerHTML = resps.map(r => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0f0">
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-soft)">
       <div style="width:38px;height:38px;border-radius:50%;background:var(--theme-accent);
         color:#fff;display:flex;align-items:center;justify-content:center;
         font-size:13px;font-weight:700;flex-shrink:0">${iniciais(r.NOME_FUNCIONARIO)}</div>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${r.NOME_FUNCIONARIO || '—'}</div>
-        <div style="font-size:11px;color:#888">
+        <div style="font-size:11px;color:var(--text-muted)">
           ${r.PAPEL || '—'} ·
           desde ${fmtData(r.DATA_INICIO)}
-          ${r.DATA_FIM ? ' até ' + fmtData(r.DATA_FIM) : ' <span style="color:#0f6e56;font-weight:500">(actual)</span>'}
+          ${r.DATA_FIM ? ' até ' + fmtData(r.DATA_FIM) : ' <span style="color:var(--theme-accent-text);font-weight:500">(actual)</span>'}
         </div>
       </div>
     </div>`).join('');
@@ -432,13 +432,13 @@ async function abrirModalEditarBib(cod) {
   const conteudo = document.getElementById('modal-bib-conteudo');
   const titulo   = document.getElementById('modal-bib-titulo');
 
-  conteudo.innerHTML = `<div style="text-align:center;padding:20px;color:#aaa">
+  conteudo.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">
     <i class="fa-solid fa-spinner fa-spin"></i>
   </div>`;
 
   let d = null;
   try { d = await get(`/api/bibliotecas/${cod}`); } catch (err) {
-    conteudo.innerHTML = `<div style="color:#a32d2d;padding:10px">${err.message}</div>`;
+    conteudo.innerHTML = `<div style="color:#f85149;padding:10px">${err.message}</div>`;
     return;
   }
 
@@ -489,7 +489,7 @@ async function abrirModalEditarBib(cod) {
       </div>`;
   } else {
     conteudo.innerHTML = `
-      <div style="margin-bottom:12px;padding:8px 12px;background:#eef6ff;border-radius:6px;font-size:11px;color:#2563eb">
+      <div style="margin-bottom:12px;padding:8px 12px;background:var(--theme-accent-light);border-radius:6px;font-size:11px;color:#58a6ff">
         <i class="fa-solid fa-circle-info" style="margin-right:5px"></i>
         Pode editar infraestrutura e serviços. Nome, província, contacto e código só o Administrador pode alterar.
       </div>
@@ -574,7 +574,7 @@ function _renderizarWizBib() {
   document.getElementById('wiz-bib-indicador').innerHTML =
     `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:100%">
       <div class="wizard-steps">${dots}</div>
-      <div style="font-size:11px;color:#888">Passo ${_wizBibStep} de ${total} — ${titulos[_wizBibStep - 1]}</div>
+      <div style="font-size:11px;color:var(--text-muted)">Passo ${_wizBibStep} de ${total} — ${titulos[_wizBibStep - 1]}</div>
     </div>`;
 
   const btnRecuar  = document.getElementById('wiz-bib-btn-recuar');
@@ -652,8 +652,8 @@ function _wizBibStep1Html() {
 function _wizBibStep2Html() {
   const d = _wizBibDados;
   return `
-    <div style="background:#f8f9fa;border-radius:10px;padding:16px;margin-bottom:4px">
-      <div style="font-size:12px;font-weight:600;color:#333;margin-bottom:12px">Confirme os dados antes de adicionar:</div>
+    <div style="background:var(--surface-raised);border:0.5px solid var(--border);border-radius:10px;padding:16px;margin-bottom:4px">
+      <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:12px">Confirme os dados antes de adicionar:</div>
       ${_bcampo('Nome', d.nome_biblioteca)}
       ${_bcampo('Província', d.provincia)}
       ${_bcampo('Região', _badgeRegiao(d.provincia))}
@@ -664,8 +664,8 @@ function _wizBibStep2Html() {
       ${d.infraestrutura ? _bcampo('Infraestrutura', d.infraestrutura) : ''}
       ${d.servicos       ? _bcampo('Serviços', d.servicos) : ''}
     </div>
-    <div style="font-size:11px;color:#888;margin-top:10px;padding:8px;background:#fffbf0;border-radius:6px">
-      <i class="fa-solid fa-circle-info" style="margin-right:5px;color:#d97706"></i>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:10px;padding:8px;background:var(--surface-raised);border-radius:6px">
+      <i class="fa-solid fa-circle-info" style="margin-right:5px;color:#d29922"></i>
       O código da biblioteca será gerado automaticamente pelo sistema.
     </div>`;
 }

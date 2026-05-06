@@ -36,13 +36,13 @@ function _linhaPermissao(r) {
 
   return `<tr>
     <td style="padding:6px 10px">${av}</td>
-    <td style="font-family:monospace;font-size:11px;color:#666">${r.COD_FUNCIONARIO || '—'}</td>
+    <td style="font-family:monospace;font-size:11px;color:var(--text-secondary)">${r.COD_FUNCIONARIO || '—'}</td>
     <td style="font-weight:500">${r.NOME || '—'}</td>
-    <td style="color:#555">${r.FUNCAO || '—'}</td>
+    <td style="color:var(--text-secondary)">${r.FUNCAO || '—'}</td>
     <td>${_badgeNivel(r.NIVEL_ACESSO)}</td>
-    <td style="color:#777">${r.NOME_BIBLIOTECA || '—'}</td>
+    <td style="color:var(--text-muted)">${r.NOME_BIBLIOTECA || '—'}</td>
     <td style="text-align:right;padding-right:10px">
-      <button class="btn-secondary btn-sm"
+      <button class="btn-ghost btn-sm"
               onclick="abrirModalPermissoes('${r.COD_FUNCIONARIO}');_permRefreshOnClose()">
         <i class="fa-solid fa-shield-halved" style="margin-right:4px"></i>Gerir
       </button>
@@ -71,8 +71,8 @@ function _renderizarMatrizPerm() {
   if (!el) return;
 
   const tick = v => v
-    ? `<span style="color:#16a34a;font-size:14px;font-weight:700">✓</span>`
-    : `<span style="color:#ccc;font-size:12px">—</span>`;
+    ? `<span style="color:#3fb27a;font-size:14px;font-weight:700">✓</span>`
+    : `<span style="color:var(--text-muted);font-size:12px">—</span>`;
 
   el.innerHTML = `<table class="tbl">
     <thead>
@@ -86,7 +86,7 @@ function _renderizarMatrizPerm() {
     </thead>
     <tbody>
       ${_MATRIZ_PERM.map(m => `<tr>
-        <td style="font-size:12px;color:#444">${m.modulo}</td>
+        <td style="font-size:12px;color:var(--text-secondary)">${m.modulo}</td>
         <td style="text-align:center">${tick(m.admin)}</td>
         <td style="text-align:center">${tick(m.coord)}</td>
         <td style="text-align:center">${tick(m.biblio)}</td>

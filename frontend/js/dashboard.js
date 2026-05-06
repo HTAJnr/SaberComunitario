@@ -104,8 +104,8 @@ function renderDevolucoes(lista) {
       <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid #f0f0f0">
         <div class="avatar-initials" style="width:26px;height:26px;font-size:9px;flex-shrink:0">${ini}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.NOME_LEITOR || '—'}</div>
-          <div style="font-size:10px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${titulo}</div>
+          <div style="font-size:12px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.NOME_LEITOR || '—'}</div>
+          <div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${titulo}</div>
         </div>
         <span class="bdg ${badgeCls}" style="flex-shrink:0">${badgeTxt}</span>
       </div>`;
@@ -161,8 +161,8 @@ function renderTransferenciasRecentes(lista) {
       <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid #f0f0f0">
         <div style="font-size:16px;color:${cor};flex-shrink:0;width:16px;text-align:center">${seta}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${titulo}</div>
-          <div style="font-size:10px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${outra || '—'}</div>
+          <div style="font-size:12px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${titulo}</div>
+          <div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${outra || '—'}</div>
         </div>
         ${bdgEstado(t.ESTADO_TRANSFERENCIA)}
       </div>`;

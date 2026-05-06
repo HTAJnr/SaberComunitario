@@ -26,13 +26,13 @@ async function carregarLeitores() {
     tbody.innerHTML = rows && rows.length
       ? rows.map(r => `
         <tr>
-          <td style="font-family:monospace;font-size:11px;color:#888">${r.NUM_CARTAO || '—'}</td>
+          <td style="font-family:monospace;font-size:11px;color:var(--text-muted)">${r.NUM_CARTAO || '—'}</td>
           <td style="font-weight:500">${r.NOME_COMPLETO || '—'}</td>
           <td>${bdgTipo(r.TIPO_LEITOR)}</td>
           <td>${bdgPontualidade(r.HISTORICO_PONTUALIDADE)}</td>
           <td>${bdgEstado(r.STATUS_LEITOR)}</td>
           <td style="text-align:right">
-            <button class="btn-secondary btn-sm" onclick="abrirCtxMenuLeitor(event,'${r.NUM_CARTAO}','${(r.NOME_COMPLETO||'').replace(/'/g,"\\'")}','${r.STATUS_LEITOR||''}')">···</button>
+            <button class="btn-ghost btn-sm" onclick="abrirCtxMenuLeitor(event,'${r.NUM_CARTAO}','${(r.NOME_COMPLETO||'').replace(/'/g,"\\'")}','${r.STATUS_LEITOR||''}')">···</button>
           </td>
         </tr>`).join('')
       : linhaVazia(6);
@@ -116,7 +116,7 @@ function _wizardIndicador(step) {
     return `<div class="step-dot ${cls}"></div>${i < 3 ? '<div class="step-line"></div>' : ''}`;
   }).join('');
   return `<div class="wizard-steps">${dots}</div>
-    <div style="font-size:11px;color:#888;margin-bottom:16px">Passo ${step} de 3 — ${titulos[step-1]}</div>`;
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Passo ${step} de 3 — ${titulos[step-1]}</div>`;
 }
 
 function _renderizarWizardStep() {
@@ -163,7 +163,7 @@ function _renderizarWizardStep() {
         </div>
       </div>`;
     footer.innerHTML = `
-      <button class="btn-secondary" onclick="fecharModalLeitor()">Cancelar</button>
+      <button class="btn-ghost" onclick="fecharModalLeitor()">Cancelar</button>
       <button class="btn-primary" onclick="_wizardAvancar()">Próximo <i class="fa-solid fa-arrow-right" style="margin-left:4px"></i></button>`;
 
   } else if (_wizardStep === 2) {
@@ -182,13 +182,13 @@ function _renderizarWizardStep() {
       <div id="wz-campos-tipo"></div>`;
     _renderizarCamposTipo();
     footer.innerHTML = `
-      <button class="btn-secondary" onclick="_wizardRecuar()"><i class="fa-solid fa-arrow-left" style="margin-right:4px"></i> Anterior</button>
+      <button class="btn-ghost" onclick="_wizardRecuar()"><i class="fa-solid fa-arrow-left" style="margin-right:4px"></i> Anterior</button>
       <button class="btn-primary" onclick="_wizardAvancar()">Próximo <i class="fa-solid fa-arrow-right" style="margin-left:4px"></i></button>`;
 
   } else {
     const tipo = _wizardDados.tipo || 'Adulto';
     conteudo.innerHTML = _wizardIndicador(3) + `
-      <div style="background:#f8f9fa;border-radius:8px;padding:16px;font-size:13px;line-height:2.2">
+      <div style="background:var(--surface-raised);border-radius:8px;padding:16px;font-size:13px;line-height:2.2">
         <div><b>Nome:</b> ${_wizardDados.nome_completo || '—'}</div>
         <div><b>Tipo:</b> ${tipo === 'Crianca' ? 'Criança' : tipo}</div>
         <div><b>Género:</b> ${_wizardDados.genero || '—'}</div>
@@ -196,11 +196,11 @@ function _renderizarWizardStep() {
         <div><b>Localização:</b> ${_wizardDados.localizacao_leitor || '—'}</div>
         ${_wizardDados.contacto ? `<div><b>Contacto:</b> ${_wizardDados.contacto}</div>` : ''}
       </div>
-      <div style="margin-top:12px;font-size:11px;color:#888;background:#fffbe6;border:1px solid #ffe08a;border-radius:6px;padding:8px 12px">
+      <div style="margin-top:12px;font-size:11px;color:var(--text-muted);background:var(--surface-raised);border:1px solid var(--border);border-radius:6px;padding:8px 12px">
         <i class="fa-solid fa-circle-info" style="margin-right:6px"></i>O número de cartão será gerado automaticamente pelo sistema.
       </div>`;
     footer.innerHTML = `
-      <button class="btn-secondary" onclick="_wizardRecuar()"><i class="fa-solid fa-arrow-left" style="margin-right:4px"></i> Anterior</button>
+      <button class="btn-ghost" onclick="_wizardRecuar()"><i class="fa-solid fa-arrow-left" style="margin-right:4px"></i> Anterior</button>
       <button class="btn-primary" onclick="_wizardConfirmar()"><i class="fa-solid fa-check" style="margin-right:4px"></i> Confirmar registo</button>`;
   }
 }
@@ -227,7 +227,7 @@ function _renderizarCamposTipo() {
         <label class="form-label">Interesses</label>
         <div style="display:flex;gap:6px;margin-bottom:6px">
           <input id="wz-interesse-input" class="input-field" style="flex:1" placeholder="Escrever e adicionar…"/>
-          <button type="button" class="btn-secondary btn-sm" onclick="_adicionarInteresse()">Adicionar</button>
+          <button type="button" class="btn-ghost btn-sm" onclick="_adicionarInteresse()">Adicionar</button>
         </div>
         <div id="wz-interesses-chips" class="chips-wrap">${_renderChips(_wizardInteresses,'_removerInteresse')}</div>
       </div>`;
@@ -265,7 +265,7 @@ function _renderizarCamposTipo() {
         <label class="form-label">Interesses</label>
         <div style="display:flex;gap:6px;margin-bottom:6px">
           <input id="wz-interesse-input" class="input-field" style="flex:1" placeholder="Escrever e adicionar…"/>
-          <button type="button" class="btn-secondary btn-sm" onclick="_adicionarInteresse()">Adicionar</button>
+          <button type="button" class="btn-ghost btn-sm" onclick="_adicionarInteresse()">Adicionar</button>
         </div>
         <div id="wz-interesses-chips" class="chips-wrap">${_renderChips(_wizardInteresses,'_removerInteresse')}</div>
       </div>
@@ -273,7 +273,7 @@ function _renderizarCamposTipo() {
         <label class="form-label">Disciplinas</label>
         <div style="display:flex;gap:6px;margin-bottom:6px">
           <input id="wz-disciplina-input" class="input-field" style="flex:1" placeholder="Escrever e adicionar…"/>
-          <button type="button" class="btn-secondary btn-sm" onclick="_adicionarDisciplina()">Adicionar</button>
+          <button type="button" class="btn-ghost btn-sm" onclick="_adicionarDisciplina()">Adicionar</button>
         </div>
         <div id="wz-disciplinas-chips" class="chips-wrap">${_renderChips(_wizardDisciplinas,'_removerDisciplina')}</div>
       </div>`;
@@ -396,7 +396,7 @@ async function _wizardConfirmar() {
 // ── Modal 02-D — Editar leitor ─────────────────
 async function abrirModalEditarLeitor(numCartao) {
   abrirModalLeitorBase('Editar Leitor');
-  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:#888;font-size:13px">A carregar…</p>';
+  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">A carregar…</p>';
 
   let leitor;
   try { leitor = await get(`/api/leitores/${numCartao}`); }
@@ -452,7 +452,7 @@ async function abrirModalEditarLeitor(numCartao) {
       <label class="form-label">Interesses</label>
       <div style="display:flex;gap:6px;margin-bottom:6px">
         <input id="ef-interesse-input" class="input-field" style="flex:1" placeholder="Escrever e adicionar…"/>
-        <button type="button" class="btn-secondary btn-sm" onclick="_efAdicionarInteresse()">Adicionar</button>
+        <button type="button" class="btn-ghost btn-sm" onclick="_efAdicionarInteresse()">Adicionar</button>
       </div>
       <div id="ef-interesses-chips" class="chips-wrap"></div>
     </div>` : ''}
@@ -478,7 +478,7 @@ async function abrirModalEditarLeitor(numCartao) {
       <label class="form-label">Disciplinas</label>
       <div style="display:flex;gap:6px;margin-bottom:6px">
         <input id="ef-disciplina-input" class="input-field" style="flex:1" placeholder="Escrever e adicionar…"/>
-        <button type="button" class="btn-secondary btn-sm" onclick="_efAdicionarDisciplina()">Adicionar</button>
+        <button type="button" class="btn-ghost btn-sm" onclick="_efAdicionarDisciplina()">Adicionar</button>
       </div>
       <div id="ef-disciplinas-chips" class="chips-wrap"></div>
     </div>` : ''}
@@ -513,7 +513,7 @@ async function abrirModalEditarLeitor(numCartao) {
   window._efRemoverDisciplina   = (i) => { _editDisciplinas.splice(i,1); efRenderDisciplinas(); };
 
   document.getElementById('modal-leitor-footer').innerHTML = `
-    <button class="btn-secondary" onclick="fecharModalLeitor()">Cancelar</button>
+    <button class="btn-ghost" onclick="fecharModalLeitor()">Cancelar</button>
     <button class="btn-primary"   onclick="_guardarEdicaoLeitor('${numCartao}')">Guardar</button>`;
 
   window._guardarEdicaoLeitor = async (nc) => {
@@ -556,7 +556,7 @@ async function abrirModalEditarLeitor(numCartao) {
 // ── Modal 02-E — Alterar estado ────────────────
 async function abrirModalAlterarStatus(numCartao, statusActual) {
   abrirModalLeitorBase('Alterar Estado');
-  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:#888;font-size:13px">A carregar…</p>';
+  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">A carregar…</p>';
 
   let leitor;
   try { leitor = await get(`/api/leitores/${numCartao}`); }
@@ -566,9 +566,9 @@ async function abrirModalAlterarStatus(numCartao, statusActual) {
 
   document.getElementById('modal-leitor-conteudo').innerHTML = `
     <div style="margin-bottom:14px">
-      <span style="font-size:12px;color:#888">Estado actual: </span>${bdgEstado(statusActual)}
+      <span style="font-size:12px;color:var(--text-muted)">Estado actual: </span>${bdgEstado(statusActual)}
     </div>
-    ${temSuspActive ? `<div style="background:#fff0f0;border:1px solid #ffc0c0;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#c0392b">
+    ${temSuspActive ? `<div style="background:#fff0f0;border:1px solid #ffc0c0;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#f85149">
       <i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>
       Este leitor tem <b>${leitor.SUSPENSOES_ATIVAS.length}</b> suspensão(ões) activa(s). Não é possível activar até estas terminarem.
     </div>` : ''}
@@ -586,7 +586,7 @@ async function abrirModalAlterarStatus(numCartao, statusActual) {
     </div>`;
 
   document.getElementById('modal-leitor-footer').innerHTML = `
-    <button class="btn-secondary" onclick="fecharModalLeitor()">Cancelar</button>
+    <button class="btn-ghost" onclick="fecharModalLeitor()">Cancelar</button>
     <button class="btn-primary"   onclick="_confirmarAlterarStatus('${numCartao}',${temSuspActive})">Alterar</button>`;
 }
 
@@ -607,15 +607,15 @@ window._confirmarAlterarStatus = async (numCartao, temSuspActive) => {
 // ── Modal 02-F — Suspensões ────────────────────
 async function abrirModalSuspensoes(numCartao) {
   abrirModalLeitorBase('Suspensões do Leitor');
-  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:#888;font-size:13px">A carregar…</p>';
-  document.getElementById('modal-leitor-footer').innerHTML = `<button class="btn-secondary" onclick="fecharModalLeitor()">Fechar</button>`;
+  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">A carregar…</p>';
+  document.getElementById('modal-leitor-footer').innerHTML = `<button class="btn-ghost" onclick="fecharModalLeitor()">Fechar</button>`;
 
   let suspensoes;
   try { suspensoes = await get(`/api/leitores/${numCartao}/suspensoes?todas=true`); }
   catch (err) { mostrarErroLeitor(err.message); return; }
 
   if (!suspensoes || !suspensoes.length) {
-    document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:#888;font-size:13px">Sem suspensões registadas.</p>';
+    document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Sem suspensões registadas.</p>';
     return;
   }
 
@@ -626,7 +626,7 @@ async function abrirModalSuspensoes(numCartao) {
         <span style="font-size:12px;font-weight:600">${fmtData(s.DATA_INICIO)} → ${fmtData(s.DATA_FIM)}</span>
         ${bdgEstado(s.ESTADO_SUSPENSAO)}
       </div>
-      <div style="font-size:11px;color:#888">${s.DIAS_SUSPENSAO} dias${s.MOTIVO ? ' · ' + s.MOTIVO : ''}</div>
+      <div style="font-size:11px;color:var(--text-muted)">${s.DIAS_SUSPENSAO} dias${s.MOTIVO ? ' · ' + s.MOTIVO : ''}</div>
       ${isActiva ? `
         <div id="reduzir-form-${s.ID_SUSPENSAO}" style="margin-top:10px;display:none">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -641,10 +641,10 @@ async function abrirModalSuspensoes(numCartao) {
           </div>
           <div style="display:flex;gap:6px">
             <button class="btn-primary btn-sm" onclick="_confirmarReduzirSuspensao(${s.ID_SUSPENSAO},'${numCartao}')">Confirmar</button>
-            <button class="btn-secondary btn-sm" onclick="document.getElementById('reduzir-form-${s.ID_SUSPENSAO}').style.display='none'">Cancelar</button>
+            <button class="btn-ghost btn-sm" onclick="document.getElementById('reduzir-form-${s.ID_SUSPENSAO}').style.display='none'">Cancelar</button>
           </div>
         </div>
-        <button id="btn-reduzir-${s.ID_SUSPENSAO}" class="btn-secondary btn-sm" style="margin-top:8px;font-size:11px"
+        <button id="btn-reduzir-${s.ID_SUSPENSAO}" class="btn-ghost btn-sm" style="margin-top:8px;font-size:11px"
           onclick="document.getElementById('reduzir-form-${s.ID_SUSPENSAO}').style.display='block';this.style.display='none'">
           <i class="fa-solid fa-scissors" style="margin-right:4px"></i>Reduzir suspensão
         </button>` : ''}
@@ -670,7 +670,7 @@ async function abrirDrawerLeitor(numCartao) {
   _drawerTabActual = 'perfil';
   document.getElementById('drawer-leitor').classList.add('open');
   document.getElementById('drawer-leitor-overlay').style.display = 'block';
-  document.getElementById('drawer-leitor-header').innerHTML = '<p style="padding:16px;text-align:center;color:#888;font-size:13px">A carregar…</p>';
+  document.getElementById('drawer-leitor-header').innerHTML = '<p style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">A carregar…</p>';
   document.getElementById('drawer-leitor-tabs').innerHTML = '';
   document.getElementById('drawer-leitor-conteudo').innerHTML = '';
   try {
@@ -679,7 +679,7 @@ async function abrirDrawerLeitor(numCartao) {
     _renderizarDrawerTabs();
     _renderizarDrawerConteudo();
   } catch (err) {
-    document.getElementById('drawer-leitor-header').innerHTML = `<p style="color:#c0392b;font-size:12px;padding:10px">${err.message}</p>`;
+    document.getElementById('drawer-leitor-header').innerHTML = `<p style="color:#f85149;font-size:12px;padding:10px">${err.message}</p>`;
   }
 }
 
@@ -701,8 +701,8 @@ function _renderizarDrawerHeader() {
     <div style="display:flex;align-items:center;gap:12px">
       <div style="width:48px;height:48px;border-radius:50%;background:var(--cor-primaria,#1a73e8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0">${iniciais(l.NOME_COMPLETO)}</div>
       <div>
-        <div style="font-size:10px;font-family:monospace;color:#888">${l.NUM_CARTAO || '—'}</div>
-        <div style="font-size:15px;font-weight:600;color:#111">${l.NOME_COMPLETO || '—'}</div>
+        <div style="font-size:10px;font-family:monospace;color:var(--text-muted)">${l.NUM_CARTAO || '—'}</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text-primary)">${l.NOME_COMPLETO || '—'}</div>
         <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">${bdgTipo(l.TIPO_LEITOR)}${bdgEstado(l.STATUS_LEITOR)}</div>
       </div>
     </div>`;
@@ -750,8 +750,8 @@ function _renderizarDrawerConteudo() {
         l.CLASSE                && `<div><b>Classe:</b> ${l.CLASSE}</div>`,
       ].filter(Boolean).join('');
     }
-    el.innerHTML = `<div style="font-size:13px;line-height:2;color:#333">
-      <div style="margin-bottom:6px">${bdgPontualidade(l.HISTORICO_PONTUALIDADE)} <span style="font-size:11px;color:#888">pontualidade</span></div>
+    el.innerHTML = `<div style="font-size:13px;line-height:2;color:var(--text-primary)">
+      <div style="margin-bottom:6px">${bdgPontualidade(l.HISTORICO_PONTUALIDADE)} <span style="font-size:11px;color:var(--text-muted)">pontualidade</span></div>
       ${l.DATA_NASC           ? `<div><b>Nascimento:</b> ${fmtData(l.DATA_NASC)}</div>` : ''}
       ${l.GENERO              ? `<div><b>Género:</b> ${l.GENERO}</div>` : ''}
       ${l.NIVEL_ESCOLAR       ? `<div><b>Nível escolar:</b> ${l.NIVEL_ESCOLAR}</div>` : ''}
@@ -764,15 +764,15 @@ function _renderizarDrawerConteudo() {
   } else if (_drawerTabActual === 'emprestimo') {
     const emp = l.EMPRESTIMO_ATIVO;
     if (!emp) {
-      el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:13px"><i class="fa-solid fa-book-open" style="font-size:28px;display:block;margin-bottom:8px"></i>Sem empréstimo activo</div>';
+      el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px"><i class="fa-solid fa-book-open" style="font-size:28px;display:block;margin-bottom:8px"></i>Sem empréstimo activo</div>';
     } else {
       const hoje  = new Date();
       const prazo = new Date(emp.PRAZO_DEVOLUCAO || emp.DATA_PRAZO);
       const dias  = Math.round((prazo - hoje) / 86400000);
       const diasStr = dias >= 0
-        ? `<span style="color:#2d9b4e;font-weight:600">${dias} dia(s) restante(s)</span>`
-        : `<span style="color:#e74c3c;font-weight:600">Atrasado ${Math.abs(dias)} dia(s)</span>`;
-      el.innerHTML = `<div style="background:#f8f9fa;border-radius:8px;padding:14px;font-size:13px;line-height:2">
+        ? `<span style="color:#3fb27a;font-weight:600">${dias} dia(s) restante(s)</span>`
+        : `<span style="color:#f85149;font-weight:600">Atrasado ${Math.abs(dias)} dia(s)</span>`;
+      el.innerHTML = `<div style="background:var(--surface-raised);border-radius:8px;padding:14px;font-size:13px;line-height:2">
         <div style="font-weight:600;font-size:14px;margin-bottom:6px">${emp.TITULO || emp.NOME_MATERIAL || '—'}</div>
         <div><b>Retirada:</b> ${fmtData(emp.DATA_RETIRADA)}</div>
         <div><b>Prazo:</b> ${fmtData(emp.PRAZO_DEVOLUCAO || emp.DATA_PRAZO)}</div>
@@ -783,7 +783,7 @@ function _renderizarDrawerConteudo() {
   } else if (_drawerTabActual === 'historico') {
     const hist = l.HISTORICO || [];
     if (!hist.length) {
-      el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:13px">Sem histórico.</div>';
+      el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">Sem histórico.</div>';
     } else {
       el.innerHTML = `<div style="overflow-x:auto"><table class="tbl" style="font-size:11px">
         <thead><tr><th>Material</th><th>Retirada</th><th>Devolução</th><th>Atraso</th><th>Multa</th><th>Paga</th></tr></thead>
@@ -801,14 +801,14 @@ function _renderizarDrawerConteudo() {
   } else if (_drawerTabActual === 'suspensoes') {
     const susps = l.SUSPENSOES_ATIVAS || [];
     if (!susps.length) {
-      el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:13px">Sem suspensões activas.</div>';
+      el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">Sem suspensões activas.</div>';
     } else {
       el.innerHTML = susps.map(s => `
         <div style="background:${s.ESTADO_SUSPENSAO==='Activa'?'#fff4e0':'#f8f9fa'};border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <span>${fmtData(s.DATA_INICIO)} → ${fmtData(s.DATA_FIM)}</span>${bdgEstado(s.ESTADO_SUSPENSAO)}
           </div>
-          <div style="color:#888;margin-top:3px">${s.DIAS_SUSPENSAO} dias</div>
+          <div style="color:var(--text-muted);margin-top:3px">${s.DIAS_SUSPENSAO} dias</div>
         </div>`).join('');
     }
 
@@ -817,21 +817,21 @@ function _renderizarDrawerConteudo() {
     const podePagar = ['Administrador','Coordenador','Bibliotecario'].includes(nivel);
     const multas   = (l.HISTORICO || []).filter(h => (h.MULTA_PAGA === 'N' || h.MULTA_PAGA === false) && h.VALOR_MULTA);
     if (!multas.length) {
-      el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:13px">Sem multas em aberto.</div>';
+      el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">Sem multas em aberto.</div>';
     } else {
       const total = multas.reduce((s, h) => s + parseFloat(h.VALOR_MULTA || 0), 0);
       el.innerHTML = multas.map(h => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-soft);font-size:12px">
           <div>
             <div style="font-weight:500">${h.TITULO||h.NOME_MATERIAL||'—'}</div>
-            <div style="color:#888">${fmtData(h.DATA_RETIRADA)}</div>
+            <div style="color:var(--text-muted)">${fmtData(h.DATA_RETIRADA)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-weight:600;color:#c0392b">${fmtMoeda(h.VALOR_MULTA)}</span>
-            ${podePagar ? `<button class="btn-secondary btn-sm" onclick="_marcarMultaPaga(${h.ID_EMPRESTIMO},'${_drawerNumCartao}')">Marcar paga</button>` : ''}
+            <span style="font-weight:600;color:#f85149">${fmtMoeda(h.VALOR_MULTA)}</span>
+            ${podePagar ? `<button class="btn-ghost btn-sm" onclick="_marcarMultaPaga(${h.ID_EMPRESTIMO},'${_drawerNumCartao}')">Marcar paga</button>` : ''}
           </div>
         </div>`).join('')
-        + `<div style="text-align:right;padding-top:10px;font-size:13px;font-weight:700;color:#c0392b">Total: ${fmtMoeda(total)}</div>`;
+        + `<div style="text-align:right;padding-top:10px;font-size:13px;font-weight:700;color:#f85149">Total: ${fmtMoeda(total)}</div>`;
     }
   }
 }

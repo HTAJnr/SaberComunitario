@@ -19,13 +19,13 @@ let _wizBibOpts     = '';
 function _dcampo(label, valor, estilo) {
   return `<div style="display:flex;justify-content:space-between;align-items:baseline;
                       padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
-    <span style="color:#888;flex-shrink:0;margin-right:8px">${label}</span>
+    <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
     <span style="text-align:right;${estilo || ''}">${valor ?? '—'}</span>
   </div>`;
 }
 
 function _dsecao(titulo) {
-  return `<div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;
+  return `<div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                       letter-spacing:.06em;margin:14px 0 6px">${titulo}</div>`;
 }
 
@@ -38,7 +38,7 @@ function _badgeTipoDoador(tipo) {
 
 function _badgeCertificado(numCert) {
   if (numCert) return `<span class="bdg bdg-devolvido" style="font-size:10px">Emitido</span>`;
-  return `<span class="bdg" style="font-size:10px;background:#e5e7eb;color:#555">Pendente</span>`;
+  return `<span class="bdg" style="font-size:10px;background:#e5e7eb;color:var(--text-secondary)">Pendente</span>`;
 }
 
 // ── Tab switching ──────────────────────────────
@@ -93,18 +93,18 @@ function _linhaDoacoes(r) {
   const nomeDoador = r.NOME_DOADOR || 'Anónimo';
   const tipoBadge  = r.TIPO_DOADOR
     ? _badgeTipoDoador(r.TIPO_DOADOR)
-    : '<span style="color:#aaa;font-size:11px;font-style:italic">Anónimo</span>';
+    : '<span style="color:var(--text-muted);font-size:11px;font-style:italic">Anónimo</span>';
 
   return `<tr>
-    <td style="font-size:11px;color:#aaa;font-family:monospace">${r.ID_DOACAO}</td>
+    <td style="font-size:11px;color:var(--text-muted);font-family:monospace">${r.ID_DOACAO}</td>
     <td style="font-weight:500">${nomeDoador}</td>
     <td>${tipoBadge}</td>
-    <td style="color:#888">${fmtData(r.DATA_DOACAO)}</td>
-    <td style="text-align:center;color:#888">${r.TOTAL_ITENS ?? '—'}</td>
-    <td style="color:#10b981;font-weight:500">${fmtMoeda(r.VALOR_TOTAL)}</td>
+    <td style="color:var(--text-muted)">${fmtData(r.DATA_DOACAO)}</td>
+    <td style="text-align:center;color:var(--text-muted)">${r.TOTAL_ITENS ?? '—'}</td>
+    <td style="color:#3fb27a;font-weight:500">${fmtMoeda(r.VALOR_TOTAL)}</td>
     <td>${_badgeCertificado(r.CERTIFICADO_NUMERO)}</td>
     <td style="text-align:right">
-      <button class="btn-secondary btn-sm" onclick="abrirCtxMenuDoacao(event,${r.ID_DOACAO})">···</button>
+      <button class="btn-ghost btn-sm" onclick="abrirCtxMenuDoacao(event,${r.ID_DOACAO})">···</button>
     </td>
   </tr>`;
 }
@@ -157,14 +157,14 @@ async function abrirDrawerDoacao(id) {
   );
 
   const conteudo = document.getElementById('drawer-doac-conteudo');
-  conteudo.innerHTML = '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+  conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
 
   try {
     _drawerDoacData = await get(`/api/doacoes/${id}`);
     document.getElementById('drawer-doac-titulo').textContent = `Doação #${_drawerDoacData.ID_DOACAO}`;
     _renderizarDrawerInfoDoacao(_drawerDoacData);
   } catch (err) {
-    conteudo.innerHTML = `<p style="text-align:center;color:#c62828;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
+    conteudo.innerHTML = `<p style="text-align:center;color:#f85149;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
   }
 }
 
@@ -193,7 +193,7 @@ function _renderizarDrawerInfoDoacao(d) {
     ${_dcampo('ID', `<span style="font-family:monospace">#${d.ID_DOACAO}</span>`)}
     ${_dcampo('Data', fmtData(d.DATA_DOACAO))}
     ${_dsecao('Doador')}
-    ${_dcampo('Nome', d.NOME_DOADOR || '<em style="color:#aaa">Anónimo</em>')}
+    ${_dcampo('Nome', d.NOME_DOADOR || '<em style="color:var(--text-muted)">Anónimo</em>')}
     ${d.TIPO_DOADOR ? _dcampo('Tipo', _badgeTipoDoador(d.TIPO_DOADOR)) : ''}
     ${d.CONTACTO   ? _dcampo('Contacto', d.CONTACTO) : ''}
     ${d.ENDERECO   ? _dcampo('Endereço', d.ENDERECO) : ''}
@@ -214,16 +214,16 @@ function _renderizarDrawerItensDoacao(d) {
         <div style="padding:8px 0;border-bottom:0.5px solid #f0f0f0">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
             <span style="font-weight:500">${i.NOME_BIBLIOTECA || i.COD_BIBLIOTECA || '—'}</span>
-            <span style="color:#10b981">${fmtMoeda((i.VALOR_ESTIMADO || 0) * (i.QUANTIDADE || 1))}</span>
+            <span style="color:#3fb27a">${fmtMoeda((i.VALOR_ESTIMADO || 0) * (i.QUANTIDADE || 1))}</span>
           </div>
-          <div style="color:#888;margin-top:2px">
+          <div style="color:var(--text-muted);margin-top:2px">
             Qtd: ${i.QUANTIDADE || 1} · ${fmtMoeda(i.VALOR_ESTIMADO)} / un.
           </div>
-          ${i.OBSERVACOES ? `<div style="color:#aaa;font-size:11px;margin-top:2px">${i.OBSERVACOES}</div>` : ''}
+          ${i.OBSERVACOES ? `<div style="color:var(--text-muted);font-size:11px;margin-top:2px">${i.OBSERVACOES}</div>` : ''}
         </div>`).join('')}
       <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:12px;font-weight:600">
         <span>Total estimado</span>
-        <span style="color:#10b981">${fmtMoeda(total)}</span>
+        <span style="color:#3fb27a">${fmtMoeda(total)}</span>
       </div>
     </div>`;
 }
@@ -240,11 +240,11 @@ function _renderizarDrawerCertsDoacao(d) {
       ${certs.map(c => `
         <div style="padding:8px 0;border-bottom:0.5px solid #f0f0f0">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
-            <span style="font-family:monospace;font-weight:500;color:#6366f1">${c.NUM_CERTIFICADO || '—'}</span>
+            <span style="font-family:monospace;font-weight:500;color:#a78bfa">${c.NUM_CERTIFICADO || '—'}</span>
             <span class="bdg bdg-devolvido" style="font-size:10px">${c.TIPO_CERTIFICADO || '—'}</span>
           </div>
-          <div style="color:#888;margin-top:2px">${fmtData(c.DATA_EMISSAO)}</div>
-          ${c.OBSERVACOES ? `<div style="color:#aaa;font-size:11px;margin-top:2px">${c.OBSERVACOES}</div>` : ''}
+          <div style="color:var(--text-muted);margin-top:2px">${fmtData(c.DATA_EMISSAO)}</div>
+          ${c.OBSERVACOES ? `<div style="color:var(--text-muted);font-size:11px;margin-top:2px">${c.OBSERVACOES}</div>` : ''}
         </div>`).join('')}
     </div>`;
 }
@@ -257,7 +257,7 @@ function abrirModalCertificado(idDoacao) {
   document.getElementById('modal-cert-conteudo').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:12px">
       <div>
-        <label class="form-label">Tipo de Certificado <span style="color:#c62828">*</span></label>
+        <label class="form-label">Tipo de Certificado <span style="color:#f85149">*</span></label>
         <select id="cert-tipo" class="input-field" onchange="_onChangeTipoCert()">
           <option value="Original">Original</option>
           <option value="Reemissao">Reemissão</option>
@@ -373,12 +373,12 @@ function _renderizarWizStep1() {
     <div style="display:flex;flex-direction:column;gap:14px;padding:4px 0">
 
       <div style="display:flex;gap:8px">
-        <button onclick="_wizToggleAnonimo(false)" class="btn-secondary"
-                style="flex:1;font-size:12px;${!anonimo ? 'border-color:#6366f1;color:#6366f1;font-weight:600' : ''}">
+        <button onclick="_wizToggleAnonimo(false)" class="btn-ghost"
+                style="flex:1;font-size:12px;${!anonimo ? 'border-color:#a78bfa;color:#a78bfa;font-weight:600' : ''}">
           <i class="fa-solid fa-user" style="margin-right:5px"></i>Doador Identificado
         </button>
-        <button onclick="_wizToggleAnonimo(true)" class="btn-secondary"
-                style="flex:1;font-size:12px;${anonimo ? 'border-color:#6366f1;color:#6366f1;font-weight:600' : ''}">
+        <button onclick="_wizToggleAnonimo(true)" class="btn-ghost"
+                style="flex:1;font-size:12px;${anonimo ? 'border-color:#a78bfa;color:#a78bfa;font-weight:600' : ''}">
           <i class="fa-solid fa-user-secret" style="margin-right:5px"></i>Anónimo
         </button>
       </div>
@@ -389,28 +389,28 @@ function _renderizarWizStep1() {
                  placeholder="Pesquisar doador pelo nome…"
                  style="flex:1;font-size:12px"
                  onkeydown="if(event.key==='Enter'){event.preventDefault();_wizPesquisarDoador();}"/>
-          <button onclick="_wizPesquisarDoador()" class="btn-secondary" style="font-size:12px;white-space:nowrap">
+          <button onclick="_wizPesquisarDoador()" class="btn-ghost" style="font-size:12px;white-space:nowrap">
             <i class="fa-solid fa-magnifying-glass"></i>
           </button>
         </div>
         <div id="wiz-doador-resultados" style="margin-bottom:10px"></div>
 
         ${_wizDoador && !_wizDoador.anonimo ? `
-          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
+          <div style="background:#0d2d1f;border:1px solid #1a5a3a;border-radius:6px;
                       padding:10px;font-size:12px;margin-bottom:10px">
-            <div style="font-weight:600;color:#166534">
-              <i class="fa-solid fa-circle-check" style="margin-right:5px;color:#22c55e"></i>${_wizDoador.nome}
+            <div style="font-weight:600;color:#3fb27a">
+              <i class="fa-solid fa-circle-check" style="margin-right:5px;color:#3fb27a"></i>${_wizDoador.nome}
             </div>
-            <div style="color:#4ade80;margin-top:2px">${_wizDoador.tipo === 'INDIVIDUAL' ? 'Individual' : 'Institucional'}</div>
+            <div style="color:#3fb27a;margin-top:2px">${_wizDoador.tipo === 'INDIVIDUAL' ? 'Individual' : 'Institucional'}</div>
           </div>` : ''}
 
         <details>
-          <summary style="font-size:11px;color:#6366f1;cursor:pointer;list-style:none;
+          <summary style="font-size:11px;color:#a78bfa;cursor:pointer;list-style:none;
                           display:flex;align-items:center;gap:4px;padding:4px 0">
             <i class="fa-solid fa-plus" style="font-size:10px"></i> Criar novo doador
           </summary>
           <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;
-                      padding:12px;background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb">
+                      padding:12px;background:var(--surface-raised);border-radius:6px;border:1px solid var(--border)">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
               <div>
                 <label class="form-label" style="font-size:11px">Nome *</label>
@@ -443,8 +443,8 @@ function _renderizarWizStep1() {
       </div>
 
       <div id="wiz-painel-anonimo" style="${anonimo ? '' : 'display:none'}">
-        <div style="background:#fef9c3;border:1px solid #fde047;border-radius:6px;
-                    padding:12px;font-size:12px;color:#854d0e">
+        <div style="background:var(--surface-raised);border:1px solid var(--border);border-radius:6px;
+                    padding:12px;font-size:12px;color:#d29922">
           <i class="fa-solid fa-circle-info" style="margin-right:6px"></i>
           A doação será registada sem identificação do doador (RN10). Não será gerado certificado automático.
         </div>
@@ -454,7 +454,7 @@ function _renderizarWizStep1() {
   `;
 
   document.getElementById('modal-wiz-footer').innerHTML = `
-    <button class="btn-secondary" onclick="fecharWizardDoacao()">Cancelar</button>
+    <button class="btn-ghost" onclick="fecharWizardDoacao()">Cancelar</button>
     <button class="btn-primary" onclick="_wizAvancar()">
       Seguinte <i class="fa-solid fa-chevron-right" style="margin-left:4px"></i>
     </button>`;
@@ -471,11 +471,11 @@ async function _wizPesquisarDoador() {
   if (!resultados) return;
   if (!q) { resultados.innerHTML = ''; return; }
 
-  resultados.innerHTML = '<p style="font-size:11px;color:#888">A pesquisar…</p>';
+  resultados.innerHTML = '<p style="font-size:11px;color:var(--text-muted)">A pesquisar…</p>';
   try {
     const rows = await get(`/api/doacoes/doadores?search=${encodeURIComponent(q)}`);
     if (!rows.length) {
-      resultados.innerHTML = '<p style="font-size:11px;color:#aaa;padding:4px 0">Nenhum doador encontrado.</p>';
+      resultados.innerHTML = '<p style="font-size:11px;color:var(--text-muted);padding:4px 0">Nenhum doador encontrado.</p>';
       return;
     }
     resultados.innerHTML = `
@@ -491,7 +491,7 @@ async function _wizPesquisarDoador() {
           </div>`).join('')}
       </div>`;
   } catch (err) {
-    resultados.innerHTML = `<p style="font-size:11px;color:#c62828;padding:4px 0">Erro: ${err.message}</p>`;
+    resultados.innerHTML = `<p style="font-size:11px;color:#f85149;padding:4px 0">Erro: ${err.message}</p>`;
   }
 }
 
@@ -521,13 +521,13 @@ function _renderizarWizStep2() {
   document.getElementById('modal-wiz-conteudo').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0">
       <div id="wiz-itens-lista" style="display:flex;flex-direction:column;gap:8px"></div>
-      <button onclick="_wizAdicionarItem()" class="btn-secondary"
+      <button onclick="_wizAdicionarItem()" class="btn-ghost"
               style="font-size:12px;align-self:flex-start">
         <i class="fa-solid fa-plus" style="margin-right:4px"></i>Adicionar item
       </button>
-      <div style="display:flex;justify-content:flex-end;padding-top:6px;border-top:1px solid #f0f0f0;gap:8px;align-items:center">
-        <span style="font-size:12px;color:#888">Total estimado:</span>
-        <span id="wiz-total-est" style="font-size:13px;font-weight:700;color:#10b981">MT 0,00</span>
+      <div style="display:flex;justify-content:flex-end;padding-top:6px;border-top:1px solid var(--border-soft);gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)">Total estimado:</span>
+        <span id="wiz-total-est" style="font-size:13px;font-weight:700;color:#3fb27a">MT 0,00</span>
       </div>
     </div>
   `;
@@ -536,7 +536,7 @@ function _renderizarWizStep2() {
   else _renderizarLinhasItens();
 
   document.getElementById('modal-wiz-footer').innerHTML = `
-    <button class="btn-secondary" onclick="_renderizarWizStep(1)">
+    <button class="btn-ghost" onclick="_renderizarWizStep(1)">
       <i class="fa-solid fa-chevron-left" style="margin-right:4px"></i>Anterior
     </button>
     <button class="btn-primary" onclick="_wizAvancar()">
@@ -549,7 +549,7 @@ function _renderizarLinhasItens() {
   if (!lista) return;
   lista.innerHTML = _wizItens.map((item, i) => `
     <div style="display:grid;grid-template-columns:60px 1fr 100px 80px auto;gap:6px;
-                align-items:end;padding:10px;background:#f9fafb;border-radius:6px;font-size:12px">
+                align-items:end;padding:10px;background:var(--surface-raised);border-radius:6px;font-size:12px">
       <div>
         <label class="form-label" style="font-size:10px">Qtd. *</label>
         <input type="number" min="1" class="input-field" style="font-size:11px"
@@ -581,7 +581,7 @@ function _renderizarLinhasItens() {
                onchange="_wizItens[${i}].observacoes=this.value"/>
       </div>
       <button onclick="_wizRemoverItem(${i})"
-              style="background:none;border:none;cursor:pointer;color:#c62828;
+              style="background:none;border:none;cursor:pointer;color:#f85149;
                      font-size:14px;padding:0 2px;margin-bottom:2px">
         <i class="fa-solid fa-xmark"></i>
       </button>
@@ -624,24 +624,24 @@ function _renderizarWizStep3() {
         const nomeBib = bib ? (bib.NOME || bib.NOME_BIBLIOTECA) : (item.cod_biblioteca || '—');
         return _dcampo(
           `Item ${i + 1}`,
-          `${item.quantidade}× <span style="color:#888">${nomeBib}</span> — ${fmtMoeda(item.valor_estimado)}/un.`
+          `${item.quantidade}× <span style="color:var(--text-muted)">${nomeBib}</span> — ${fmtMoeda(item.valor_estimado)}/un.`
         );
       }).join('')}
       ${_dcampo('Valor total estimado',
-        `<strong style="color:#10b981;font-size:13px">${fmtMoeda(totalVal)}</strong>`
+        `<strong style="color:#3fb27a;font-size:13px">${fmtMoeda(totalVal)}</strong>`
       )}
 
       ${autoCert ? `
-      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
-                  padding:10px;color:#166534;margin-top:10px">
-        <i class="fa-solid fa-certificate" style="margin-right:6px;color:#22c55e"></i>
+      <div style="background:#0d2d1f;border:1px solid #1a5a3a;border-radius:6px;
+                  padding:10px;color:#3fb27a;margin-top:10px">
+        <i class="fa-solid fa-certificate" style="margin-right:6px;color:#3fb27a"></i>
         Certificado será emitido automaticamente pelo sistema (doador individual, total ≥ 1.000 MT).
       </div>` : ''}
     </div>
   `;
 
   document.getElementById('modal-wiz-footer').innerHTML = `
-    <button class="btn-secondary" onclick="_renderizarWizStep(2)">
+    <button class="btn-ghost" onclick="_renderizarWizStep(2)">
       <i class="fa-solid fa-chevron-left" style="margin-right:4px"></i>Anterior
     </button>
     <button class="btn-primary" onclick="_wizConfirmar()">
@@ -709,10 +709,10 @@ async function carregarDoadores() {
     tbody.innerHTML = rows.length
       ? rows.map(r => `
           <tr>
-            <td style="font-size:11px;color:#aaa;font-family:monospace">${r.ID_DOADOR}</td>
+            <td style="font-size:11px;color:var(--text-muted);font-family:monospace">${r.ID_DOADOR}</td>
             <td style="font-weight:500">${r.NOME || '—'}</td>
             <td>${_badgeTipoDoador(r.TIPO)}</td>
-            <td style="color:#888">${r.CONTACTO || '—'}</td>
+            <td style="color:var(--text-muted)">${r.CONTACTO || '—'}</td>
           </tr>`).join('')
       : linhaVazia(4);
   } catch (err) {
@@ -726,29 +726,29 @@ function abrirModalDoador() {
   document.getElementById('modal-conteudo').innerHTML = `
     <div class="space-y-3">
       <div>
-        <label class="label-dark">Nome *</label>
-        <input id="df-nome" class="input-dark w-full"/>
+        <label class="form-label">Nome *</label>
+        <input id="df-nome" class="input-field"/>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="label-dark">Tipo *</label>
-          <select id="df-tipo" class="input-dark w-full">
+          <label class="form-label">Tipo *</label>
+          <select id="df-tipo" class="input-field">
             <option value="INDIVIDUAL">Individual</option>
             <option value="INSTITUCIONAL">Institucional</option>
           </select>
         </div>
         <div>
-          <label class="label-dark">Contacto</label>
-          <input id="df-contacto" class="input-dark w-full"/>
+          <label class="form-label">Contacto</label>
+          <input id="df-contacto" class="input-field"/>
         </div>
       </div>
       <div>
-        <label class="label-dark">Endereço</label>
-        <input id="df-endereco" class="input-dark w-full"/>
+        <label class="form-label">Endereço</label>
+        <input id="df-endereco" class="input-field"/>
       </div>
       <div>
-        <label class="label-dark">Observações</label>
-        <textarea id="df-obs" class="input-dark w-full" rows="2"></textarea>
+        <label class="form-label">Observações</label>
+        <textarea id="df-obs" class="input-field" rows="2"></textarea>
       </div>
     </div>
   `;
@@ -779,13 +779,13 @@ async function carregarCertificados() {
     tbody.innerHTML = rows.length
       ? rows.map(r => `
           <tr>
-            <td style="font-family:monospace;font-size:11px;color:#6366f1">${r.NUMERO_SERIE || '—'}</td>
+            <td style="font-family:monospace;font-size:11px;color:#a78bfa">${r.NUMERO_SERIE || '—'}</td>
             <td style="font-weight:500">${r.NOME_DOADOR || '—'}</td>
             <td><span class="bdg bdg-devolvido" style="font-size:10px">${r.TIPO_CERTIFICADO || '—'}</span></td>
-            <td style="color:#888">${fmtData(r.DATA_EMISSAO)}</td>
+            <td style="color:var(--text-muted)">${fmtData(r.DATA_EMISSAO)}</td>
             <td style="text-align:right">
               <button onclick="reemitirCertificado(${r.ID_CERTIFICADO})"
-                      class="btn-secondary btn-sm" style="font-size:11px">
+                      class="btn-ghost btn-sm" style="font-size:11px">
                 <i class="fa-solid fa-rotate" style="margin-right:3px"></i>Reemitir
               </button>
             </td>

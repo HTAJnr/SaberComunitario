@@ -27,12 +27,12 @@ function _fecharModalMatForce() {
 function _campoMat(label, valor, estilo) {
   return `<div style="display:flex;justify-content:space-between;align-items:baseline;
                       padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
-    <span style="color:#888;flex-shrink:0;margin-right:8px">${label}</span>
-    <span style="font-weight:500;color:#111;text-align:right;${estilo||''}">${valor}</span>
+    <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
+    <span style="font-weight:500;color:var(--text-primary);text-align:right;${estilo||''}">${valor}</span>
   </div>`;
 }
 function _secaoMat(titulo) {
-  return `<div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;
+  return `<div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                       letter-spacing:.06em;margin:14px 0 6px">${titulo}</div>`;
 }
 
@@ -87,20 +87,20 @@ function _renderizarTabelaMat() {
           : '<span class="bdg bdg-vencido">Indisponível</span>';
         return `
           <tr>
-            <td style="font-family:monospace;font-size:10px;color:#888">${r.COD_MATERIAL||'—'}</td>
+            <td style="font-family:monospace;font-size:10px;color:var(--text-muted)">${r.COD_MATERIAL||'—'}</td>
             <td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.TITULO||'—'}</td>
-            <td style="color:#555">${r.AUTOR||'—'}</td>
+            <td style="color:var(--text-secondary)">${r.AUTOR||'—'}</td>
             <td>${badgeTipo(r.TIPO)}</td>
-            <td style="color:#888;font-size:11px">${r.CATEGORIA_AREA_TEMATICA||'—'}</td>
+            <td style="color:var(--text-muted);font-size:11px">${r.CATEGORIA_AREA_TEMATICA||'—'}</td>
             <td>${badgeEstado(r.ESTADO)}</td>
             <td>${dispBadge}</td>
             <td style="text-align:right">
-              <button class="btn-secondary btn-sm"
+              <button class="btn-ghost btn-sm"
                       onclick="abrirCtxMenuMat(event,'${r.COD_MATERIAL}',${r.DISPONIVEL_EMPRESTIMO==='S'})">···</button>
             </td>
           </tr>`;
       }).join('')
-    : `<tr><td colspan="8" style="padding:24px;text-align:center;color:#888;font-size:12px">Sem materiais.</td></tr>`;
+    : `<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px">Sem materiais.</td></tr>`;
 }
 
 // ── Context menu ──────────────────────────────────
@@ -144,13 +144,13 @@ async function abrirDrawerMat(cod) {
   document.getElementById('drawer-mat-overlay').style.display = 'block';
   document.getElementById('drawer-mat').classList.add('open');
   document.getElementById('drawer-mat-conteudo').innerHTML =
-    '<p style="text-align:center;color:#888;font-size:12px;padding:24px">A carregar…</p>';
+    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
   try {
     const m = await get(`/api/materiais/${cod}`);
     _renderizarDrawerMat(m);
   } catch (err) {
     document.getElementById('drawer-mat-conteudo').innerHTML =
-      `<p style="color:#a32d2d;font-size:12px;padding:8px">${err.message}</p>`;
+      `<p style="color:#f85149;font-size:12px;padding:8px">${err.message}</p>`;
   }
 }
 
@@ -196,8 +196,8 @@ function _renderizarTabInfoMat(m) {
 
   let motivoHtml = '';
   if (estado === 'Indisponivel' && m.MOTIVO_INDISPONIBILIDADE) {
-    motivoHtml = `<div style="background:#fef3c720;border:1px solid #d97706;border-radius:6px;
-                              padding:8px 10px;font-size:11px;color:#d97706;margin-bottom:10px">
+    motivoHtml = `<div style="background:#2a1d08;border:1px solid #6a3808;border-radius:6px;
+                              padding:8px 10px;font-size:11px;color:#d29922;margin-bottom:10px">
       <i class="fa-solid fa-triangle-exclamation" style="margin-right:4px"></i>${m.MOTIVO_INDISPONIBILIDADE}
     </div>`;
   }
@@ -208,7 +208,7 @@ function _renderizarTabInfoMat(m) {
       ${_secaoMat('Ebook')}
       ${_campoMat('Formato', m.EBOOK_FORMATO || '—')}
       ${_campoMat('Tamanho', m.EBOOK_TAMANHO ? m.EBOOK_TAMANHO + ' MB' : '—')}
-      ${_campoMat('URL Acesso', m.EBOOK_URL ? `<a href="${m.EBOOK_URL}" target="_blank" style="color:#818cf8">Abrir link</a>` : '—')}`;
+      ${_campoMat('URL Acesso', m.EBOOK_URL ? `<a href="${m.EBOOK_URL}" target="_blank" style="color:#a78bfa">Abrir link</a>` : '—')}`;
   } else if (m.TIPO === 'Periodico') {
     subtipoHtml = `
       ${_secaoMat('Periódico')}
@@ -220,13 +220,13 @@ function _renderizarTabInfoMat(m) {
 
   let origemHtml = m.ORIGEM_MATERIAL || '—';
   if (m.ORIGEM_MATERIAL === 'Doado' && m.doacao) {
-    origemHtml += ` <span style="color:#888;font-size:11px">— ${m.doacao.NOME_DOADOR||'doador'} (${fmtData(m.doacao.DATA_DOACAO)})</span>`;
+    origemHtml += ` <span style="color:var(--text-muted);font-size:11px">— ${m.doacao.NOME_DOADOR||'doador'} (${fmtData(m.doacao.DATA_DOACAO)})</span>`;
   }
 
   c.innerHTML = `
     <div style="margin-bottom:14px">
-      <div style="font-family:monospace;font-size:11px;color:#888;margin-bottom:4px">${m.COD_MATERIAL||'—'}</div>
-      <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:6px">${m.TITULO||'—'}</div>
+      <div style="font-family:monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px">${m.COD_MATERIAL||'—'}</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px">${m.TITULO||'—'}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">${badgeTipo(m.TIPO)} ${badgeEstado(estado)}</div>
     </div>
     ${motivoHtml}
@@ -260,7 +260,7 @@ function _renderizarTabHistoricoMat(m) {
   c.innerHTML = `
     <table style="width:100%;font-size:11px;border-collapse:collapse">
       <thead>
-        <tr style="color:#aaa">
+        <tr style="color:var(--text-muted)">
           <th style="text-align:left;padding:5px 4px;border-bottom:1px solid #eee">Leitor</th>
           <th style="text-align:left;padding:5px 4px;border-bottom:1px solid #eee">Retirada</th>
           <th style="text-align:left;padding:5px 4px;border-bottom:1px solid #eee">Prazo</th>
@@ -288,18 +288,18 @@ function _renderizarTabTransfMat(m) {
   const transf = m.transferencias || [];
   if (!transf.length) { c.innerHTML = emptyState('fa-right-left', 'Sem transferências registadas.'); return; }
   c.innerHTML = transf.map(t => `
-    <div style="background:#f8fafc;border:0.5px solid #e8e8e8;border-radius:8px;padding:10px 12px;
+    <div style="background:var(--surface-raised);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;
                 margin-bottom:8px;font-size:11px">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <span style="font-family:monospace;color:#888">#${t.ID_TRANSFERENCIA}</span>
+        <span style="font-family:monospace;color:var(--text-muted)">#${t.ID_TRANSFERENCIA}</span>
         ${bdgEstado(t.ESTADO_TRANSFERENCIA)}
       </div>
-      <div style="color:#555">
+      <div style="color:var(--text-secondary)">
         ${t.COD_BIBLIOTECA_ORIGEM||'?'}
-        <i class="fa-solid fa-arrow-right" style="margin:0 6px;color:#818cf8"></i>
+        <i class="fa-solid fa-arrow-right" style="margin:0 6px;color:#a78bfa"></i>
         ${t.COD_BIBLIOTECA_DESTINO||'?'}
       </div>
-      <div style="color:#aaa;margin-top:2px">${fmtData(t.DATA_SOLICITACAO)}</div>
+      <div style="color:var(--text-muted);margin-top:2px">${fmtData(t.DATA_SOLICITACAO)}</div>
     </div>`).join('');
 }
 
@@ -308,7 +308,7 @@ async function abrirModalEditarMat(cod) {
   _ocultarErroModalMat();
   document.getElementById('modal-mat-titulo').textContent = 'Editar Material';
   document.getElementById('modal-mat-conteudo').innerHTML =
-    '<p style="padding:20px;text-align:center;color:#888;font-size:12px"><i class="fa-solid fa-spinner fa-spin"></i></p>';
+    '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px"><i class="fa-solid fa-spinner fa-spin"></i></p>';
   document.getElementById('modal-mat-footer').innerHTML = '';
   document.getElementById('modal-mat-overlay').classList.remove('hidden');
 
@@ -335,7 +335,7 @@ async function abrirModalEditarMat(cod) {
   if (m.TIPO === 'Ebook') {
     subtipoHtml = `
       <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #e2e8f0">
-        <div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Ebook</div>
+        <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Ebook</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div>
             <label class="form-label">Formato</label>
@@ -356,7 +356,7 @@ async function abrirModalEditarMat(cod) {
   } else if (m.TIPO === 'Periodico') {
     subtipoHtml = `
       <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #e2e8f0">
-        <div style="font-size:10px;font-weight:500;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Periódico</div>
+        <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Periódico</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div>
             <label class="form-label">Edição</label>
@@ -384,7 +384,7 @@ async function abrirModalEditarMat(cod) {
   document.getElementById('modal-mat-conteudo').innerHTML = `
     <div style="padding:16px 18px">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
-        <span style="font-family:monospace;font-size:11px;color:#888">${m.COD_MATERIAL}</span>
+        <span style="font-family:monospace;font-size:11px;color:var(--text-muted)">${m.COD_MATERIAL}</span>
         ${badgeTipo(m.TIPO)}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -538,7 +538,7 @@ function _wzMatIndicador(step) {
           </div>
           <span style="color:${ativo?'#818cf8':'#64748b'}">${lbl}</span>
         </div>
-        ${i < 2 ? '<div style="flex:1;height:1px;background:#e2e8f0;min-width:12px"></div>' : ''}`;
+        ${i < 2 ? '<div style="flex:1;height:1px;background:var(--border);min-width:12px"></div>' : ''}`;
     }).join('')}
   </div>`;
 }
@@ -616,7 +616,7 @@ function _renderizarWzMatStep(step) {
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;
                         background:${tipo===t?'#818cf820':'#f8fafc'};border:1.5px solid ${tipo===t?'#818cf8':'#e2e8f0'};
                         border-radius:8px;padding:8px 14px">
-            <input type="radio" name="wz-tipo" value="${t}" ${tipo===t?'checked':''} onchange="_wzMatToggleTipo()" style="accent-color:#818cf8"/>
+            <input type="radio" name="wz-tipo" value="${t}" ${tipo===t?'checked':''} onchange="_wzMatToggleTipo()" style="accent-color:#a78bfa"/>
             ${t==='Livro'?'Livro Físico':t==='Periodico'?'Periódico':t}
           </label>`).join('')}
       </div>
@@ -637,14 +637,14 @@ function _renderizarWzMatStep(step) {
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;
                           background:${origem===o?'#818cf820':'#f8fafc'};border:1.5px solid ${origem===o?'#818cf8':'#e2e8f0'};
                           border-radius:8px;padding:8px 14px">
-              <input type="radio" name="wz-origem" value="${o}" ${origem===o?'checked':''} onchange="_wzMatToggleOrigem()" style="accent-color:#818cf8"/>
+              <input type="radio" name="wz-origem" value="${o}" ${origem===o?'checked':''} onchange="_wzMatToggleOrigem()" style="accent-color:#a78bfa"/>
               ${o}
             </label>`).join('')}
         </div>
         <div id="wz-origem-campos" style="margin-top:12px"></div>
       </div>
-      <div style="background:#f8fafc;border-radius:8px;padding:12px;font-size:11px;color:#64748b">
-        <div style="font-weight:600;color:#475569;margin-bottom:6px">Resumo</div>
+      <div style="background:var(--surface-raised);border-radius:8px;padding:12px;font-size:11px;color:var(--text-secondary)">
+        <div style="font-weight:600;color:var(--text-secondary);margin-bottom:6px">Resumo</div>
         <div>${_wzMatDados.titulo||'—'} · ${_wzMatDados.tipo==='Livro'?'Livro Físico':_wzMatDados.tipo==='Periodico'?'Periódico':_wzMatDados.tipo||'—'}</div>
       </div>
     </div>`;
@@ -700,7 +700,7 @@ function _wzMatCamposTipo(tipo) {
       </div>
     </div>`;
   }
-  return `<p style="font-size:12px;color:#888;padding:8px 0">Sem campos adicionais para Livro Físico.</p>`;
+  return `<p style="font-size:12px;color:var(--text-muted);padding:8px 0">Sem campos adicionais para Livro Físico.</p>`;
 }
 
 function _wzMatToggleTipo() {
@@ -718,12 +718,12 @@ function _renderizarCamposOrigem(origem) {
   const el = document.getElementById('wz-origem-campos');
   if (!el) return;
   if (origem === 'Doado') {
-    el.innerHTML = `<div style="background:#f8fafc;border-radius:8px;padding:10px;font-size:12px;color:#888;text-align:center">
+    el.innerHTML = `<div style="background:#f8fafc;border-radius:8px;padding:10px;font-size:12px;color:var(--text-muted);text-align:center">
       <i class="fa-solid fa-spinner fa-spin"></i> A carregar doações…
     </div>`;
     _wzMatCarregarDoacoes();
   } else if (origem === 'Transferido') {
-    el.innerHTML = `<div style="font-size:12px;color:#94a3b8;padding:6px 0">
+    el.innerHTML = `<div style="font-size:12px;color:var(--text-muted);padding:6px 0">
       <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
       Referência à transferência será associada manualmente.
     </div>`;

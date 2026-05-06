@@ -1,118 +1,118 @@
 <!-- ════════════ MODAL GENÉRICO ════════════ -->
-<div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-  <div id="modal-box" class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl">
-    <div class="flex items-center justify-between p-5 border-b border-slate-700">
-      <h3 id="modal-titulo" class="font-bold text-lg"></h3>
-      <button onclick="fecharModal()" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 transition-colors">
-        <i class="fa-solid fa-xmark text-lg"></i>
+<div id="modal-overlay" class="modal-overlay hidden" onclick="fecharModal(event)">
+  <div id="modal-box" class="modal">
+    <div class="modal-header">
+      <span id="modal-titulo" class="modal-title"></span>
+      <button onclick="fecharModal()" class="modal-close">
+        <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <div id="modal-conteudo" class="p-5 space-y-3"></div>
-    <div id="modal-erro" class="hidden mx-5 mb-0 bg-red-900/50 border border-red-500 text-red-300 rounded-lg p-3 text-sm flex items-center gap-2">
+    <div id="modal-conteudo"></div>
+    <div id="modal-erro" class="modal-erro hidden">
       <i class="fa-solid fa-circle-exclamation"></i>
       <span id="modal-erro-msg"></span>
     </div>
-    <div class="flex justify-end gap-3 p-5 border-t border-slate-700">
+    <div class="modal-footer">
       <button onclick="fecharModal()" class="btn-ghost">
-        <i class="fa-solid fa-xmark mr-1"></i> Cancelar
+        <i class="fa-solid fa-xmark" style="margin-right:4px"></i>Cancelar
       </button>
       <button id="modal-btn-salvar" class="btn-primary">
-        <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar
+        <i class="fa-solid fa-floppy-disk" style="margin-right:4px"></i>Guardar
       </button>
     </div>
   </div>
 </div>
 
 <!-- ════════════ MODAL PARTICIPAÇÕES ════════════ -->
-<div id="modal-participacoes" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-  <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
-    <div class="flex items-center justify-between p-5 border-b border-slate-700">
-      <h3 class="font-bold text-lg"><i class="fa-solid fa-users mr-2 text-indigo-400"></i>Gerir Participações</h3>
-      <button onclick="fecharModalParticipacoes()" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 transition-colors">
-        <i class="fa-solid fa-xmark text-lg"></i>
+<div id="modal-participacoes" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">
+        <i class="fa-solid fa-users" style="margin-right:8px;color:var(--theme-accent)"></i>Gerir Participações
+      </span>
+      <button onclick="fecharModalParticipacoes()" class="modal-close">
+        <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <div class="p-5">
-      <div class="flex gap-2 mb-4">
-        <input id="input-nc-inscricao" type="text" placeholder="Nº Cartão do leitor" class="input-dark flex-1"/>
-        <button onclick="inscreverLeitorEvento()" class="btn-primary">
-          <i class="fa-solid fa-user-plus mr-1"></i> Inscrever
-        </button>
-      </div>
-      <div id="lista-participacoes" class="space-y-2 text-sm"></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input id="input-nc-inscricao" type="text" placeholder="Nº Cartão do leitor" class="input-field" style="flex:1"/>
+      <button onclick="inscreverLeitorEvento()" class="btn-primary">
+        <i class="fa-solid fa-user-plus" style="margin-right:4px"></i>Inscrever
+      </button>
     </div>
+    <div id="lista-participacoes" style="font-size:12px"></div>
   </div>
 </div>
 
 <!-- ════════════ MODAL DEVOLUÇÃO ════════════ -->
-<div id="modal-devolucao" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-  <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-md shadow-2xl">
-    <div class="flex items-center justify-between p-5 border-b border-slate-700">
-      <h3 class="font-bold text-lg"><i class="fa-solid fa-rotate-left mr-2 text-indigo-400"></i>Registar Devolução</h3>
-      <button onclick="fecharModalDevolucao()" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 transition-colors">
-        <i class="fa-solid fa-xmark text-lg"></i>
+<div id="modal-devolucao" class="modal-overlay hidden">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title">
+        <i class="fa-solid fa-rotate-left" style="margin-right:8px;color:var(--theme-accent)"></i>Registar Devolução
+      </span>
+      <button onclick="fecharModalDevolucao()" class="modal-close">
+        <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <div class="p-5 space-y-4">
-      <p id="dev-info" class="text-sm text-slate-300"></p>
-      <div>
-        <label class="label-dark">Condição na devolução</label>
-        <select id="dev-condicao" class="input-dark w-full">
-          <option value="BOM">Bom estado</option>
-          <option value="DEGRADADO">Degradado</option>
-          <option value="PERDIDO">Perdido</option>
-        </select>
-      </div>
-      <div id="dev-multa-info" class="bg-amber-900/30 border border-amber-600 rounded-lg p-3 text-sm text-amber-300 hidden flex items-center gap-2">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <span id="dev-multa-msg"></span>
-      </div>
+    <p id="dev-info" style="font-size:12px;color:var(--text-secondary);margin-bottom:16px"></p>
+    <div class="form-group">
+      <label class="form-label">Condição na devolução</label>
+      <select id="dev-condicao" class="input-field">
+        <option value="BOM">Bom estado</option>
+        <option value="DEGRADADO">Degradado</option>
+        <option value="PERDIDO">Perdido</option>
+      </select>
     </div>
-    <div class="flex justify-end gap-3 p-5 border-t border-slate-700">
+    <div id="dev-multa-info" class="alert-warn hidden">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span id="dev-multa-msg"></span>
+    </div>
+    <div class="modal-footer">
       <button onclick="fecharModalDevolucao()" class="btn-ghost">
-        <i class="fa-solid fa-xmark mr-1"></i> Cancelar
+        <i class="fa-solid fa-xmark" style="margin-right:4px"></i>Cancelar
       </button>
       <button onclick="confirmarDevolucao()" class="btn-primary">
-        <i class="fa-solid fa-rotate-left mr-1"></i> Confirmar Devolução
+        <i class="fa-solid fa-rotate-left" style="margin-right:4px"></i>Confirmar Devolução
       </button>
     </div>
   </div>
 </div>
 
-<!-- Modal Confirmação -->
-<div id="modal-confirm" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-  <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-sm shadow-2xl">
-    <div class="p-5">
-      <p id="modal-confirm-msg" class="text-sm text-slate-200"></p>
-    </div>
-    <div class="flex justify-end gap-3 p-4 border-t border-slate-700">
+<!-- ════════════ MODAL CONFIRMAÇÃO ════════════ -->
+<div id="modal-confirm" class="modal-confirm hidden">
+  <div class="modal-confirm-box">
+    <p id="modal-confirm-msg" class="modal-confirm-msg"></p>
+    <div class="modal-confirm-actions">
       <button id="modal-confirm-cancelar" class="btn-ghost">Cancelar</button>
       <button id="modal-confirm-ok" class="btn-danger">Confirmar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal Reemissão -->
-<div id="modal-reemissao" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-  <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-sm shadow-2xl">
-    <div class="flex items-center justify-between p-5 border-b border-slate-700">
-      <h3 class="font-bold text-base">Reemitir Certificado</h3>
-      <button id="modal-reemissao-fechar" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 transition-colors">
-        <i class="fa-solid fa-xmark text-lg"></i>
+<!-- ════════════ MODAL REEMISSÃO ════════════ -->
+<div id="modal-reemissao" class="modal-overlay hidden">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">Reemitir Certificado</span>
+      <button id="modal-reemissao-fechar" class="modal-close">
+        <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <div class="p-5">
-      <label class="label-dark">Motivo da reemissão *</label>
-      <input id="modal-reemissao-motivo" type="text" placeholder="Ex: Certificado perdido" class="input-dark w-full mt-1"/>
+    <div class="form-group">
+      <label class="form-label">Motivo da reemissão *</label>
+      <input id="modal-reemissao-motivo" type="text" placeholder="Ex: Certificado perdido" class="input-field"/>
     </div>
-    <div class="flex justify-end gap-3 p-4 border-t border-slate-700">
+    <div class="modal-footer">
       <button id="modal-reemissao-cancelar" class="btn-ghost">Cancelar</button>
-      <button id="modal-reemissao-ok" class="btn-primary"><i class="fa-solid fa-rotate mr-1"></i>Reemitir</button>
+      <button id="modal-reemissao-ok" class="btn-primary">
+        <i class="fa-solid fa-rotate" style="margin-right:4px"></i>Reemitir
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Modal 09-D — Gerir Permissões -->
+<!-- ════════════ MODAL PERMISSÕES 09-D ════════════ -->
 <div id="modal-perm-overlay" class="modal-overlay hidden" onclick="fecharModalPerm(event)">
   <div class="modal" style="width:660px;max-height:90vh;display:flex;flex-direction:column">
     <div class="modal-header">
@@ -122,12 +122,12 @@
       </button>
     </div>
     <div id="modal-perm-erro" class="modal-erro hidden">
-      <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+      <i class="fa-solid fa-circle-exclamation"></i>
       <span id="modal-perm-erro-msg"></span>
     </div>
     <div id="modal-perm-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
-    <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
-      <button class="btn-secondary" onclick="fecharModalPerm()">Cancelar</button>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="fecharModalPerm()">Cancelar</button>
       <button class="btn-primary" onclick="_submeterModalPerm()">
         <i class="fa-solid fa-shield-halved" style="margin-right:5px"></i>Guardar permissão
       </button>
@@ -136,4 +136,4 @@
 </div>
 
 <!-- Toast -->
-<div id="toast" class="hidden fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-2xl flex items-center gap-2"></div>
+<div id="toast" class="hidden"></div>

@@ -31,9 +31,7 @@ const del   = (p)    => api(p, { method: 'DELETE' });
 function toast(msg, tipo = 'ok') {
   const t = document.getElementById('toast');
   const icon = tipo === 'ok' ? 'fa-circle-check' : 'fa-circle-xmark';
-  t.className = tipo === 'ok'
-    ? 'fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-2xl bg-green-800 text-green-100 flex items-center gap-2'
-    : 'fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-2xl bg-red-900 text-red-100 flex items-center gap-2';
+  t.className = tipo === 'ok' ? 'toast-ok' : 'toast-erro';
   t.innerHTML = `<i class="fa-solid ${icon}"></i><span>${msg}</span>`;
   t.classList.remove('hidden');
   setTimeout(() => t.classList.add('hidden'), 3500);
@@ -89,7 +87,7 @@ function badgeTipo(tipo) {
   return badge(labels[tipo] || tipo || '—', m[tipo] || 'cinza');
 }
 function linhaVazia(colunas, msg = 'Sem registos.') {
-  return `<tr><td colspan="${colunas}" style="padding:24px;text-align:center;color:#888;font-size:12px">${msg}</td></tr>`;
+  return `<tr><td colspan="${colunas}" style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px">${msg}</td></tr>`;
 }
 
 function iniciais(nome) {
