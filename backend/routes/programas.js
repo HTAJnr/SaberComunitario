@@ -212,7 +212,7 @@ router.get('/:cod', autenticar, async (req, res) => {
     const matResult = await conn.execute(
       `SELECT pm.cod_material, pm.observacoes, m.titulo, m.autor
          FROM PROGRAMA_MATERIAL pm
-         JOIN MATERIAL m ON m.cod_material = pm.cod_material
+         JOIN MATERIAL_BIBLIOGRAFICO m ON m.cod_material = pm.cod_material
         WHERE pm.cod_programa = :cod`,
       { cod },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }

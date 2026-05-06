@@ -793,7 +793,7 @@ function _renderizarDrawerConteudo() {
           <td>${fmtData(h.DATA_DEVOLUCAO)}</td>
           <td>${h.DIAS_ATRASO||0}</td>
           <td>${fmtMoeda(h.VALOR_MULTA)}</td>
-          <td>${h.MULTA_PAGA==='S'||h.MULTA_PAGA===true?'Sim':h.VALOR_MULTA?'Não':'—'}</td>
+          <td>${h.MULTA_PAGA==='TRUE'||h.MULTA_PAGA===true?'Sim':h.VALOR_MULTA?'Não':'—'}</td>
         </tr>`).join('')}</tbody>
       </table></div>`;
     }
@@ -815,7 +815,7 @@ function _renderizarDrawerConteudo() {
   } else if (_drawerTabActual === 'multas') {
     const nivel    = utilizadorActual?.NIVEL_ACESSO || '';
     const podePagar = ['Administrador','Coordenador','Bibliotecario'].includes(nivel);
-    const multas   = (l.HISTORICO || []).filter(h => (h.MULTA_PAGA === 'N' || h.MULTA_PAGA === false) && h.VALOR_MULTA);
+    const multas   = (l.HISTORICO || []).filter(h => (h.MULTA_PAGA === 'FALSE' || h.MULTA_PAGA === false) && h.VALOR_MULTA);
     if (!multas.length) {
       el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">Sem multas em aberto.</div>';
     } else {

@@ -270,4 +270,45 @@ router.patch('/:cod_biblioteca', exigirNivel('Administrador', 'Coordenador'), as
   }
 });
 
+// PATCH /api/bibliotecas/:cod_biblioteca/desactivar — só Administrador
+router.patch('/:cod_biblioteca/desactivar', exigirNivel('Administrador'), async (req, res) => {
+  const cod = req.params.cod_biblioteca;
+  let conn;
+  try {
+    conn = await getConnection();
+
+    const check = await conn.execute(
+      `SELECT
+         (SELECT COUNT(*) FROM MATERIAL_BIBLIOGRAFICO WHERE COD_BIBLIOTECA = :cod AND ESTADO != 'Inactivo') AS MAT_ACTIVOS,
+         (SELECT COUNT(*) FROM EMPRESTIMO WHERE COD_BIBLIOTECA = :cod AND ESTADO = 'Activo') AS EMP_ACTIVOS
+       FROM DUAL`,
+      { cod },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    const row = check.rows[0];
+    if (row.MAT_ACTIVOS > 0)
+      return res.status(409).json({ erro: 'Existem materiais activos associados a esta biblioteca.' });
+    if (row.EMP_ACTIVOS > 0)
+      return res.status(409).json({ erro: 'Existem empréstimos activos nesta biblioteca.' });
+
+    const result = await conn.execute(
+      `UPDATE BIBLIOTECA SET ESTADO = 'Inactivo' WHERE COD_BIBLIOTECA = :cod`,
+      { cod }
+    );
+    if (result.rowsAffected === 0)
+      return res.status(404).json({ erro: 'Biblioteca não encontrada.' });
+
+    await conn.commit();
+    res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error('\x1b[31m[BIBLIOTECAS PATCH /desactivar]\x1b[0m');
+    console.error('     BD: UPDATE BIBLIOTECA');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
 module.exports = router;

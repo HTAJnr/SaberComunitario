@@ -185,7 +185,7 @@ function _renderizarDrawerTransf() {
   `;
 
   if (estado === 'Aprovada' || estado === 'Concluida') {
-    html += campo('Data aprovação', fmtData(t.DATA_APROVACAO_DESTINO));
+    html += campo('Data aprovação', fmtData(t.DATA_APROVACAO));
   }
   if (estado === 'Concluida') {
     html += campo('Data conclusão', fmtData(t.DATA_CONCLUSAO));

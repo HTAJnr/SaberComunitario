@@ -325,12 +325,6 @@ router.post('/:id/participantes', autenticar, async (req, res) => {
 
       const tipo = leitorResult.rows[0].TIPO_LEITOR;
       const pub = evento.PUBLICO_ALVO;
-      if (pub === 'Infantil' && tipo !== 'CRIANCA')
-        return res.status(409).json({ erro: 'Este evento é destinado a crianças.' });
-      if (pub === 'Adulto' && tipo === 'CRIANCA')
-        return res.status(409).json({ erro: 'Este evento é destinado a adultos.' });
-      if (pub === 'Professores' && tipo !== 'PROFESSOR')
-        return res.status(409).json({ erro: 'Este evento é destinado a professores.' });
     }
 
     // 4. Chamar procedure
