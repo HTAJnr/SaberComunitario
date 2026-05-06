@@ -112,5 +112,28 @@
   </div>
 </div>
 
+<!-- Modal 09-D — Gerir Permissões -->
+<div id="modal-perm-overlay" class="modal-overlay hidden" onclick="fecharModalPerm(event)">
+  <div class="modal" style="width:660px;max-height:90vh;display:flex;flex-direction:column">
+    <div class="modal-header">
+      <span class="modal-title">Gerir Permissões</span>
+      <button onclick="fecharModalPerm()" class="modal-close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="modal-perm-erro" class="modal-erro hidden">
+      <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+      <span id="modal-perm-erro-msg"></span>
+    </div>
+    <div id="modal-perm-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+    <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
+      <button class="btn-secondary" onclick="fecharModalPerm()">Cancelar</button>
+      <button class="btn-primary" onclick="_submeterModalPerm()">
+        <i class="fa-solid fa-shield-halved" style="margin-right:5px"></i>Guardar permissão
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" class="hidden fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-2xl flex items-center gap-2"></div>
