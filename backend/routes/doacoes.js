@@ -64,7 +64,7 @@ doadoresRouter.post('/', exigirNivel('Administrador', 'Coordenador'), async (req
 });
 
 // ── Doações ───────────────────────────────────────────────────────────────────
-router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+router.get('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -124,7 +124,7 @@ router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =>
   }
 });
 
-router.get('/certificados', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+router.get('/certificados', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -149,12 +149,12 @@ router.get('/certificados', exigirNivel('Administrador', 'Coordenador'), async (
   }
 });
 
-router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+router.get('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
     const dResult = await conn.execute(
-      `SELECT d.*, dr.NOME_DOADOR, dr.TIPO_DOADOR
+      `SELECT d.*, dr.NOME_DOADOR, dr.TIPO_DOADOR, dr.CONTACTO, dr.ENDERECO
          FROM DOACAO d
          LEFT JOIN DOADOR dr ON dr.ID_DOADOR = d.ID_DOADOR
         WHERE d.ID_DOACAO = :id`,
@@ -170,7 +170,15 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res)
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-    res.json({ ...dResult.rows[0], itens: itensResult.rows });
+    const certsResult = await conn.execute(
+      `SELECT ID_CERTIFICADO, NUM_CERTIFICADO, TIPO_CERTIFICADO, DATA_EMISSAO, OBSERVACOES
+         FROM CERTIFICADO_DOACAO
+        WHERE ID_DOACAO = :id
+        ORDER BY DATA_EMISSAO DESC`,
+      { id: req.params.id },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    res.json({ ...dResult.rows[0], itens: itensResult.rows, certs: certsResult.rows });
   } catch (err) {
     console.error(`\x1b[31m[DOACOES GET /${req.params.id}] ERRO ao buscar doação\x1b[0m`);
     console.error('     BD: DOACAO + DOADOR + ITEM_DOACAO + BIBLIOTECA');

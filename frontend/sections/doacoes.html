@@ -1,68 +1,182 @@
-<section id="section-doacoes" class="section p-6 hidden">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-bold">Doações</h2>
-    <button onclick="abrirModalDoacao()" class="btn-primary">
-      <i class="fa-solid fa-plus mr-1"></i> Nova Doação
-    </button>
+<section id="section-doacoes" class="section hidden">
+
+  <!-- Barra de acções -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <input id="filtro-doac-q" type="text" placeholder="Pesquisar por doador…"
+           oninput="_renderizarTabelaDoacoes()"
+           class="input-field" style="flex:1;min-width:180px;max-width:280px"/>
+    <div id="btn-registar-doacao-wrap">
+      <button onclick="abrirWizardDoacao()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
+        <i class="fa-solid fa-plus" style="margin-right:5px"></i>Registar Doação
+      </button>
+    </div>
   </div>
-  <div class="flex gap-2 mb-4">
-    <button id="tab-doacoes-btn"      onclick="switchTabDoacoes('doacoes')"      class="tab-btn tab-active">
-      <i class="fa-solid fa-hand-holding-heart mr-1"></i> Doações
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button id="tab-doacoes-btn" class="tab-btn tab-active" onclick="switchTabDoacoes('doacoes')">
+      <i class="fa-solid fa-hand-holding-heart" style="margin-right:4px"></i>Doações
     </button>
-    <button id="tab-doadores-btn"     onclick="switchTabDoacoes('doadores')"     class="tab-btn">
-      <i class="fa-solid fa-people-group mr-1"></i> Doadores
+    <button id="tab-doadores-btn" class="tab-btn" onclick="switchTabDoacoes('doadores')">
+      <i class="fa-solid fa-people-group" style="margin-right:4px"></i>Doadores
     </button>
-    <button id="tab-certificados-btn" onclick="switchTabDoacoes('certificados')" class="tab-btn">
-      <i class="fa-solid fa-certificate mr-1"></i> Certificados
+    <button id="tab-certificados-btn" class="tab-btn" onclick="switchTabDoacoes('certificados')">
+      <i class="fa-solid fa-certificate" style="margin-right:4px"></i>Certificados
     </button>
   </div>
 
   <!-- Sub-tab: Doações -->
-  <div id="sub-doacoes" class="card overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr class="border-b border-slate-700 text-slate-400">
-        <th class="text-left py-2 px-3">ID</th>
-        <th class="text-left py-2 px-3">Doador</th>
-        <th class="text-left py-2 px-3">Data</th>
-        <th class="text-left py-2 px-3">Valor Total</th>
-        <th class="text-left py-2 px-3">Biblioteca</th>
-      </tr></thead>
-      <tbody id="tabela-doacoes"></tbody>
-    </table>
+  <div id="sub-doacoes">
+    <div class="panel">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Doador</th>
+            <th>Tipo</th>
+            <th>Data</th>
+            <th style="text-align:center">Itens</th>
+            <th>Valor Total</th>
+            <th>Certificado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tabela-doacoes"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Sub-tab: Doadores -->
-  <div id="sub-doadores" class="hidden">
-    <div class="flex justify-end mb-3">
-      <button onclick="abrirModalDoador()" class="btn-secondary text-sm">
-        <i class="fa-solid fa-user-plus mr-1"></i> Novo Doador
+  <div id="sub-doadores" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button id="btn-novo-doador" onclick="abrirModalDoador()" class="btn-secondary" style="font-size:12px">
+        <i class="fa-solid fa-user-plus" style="margin-right:4px"></i>Novo Doador
       </button>
     </div>
-    <div class="card overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead><tr class="border-b border-slate-700 text-slate-400">
-          <th class="text-left py-2 px-3">ID</th>
-          <th class="text-left py-2 px-3">Nome</th>
-          <th class="text-left py-2 px-3">Tipo</th>
-          <th class="text-left py-2 px-3">Contacto</th>
-          <th class="text-left py-2 px-3">Email</th>
-        </tr></thead>
+    <div class="panel">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Tipo</th>
+            <th>Contacto</th>
+          </tr>
+        </thead>
         <tbody id="tabela-doadores"></tbody>
       </table>
     </div>
   </div>
 
   <!-- Sub-tab: Certificados -->
-  <div id="sub-certificados" class="card overflow-x-auto hidden">
-    <table class="w-full text-sm">
-      <thead><tr class="border-b border-slate-700 text-slate-400">
-        <th class="text-left py-2 px-3">ID</th>
-        <th class="text-left py-2 px-3">Nº Série</th>
-        <th class="text-left py-2 px-3">Doador</th>
-        <th class="text-left py-2 px-3">Data Emissão</th>
-        <th class="text-left py-2 px-3">Acções</th>
-      </tr></thead>
-      <tbody id="tabela-certificados"></tbody>
-    </table>
+  <div id="sub-certificados" style="display:none">
+    <div class="panel">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Nº Série</th>
+            <th>Doador</th>
+            <th>Tipo</th>
+            <th>Data Emissão</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tabela-certificados"></tbody>
+      </table>
+    </div>
   </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-doac" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-doac-overlay" onclick="fecharDrawerDoacao()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer 07-B — Detalhe da Doação -->
+  <div id="drawer-doac" class="drawer" style="width:420px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span id="drawer-doac-titulo" style="font-size:13px;font-weight:600;color:#111">Doação</span>
+      <button onclick="fecharDrawerDoacao()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Tabs do drawer -->
+    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;flex-wrap:wrap">
+      <button id="dtab-doac-info" class="tab-btn tab-active" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerDoacao('info')">Info</button>
+      <button id="dtab-doac-itens" class="tab-btn" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerDoacao('itens')">Itens</button>
+      <button id="dtab-doac-certs" class="tab-btn" style="font-size:11px;padding:4px 10px"
+              onclick="mudarTabDrawerDoacao('certs')">Certificados</button>
+    </div>
+
+    <div id="drawer-doac-conteudo" style="overflow-y:auto;max-height:calc(100vh - 190px)"></div>
+  </div>
+
+  <!-- Modal overlay 07-C — Emitir Certificado -->
+  <div id="modal-cert-overlay" class="modal-overlay hidden" onclick="fecharModalCertificado(event)">
+    <div class="modal" style="width:480px">
+      <div class="modal-header">
+        <span class="modal-title">Emitir Certificado</span>
+        <button onclick="fecharModalCertificado()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-cert-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-cert-erro-msg"></span>
+      </div>
+      <div id="modal-cert-conteudo" style="padding:4px 0"></div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn-secondary" onclick="fecharModalCertificado()">Cancelar</button>
+        <button class="btn-primary" onclick="_submeterCertificado()">
+          <i class="fa-solid fa-certificate" style="margin-right:5px"></i>Emitir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard modal overlay 07-D — Registar Doação -->
+  <div id="modal-wiz-overlay" class="modal-overlay hidden" onclick="fecharWizardDoacao(event)">
+    <div class="modal" style="width:580px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title">Registar Doação</span>
+        <button onclick="fecharWizardDoacao()" class="modal-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Indicador de steps -->
+      <div style="display:flex;margin-bottom:18px;border-bottom:1px solid #e5e7eb;padding-bottom:14px">
+        <div id="wiz-step-1-ind" style="flex:1;text-align:center;font-size:11px;font-weight:600">
+          <div style="width:22px;height:22px;border-radius:50%;background:#6366f1;color:#fff;
+                      display:inline-flex;align-items:center;justify-content:center;margin-bottom:3px;font-size:11px">1</div><br>
+          <span style="color:#6366f1">Doador</span>
+        </div>
+        <div id="wiz-step-2-ind" style="flex:1;text-align:center;font-size:11px;font-weight:600">
+          <div style="width:22px;height:22px;border-radius:50%;background:#e5e7eb;color:#888;
+                      display:inline-flex;align-items:center;justify-content:center;margin-bottom:3px;font-size:11px">2</div><br>
+          <span style="color:#aaa">Itens</span>
+        </div>
+        <div id="wiz-step-3-ind" style="flex:1;text-align:center;font-size:11px;font-weight:600">
+          <div style="width:22px;height:22px;border-radius:50%;background:#e5e7eb;color:#888;
+                      display:inline-flex;align-items:center;justify-content:center;margin-bottom:3px;font-size:11px">3</div><br>
+          <span style="color:#aaa">Confirmar</span>
+        </div>
+      </div>
+
+      <div id="modal-wiz-erro" class="modal-erro hidden">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+        <span id="modal-wiz-erro-msg"></span>
+      </div>
+
+      <div id="modal-wiz-conteudo" style="overflow-y:auto;flex:1;padding:2px 0 4px"></div>
+
+      <div id="modal-wiz-footer" style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0"></div>
+    </div>
+  </div>
+
 </section>

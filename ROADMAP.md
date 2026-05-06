@@ -33,8 +33,8 @@
 - [x] TELA 03 — Empréstimos (wizard 03-D com prazo calculado, modal devolução 03-C com preview multa)
 - [x] TELA 04 — Materiais (wizard 04-D com 3 steps, drawer 04-B com 3 tabs, modal editar 04-C, ctx-menu)
 - [x] TELA 05 — Transferências (tabs Enviadas/Recebidas/Todas, drawer detalhe, modal solicitar, aprovar/rejeitar/concluir)
-- [ ] TELA 06 — Eventos (com horários e recursos dinâmicos)
-- [ ] TELA 07 — Doações (wizard 07-D com doador anónimo)
+- [x] TELA 06 — Eventos (com horários e recursos dinâmicos)
+- [x] TELA 07 — Doações (wizard 07-D com doador anónimo)
 - [ ] TELA 08 — Programas de Alfabetização
 - [ ] TELA 09 — Funcionários (wizard 09-E, modal permissões 09-D com preview)
 - [ ] TELA 10 — Permissões
