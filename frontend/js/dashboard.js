@@ -25,7 +25,8 @@ async function carregarDashboardAdmin() {
       { label: 'Materiais no acervo',         valor: stats.MATERIAIS_ACERVO            ?? '—' },
     ];
     document.getElementById('dash-rede-stats').innerHTML = cards.map(renderStatCard).join('');
-    document.getElementById('dash-rede-table').innerHTML = emptyState('⇆', 'Módulo de rede disponível em breve', 'Gestão de bibliotecas na TELA 11');
+    const bibs = await get('/api/bibliotecas').catch(() => []);
+    _renderBibliotecasRede(Array.isArray(bibs) ? bibs : (bibs.bibliotecas || []));
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');
   }
@@ -142,6 +143,39 @@ function renderLeitoresRecentes(lista) {
       <td>${bdgTipo(l.TIPO)}</td>
       <td>${bdgEstado(l.STATUS_LEITOR)}</td>
     </tr>`).join('');
+}
+
+function _renderBibliotecasRede(lista) {
+  const el = document.getElementById('dash-rede-table');
+  if (!el) return;
+  if (!lista.length) {
+    el.innerHTML = emptyState('⊞', 'Sem bibliotecas registadas na rede');
+    return;
+  }
+  el.innerHTML = `
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nome</th>
+          <th>Província</th>
+          <th>Responsável</th>
+          <th style="text-align:right">Materiais</th>
+          <th style="text-align:right">Leitores</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${lista.map(b => `
+          <tr>
+            <td style="font-family:monospace;font-size:11px;color:var(--text-muted)">${b.COD_BIBLIOTECA || '—'}</td>
+            <td style="font-weight:500">${b.NOME_BIBLIOTECA || '—'}</td>
+            <td style="color:var(--text-secondary)">${b.PROVINCIA || '—'}</td>
+            <td style="color:var(--text-secondary)">${b.RESPONSAVEL_ACTUAL || '—'}</td>
+            <td style="text-align:right;color:var(--text-secondary)">${b.TOTAL_MATERIAIS ?? '—'}</td>
+            <td style="text-align:right;color:var(--text-secondary)">${b.TOTAL_LEITORES ?? '—'}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
 }
 
 function renderTransferenciasRecentes(lista) {

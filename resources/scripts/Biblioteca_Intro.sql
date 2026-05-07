@@ -313,24 +313,24 @@ INSERT INTO BIBLIOTECA_RESPONSAVEL (cod_biblioteca, cod_funcionario, data_inicio
 VALUES ('BIBSOF0001', 'FUC20250008', TO_DATE('2020-01-20','YYYY-MM-DD'), 'Principal');
 
 -- ============================================================
--- 8. CATEGORIAS
+-- 8. CATEGORIAS  (id_categoria explícito — não depende do trigger)
 -- ============================================================
-INSERT INTO CATEGORIA (area_tematica, faixa_etaria, nivel_leitura)
-VALUES ('Literatura Moçambicana', 'Adulto', 'Intermedio');        -- id = 1
-INSERT INTO CATEGORIA (area_tematica, faixa_etaria, nivel_leitura)
-VALUES ('História de África', 'Adulto', 'Avancado');              -- id = 2
-INSERT INTO CATEGORIA (area_tematica, faixa_etaria, nivel_leitura)
-VALUES ('Ciências Naturais', 'Juvenil', 'Basico');                -- id = 3
-INSERT INTO CATEGORIA (area_tematica, faixa_etaria, nivel_leitura)
-VALUES ('Matemática', 'Juvenil', 'Intermedio');                   -- id = 4
-INSERT INTO CATEGORIA (area_tematica, faixa_etaria, nivel_leitura)
-VALUES ('Contos Infantis', 'Infantil', 'Basico');                 -- id = 5
-INSERT INTO CATEGORIA (area_tematica, faixa_etaria, nivel_leitura)
-VALUES ('Saúde e Bem-Estar', 'Todas as Idades', 'Basico');        -- id = 6
-INSERT INTO CATEGORIA (area_tematica, faixa_etaria, nivel_leitura)
-VALUES ('Tecnologia e Informática', 'Adulto', 'Intermedio');      -- id = 7
-INSERT INTO CATEGORIA (area_tematica, faixa_etaria, nivel_leitura)
-VALUES ('Agricultura e Ambiente', 'Adulto', 'Basico');            -- id = 8
+INSERT INTO CATEGORIA (id_categoria, area_tematica, faixa_etaria, nivel_leitura)
+VALUES (1, 'Literatura Mocambicana', 'Adulto', 'Intermedio');
+INSERT INTO CATEGORIA (id_categoria, area_tematica, faixa_etaria, nivel_leitura)
+VALUES (2, 'Historia de Africa', 'Adulto', 'Avancado');
+INSERT INTO CATEGORIA (id_categoria, area_tematica, faixa_etaria, nivel_leitura)
+VALUES (3, 'Ciencias Naturais', 'Juvenil', 'Basico');
+INSERT INTO CATEGORIA (id_categoria, area_tematica, faixa_etaria, nivel_leitura)
+VALUES (4, 'Matematica', 'Juvenil', 'Intermedio');
+INSERT INTO CATEGORIA (id_categoria, area_tematica, faixa_etaria, nivel_leitura)
+VALUES (5, 'Contos Infantis', 'Infantil', 'Basico');
+INSERT INTO CATEGORIA (id_categoria, area_tematica, faixa_etaria, nivel_leitura)
+VALUES (6, 'Saude e Bem-Estar', 'Todas as Idades', 'Basico');
+INSERT INTO CATEGORIA (id_categoria, area_tematica, faixa_etaria, nivel_leitura)
+VALUES (7, 'Tecnologia e Informatica', 'Adulto', 'Intermedio');
+INSERT INTO CATEGORIA (id_categoria, area_tematica, faixa_etaria, nivel_leitura)
+VALUES (8, 'Agricultura e Ambiente', 'Adulto', 'Basico');
 
 -- ============================================================
 -- 9. DOADORES (antes dos materiais doados)
@@ -702,11 +702,14 @@ VALUES ('BCP20250003', 'FUC20250002', 'MAT20190002',
     TO_DATE('2025-02-18','YYYY-MM-DD'), 'Bom', 'Bom');
 -- Rosa fica com status_leitor = 'Suspenso'
 
--- 3 — Activo, ainda não devolvido (BCP, Sérgio, Terra Sonâmbula ex.1)
+-- 3 — Devolvido a tempo (BCP, Sérgio, Terra Sonâmbula ex.1)
+-- ex.1 devolvido para que ex.2 possa ser transferido sem violar regra último exemplar
 INSERT INTO EMPRESTIMO (num_cartao, cod_funcionario, cod_material,
-    data_retirada, prazo_devolucao, estado_material_saida)
+    data_retirada, prazo_devolucao, data_devolucao,
+    estado_material_saida, estado_material_retorno)
 VALUES ('BCP20250002', 'FUC20250003', 'MAT20190003',
-    TO_DATE('2025-04-01','YYYY-MM-DD'), TO_DATE('2025-04-15','YYYY-MM-DD'), 'Bom');
+    TO_DATE('2025-04-01','YYYY-MM-DD'), TO_DATE('2025-04-15','YYYY-MM-DD'),
+    TO_DATE('2025-04-12','YYYY-MM-DD'), 'Bom', 'Bom');
 
 -- 4 — Activo (BCX, Luísa, A Balada de Amor ao Vento)
 INSERT INTO EMPRESTIMO (num_cartao, cod_funcionario, cod_material,

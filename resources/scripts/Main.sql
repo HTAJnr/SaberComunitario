@@ -20,4 +20,4 @@
 @TP/Indexes.sql
 
 -- 8. Dados iniciais (Carga de dados)
--- @TP/Biblioteca_Intro.sql
+@TP/Biblioteca_Intro.sql
