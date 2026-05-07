@@ -1,10 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/c/Users/HTAJnr/Desktop/TP_BD1_WEB/frontend/**)",
-      "mcp__chrome-devtools__evaluate_script",
-      "mcp__chrome-devtools__take_screenshot",
-      "Bash(node *)"
+      "Read(//c/c/Users/HTAJnr/Desktop/TP_BD1_WEB/frontend/**)"
     ]
   }
 }
