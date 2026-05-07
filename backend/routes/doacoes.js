@@ -5,7 +5,7 @@ const { getConnection, oracledb } = require('../db');
 const { exigirNivel } = require('../middleware/permissoes');
 
 // ── Doadores ──────────────────────────────────────────────────────────────────
-doadoresRouter.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+doadoresRouter.get('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();

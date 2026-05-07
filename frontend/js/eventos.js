@@ -428,7 +428,7 @@ async function _renderizarFormEvento(ev) {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
           <label class="form-label">Data <span style="color:#f85149">*</span></label>
-          <input id="evf-data" type="date" class="input-field" value="${dataVal}"/>
+          <input id="evf-data" type="date" lang="pt-PT" class="input-field" value="${dataVal}"/>
         </div>
         <div>
           <label class="form-label">Capacidade</label>
@@ -524,7 +524,7 @@ function _renderizarLinhasHorarios() {
           `<option value="${d}"${h.dia_semana===d?' selected':''}>${d}</option>`
         ).join('')}
       </select>
-      <input type="date" class="input-field" style="font-size:11px" value="${h.data_ocorrencia||''}"
+      <input type="date" lang="pt-PT" class="input-field" style="font-size:11px" value="${h.data_ocorrencia||''}"
              onchange="_evHorarios[${i}].data_ocorrencia=this.value"/>
       <input type="time" class="input-field" style="font-size:11px" value="${h.hora_inicio||''}"
              placeholder="Início" onchange="_evHorarios[${i}].hora_inicio=this.value"/>

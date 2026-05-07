@@ -324,6 +324,7 @@ async function abrirModalEditarFunc(cod) {
   }
 
   const isAdmin = utilizadorActual?.NIVEL_ACESSO === 'Administrador';
+  funcoes = funcoes.filter(f => isAdmin || f.NIVEL_ACESSO !== 'Administrador');
 
   document.getElementById('modal-func-conteudo').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px">
@@ -350,7 +351,7 @@ async function abrirModalEditarFunc(cod) {
       </div>
       <div class="form-group">
         <label class="form-label">Data de Nascimento</label>
-        <input id="ef-data-nasc" type="date" class="input-field"
+        <input id="ef-data-nasc" type="date" lang="pt-PT" class="input-field"
                value="${dados?.DATA_NASC ? dados.DATA_NASC.toString().slice(0,10) : ''}"/>
       </div>
       <div class="form-group" style="grid-column:1/-1">
@@ -707,7 +708,7 @@ function _wizFuncStep1Html() {
       </div>
       <div class="form-group">
         <label class="form-label">Data de Nascimento</label>
-        <input id="wf1-data-nasc" type="date" class="input-field" value="${d.data_nasc || ''}"/>
+        <input id="wf1-data-nasc" type="date" lang="pt-PT" class="input-field" value="${d.data_nasc || ''}"/>
       </div>
       <div class="form-group">
         <label class="form-label">Contacto *</label>
@@ -724,9 +725,9 @@ function _wizFuncStep1Html() {
 
 function _wizFuncStep2Html() {
   const d   = _wizFuncDados;
-  const fns = d._funcoes || [];
-  const bib = d._bibliotecas || [];
   const isAdmin = utilizadorActual?.NIVEL_ACESSO === 'Administrador';
+  const fns = (d._funcoes || []).filter(f => isAdmin || f.NIVEL_ACESSO !== 'Administrador');
+  const bib = d._bibliotecas || [];
 
   return `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px">
@@ -742,7 +743,7 @@ function _wizFuncStep2Html() {
       </div>
       <div class="form-group">
         <label class="form-label">Data de Contratação *</label>
-        <input id="wf2-data-cont" type="date" class="input-field"
+        <input id="wf2-data-cont" type="date" lang="pt-PT" class="input-field"
                value="${d.data_contratacao || ''}"/>
       </div>
       <div class="form-group">

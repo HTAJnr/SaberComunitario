@@ -362,7 +362,7 @@ async function abrirModalEditarMat(cod) {
           </div>
           <div>
             <label class="form-label">Data Publicação</label>
-            <input id="me-data-pub" type="date" class="input-field" style="width:100%" value="${m.PERIODICO_DATA_PUBLICACAO?m.PERIODICO_DATA_PUBLICACAO.split('T')[0]:''}"/>
+            <input id="me-data-pub" type="date" lang="pt-PT" class="input-field" style="width:100%" value="${m.PERIODICO_DATA_PUBLICACAO?m.PERIODICO_DATA_PUBLICACAO.split('T')[0]:''}"/>
           </div>
           <div>
             <label class="form-label">ISSN</label>
@@ -572,7 +572,7 @@ function _renderizarWzMatStep(step) {
         </div>
         <div style="grid-column:1/-1">
           <label class="form-label">Data Aquisição</label>
-          <input id="wz-data-aq" type="date" class="input-field" style="width:100%" value="${_wzMatDados.data_aquisicao||''}"/>
+          <input id="wz-data-aq" type="date" lang="pt-PT" class="input-field" style="width:100%" value="${_wzMatDados.data_aquisicao||''}"/>
         </div>
       </div>
     </div>`;
@@ -665,7 +665,7 @@ function _wzMatCamposTipo(tipo) {
       </div>
       <div>
         <label class="form-label">Data Publicação *</label>
-        <input id="wz-data-pub" type="date" class="input-field" style="width:100%" value="${_wzMatDados.data_publicacao||''}"/>
+        <input id="wz-data-pub" type="date" lang="pt-PT" class="input-field" style="width:100%" value="${_wzMatDados.data_publicacao||''}"/>
       </div>
       <div>
         <label class="form-label">ISSN</label>

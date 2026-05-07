@@ -469,7 +469,7 @@ async function _wzEmpCarregarStep3() {
     const prazo = await post('/api/emprestimos/calcular-prazo', { num_cartao: nc });
     const det   = prazo.detalhes || {};
     document.getElementById('wzc-conteudo').innerHTML = `
-      <div style="border:0.5px solid var(--border);border-radius:8px;padding:12px;background:white;margin-bottom:12px">
+      <div style="border:0.5px solid var(--border);border-radius:8px;padding:12px;background:var(--surface);margin-bottom:12px">
         <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:8px">Resumo</div>
         <div style="font-size:12px;display:flex;justify-content:space-between;
@@ -482,7 +482,7 @@ async function _wzEmpCarregarStep3() {
           <span style="font-weight:500;color:var(--text-primary)">${_wzEmpMaterial?.TITULO || '—'}</span>
         </div>
       </div>
-      <div style="border:0.5px solid var(--border);border-radius:8px;padding:12px;background:white;
+      <div style="border:0.5px solid var(--border);border-radius:8px;padding:12px;background:var(--surface);
                   margin-bottom:14px;font-family:monospace;font-size:12px;color:var(--text-secondary);line-height:1.9">
         14 dias (base)<br>
         + ${det.geografico || 0} dias (distância)<br>

@@ -219,6 +219,8 @@ function bindEventos() {
     await post('/api/auth/logout', {}).catch(() => {});
     utilizadorActual = null;
     mostrarLogin();
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-senha').value = '';
   });
 
   configurarNavegacao();
@@ -252,7 +254,7 @@ const SECTION_TOPBAR = {
   transferencias: { titulo: 'Transferências' },
   programas:      { titulo: 'Programas' },
   permissoes:     { titulo: 'Permissões' },
-  biblioteca:     { titulo: 'Biblioteca' },
+  biblioteca:     { titulo: 'Bibliotecas' },
 };
 
 function configurarNavPorRole() {
@@ -286,6 +288,7 @@ function configurarNavPorRole() {
     if (labelGestao) labelGestao.style.display = 'none';
   } else if (nivel === 'Coordenador') {
     hide('permissoes');
+    hide('biblioteca');
   }
 }
 

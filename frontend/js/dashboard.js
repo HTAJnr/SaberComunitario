@@ -40,7 +40,7 @@ async function carregarDashboardBib(nivel) {
     const [stats, devHoje, leitores, transferencias] = await Promise.all([
       get('/api/dashboard/biblioteca').catch(() => ({})),
       get('/api/dashboard/devolucoes-hoje').catch(() => []),
-      isAssistente ? Promise.resolve([]) : get('/api/dashboard/leitores-recentes').catch(() => []),
+      get('/api/dashboard/leitores-recentes').catch(() => []),
       podeVerTransf ? get('/api/dashboard/transferencias-recentes').catch(() => []) : Promise.resolve([]),
     ]);
 
@@ -54,7 +54,7 @@ async function carregarDashboardBib(nivel) {
     ];
 
     let cards;
-    if (isAssistente)    cards = allCards.slice(0, 2);
+    if (isAssistente)    cards = allCards.slice(0, 3);
     else if (podeVerTransf) cards = allCards;
     else                 cards = allCards.slice(0, 3); // Bibliotecario: sem transferências
 
@@ -66,20 +66,15 @@ async function carregarDashboardBib(nivel) {
     const linha2      = document.getElementById('dash-linha2');
     const panelTransf = document.getElementById('dash-transferencias')?.closest?.('.panel');
 
-    if (isAssistente) {
-      if (grafico) grafico.style.display = 'none';
-      if (linha2)  linha2.style.display  = 'none';
+    if (grafico) grafico.style.display = isAssistente ? 'none' : '';
+    if (linha2)  linha2.style.display  = '';
+    if (!isAssistente) renderBarChart(stats.emprestimos_semana || []);
+    renderLeitoresRecentes(leitores || []);
+    if (podeVerTransf) {
+      if (panelTransf) panelTransf.style.display = '';
+      renderTransferenciasRecentes(transferencias || []);
     } else {
-      if (grafico) grafico.style.display = '';
-      if (linha2)  linha2.style.display  = '';
-      renderBarChart(stats.emprestimos_semana || []);
-      renderLeitoresRecentes(leitores || []);
-      if (podeVerTransf) {
-        if (panelTransf) panelTransf.style.display = '';
-        renderTransferenciasRecentes(transferencias || []);
-      } else {
-        if (panelTransf) panelTransf.style.display = 'none';
-      }
+      if (panelTransf) panelTransf.style.display = 'none';
     }
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');

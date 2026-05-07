@@ -1,7 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const { getConnection, oracledb } = require('../db');
-const { exigirNivel } = require('../middleware/permissoes');
+const { exigirNivel, autenticar } = require('../middleware/permissoes');
 
 const PROVINCIAS_VALIDAS = [
   'Cabo Delgado', 'Gaza', 'Inhambane', 'Manica',
@@ -34,6 +34,72 @@ async function gerarCodBiblioteca(conn, provincia) {
   const seq = r.rows[0].N + 1;
   return prefix + String(seq).padStart(4, '0');
 }
+
+// GET /api/bibliotecas/minha — qualquer utilizador autenticado (a sua própria biblioteca)
+router.get('/minha', autenticar, async (req, res) => {
+  const cod = req.session.cod_biblioteca;
+  if (!cod) return res.status(404).json({ erro: 'Biblioteca não associada à sessão.' });
+  let conn;
+  try {
+    conn = await getConnection();
+    const bibRes = await conn.execute(
+      `SELECT COD_BIBLIOTECA, NOME_BIBLIOTECA, PROVINCIA, ENDERECO,
+              LATITUDE, LONGITUDE, CONTACTO_BIBLIOTECA,
+              DATA_INAUGURACAO, CAPACIDADE, INFRAESTRUTURA, SERVICOS
+         FROM BIBLIOTECA
+        WHERE COD_BIBLIOTECA = :cod`,
+      { cod },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (bibRes.rows.length === 0) {
+      return res.status(404).json({ erro: 'Biblioteca não encontrada.' });
+    }
+    const [horariosRes, responsaveisRes, statsRes] = await Promise.all([
+      conn.execute(
+        `SELECT ID_HORARIO_BIB, DIA_SEMANA, HORA_ABERTURA, HORA_FECHO
+           FROM HORARIO_BIBLIOTECA
+          WHERE COD_BIBLIOTECA = :cod
+          ORDER BY DIA_SEMANA`,
+        { cod },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      ),
+      conn.execute(
+        `SELECT br.COD_FUNCIONARIO, f.NOME_FUNCIONARIO, br.DATA_INICIO, br.DATA_FIM, br.PAPEL
+           FROM BIBLIOTECA_RESPONSAVEL br
+           JOIN FUNCIONARIO f ON f.COD_FUNCIONARIO = br.COD_FUNCIONARIO
+          WHERE br.COD_BIBLIOTECA = :cod
+          ORDER BY br.DATA_INICIO DESC`,
+        { cod },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      ),
+      conn.execute(
+        `SELECT
+           (SELECT COUNT(*) FROM MATERIAL_BIBLIOGRAFICO WHERE COD_BIBLIOTECA = :cod) AS TOTAL_MATERIAIS,
+           (SELECT COUNT(*) FROM LEITOR WHERE COD_BIBLIOTECA = :cod) AS TOTAL_LEITORES,
+           (SELECT COUNT(*)
+              FROM EMPRESTIMO e
+              JOIN LEITOR l ON l.NUM_CARTAO = e.NUM_CARTAO
+             WHERE l.COD_BIBLIOTECA = :cod
+               AND e.DATA_DEVOLUCAO IS NULL) AS EMPRESTIMOS_ACTIVOS
+           FROM DUAL`,
+        { cod },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      )
+    ]);
+    const bib        = bibRes.rows[0];
+    bib.HORARIOS     = horariosRes.rows;
+    bib.RESPONSAVEIS = responsaveisRes.rows;
+    bib.STATS        = statsRes.rows[0];
+    res.json(bib);
+  } catch (err) {
+    console.error('\x1b[31m[BIBLIOTECAS GET /minha]\x1b[0m');
+    console.error('     BD: BIBLIOTECA + HORARIO_BIBLIOTECA + BIBLIOTECA_RESPONSAVEL + FUNCIONARIO');
+    console.error('     Detalhe:', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
 
 // GET /api/bibliotecas — só Administrador
 router.get('/', exigirNivel('Administrador'), async (req, res) => {

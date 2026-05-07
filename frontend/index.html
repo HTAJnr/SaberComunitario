@@ -32,8 +32,12 @@
     <!-- Região + biblioteca -->
     <div class="sidebar-library">
       <div id="sidebar-region-label" class="nav-section-label" style="padding:6px 0 2px"></div>
-      <div id="sidebar-library-name" class="sidebar-library-name"></div>
-      <div id="sidebar-library-code" class="sidebar-library-code"></div>
+      <div id="sidebar-library-header" onclick="abrirInfoMinhabiblioteca()"
+           style="cursor:pointer;border-radius:6px;padding:4px 6px;margin:-4px -6px;transition:background .15s"
+           onmouseenter="this.style.background='var(--surface-raised)'" onmouseleave="this.style.background=''">
+        <div id="sidebar-library-name" class="sidebar-library-name"></div>
+        <div id="sidebar-library-code" class="sidebar-library-code"></div>
+      </div>
     </div>
 
     <!-- Navegação -->
@@ -88,7 +92,7 @@
       </a>
       <a class="nav-item" data-section="biblioteca">
         <i class="fa-solid fa-building-columns" style="width:14px;text-align:center"></i>
-        Biblioteca
+        Bibliotecas
       </a>
 
     </nav>

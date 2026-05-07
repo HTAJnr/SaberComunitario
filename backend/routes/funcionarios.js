@@ -299,6 +299,19 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
 
   let conn;
   try {
+    if (user.NIVEL_ACESSO === 'Coordenador' && id_funcao) {
+      conn = await getConnection();
+      const funcRes = await conn.execute(
+        `SELECT NIVEL_ACESSO FROM FUNCAO_FUNCIONARIO WHERE ID_FUNCAO = :id`,
+        { id: id_funcao },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      if (funcRes.rows[0]?.NIVEL_ACESSO === 'Administrador') {
+        await conn.close(); conn = null;
+        return res.status(403).json({ erro: 'Coordenador não pode contratar Administrador.' });
+      }
+      await conn.close(); conn = null;
+    }
     const crypto = require('crypto');
     const senhaTemporaria = crypto.randomBytes(6).toString('base64').slice(0, 10);
     const senhaHash = await bcrypt.hash(senhaTemporaria, 10);

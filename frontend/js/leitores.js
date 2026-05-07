@@ -138,7 +138,7 @@ function _renderizarWizardStep() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="form-group">
           <label class="form-label">Data de nascimento *</label>
-          <input id="wz-data-nasc" type="date" class="input-field" value="${_wizardDados.data_nasc || ''}"/>
+          <input id="wz-data-nasc" type="date" lang="pt-PT" class="input-field" value="${_wizardDados.data_nasc || ''}"/>
         </div>
         <div class="form-group">
           <label class="form-label">Género *</label>
@@ -410,9 +410,43 @@ async function _wizardConfirmar() {
   try {
     const res = await post('/api/leitores', body);
     fecharModalLeitor();
-    toast(`Leitor criado. Cartão: ${res.num_cartao}`);
     carregarLeitores();
+    _mostrarModalCartaoLeitor(res.num_cartao, body.nome_completo || '');
   } catch (err) { mostrarErroLeitor(err.message); }
+}
+
+function _mostrarModalCartaoLeitor(numCartao, nome) {
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-cartao-leitor-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--surface);border-radius:12px;padding:28px 24px;width:360px;max-width:94vw;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <i class="fa-solid fa-circle-check" style="color:#22c55e;font-size:20px"></i>
+        <div>
+          <div style="font-weight:600;font-size:14px;color:var(--text-primary)">Leitor registado</div>
+          <div style="font-size:11px;color:var(--text-muted)">${nome}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">
+        Guarde o nº de cartão — é necessário para empréstimos.
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Nº Cartão</div>
+        <div style="display:flex;align-items:center;gap:8px;background:var(--canvas);border:1px solid var(--border);border-radius:6px;padding:8px 10px">
+          <span style="flex:1;font-family:monospace;font-size:13px;font-weight:600;color:var(--text-primary)">${numCartao}</span>
+          <button onclick="navigator.clipboard.writeText('${numCartao}').then(()=>toast('Copiado!'))"
+                  class="btn-ghost btn-sm" title="Copiar">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+      </div>
+      <button onclick="document.getElementById('modal-cartao-leitor-overlay').remove()"
+              class="btn-primary" style="width:100%;margin-top:16px">
+        <i class="fa-solid fa-check" style="margin-right:6px"></i>Fechar
+      </button>
+    </div>`;
+  document.body.appendChild(overlay);
 }
 
 // ── Modal 02-D — Editar leitor ─────────────────
@@ -436,7 +470,7 @@ async function abrirModalEditarLeitor(numCartao) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="form-group">
         <label class="form-label">Data nascimento</label>
-        <input id="ef-data-nasc" type="date" class="input-field" value="${leitor.DATA_NASC ? leitor.DATA_NASC.slice(0,10) : ''}"/>
+        <input id="ef-data-nasc" type="date" lang="pt-PT" class="input-field" value="${leitor.DATA_NASC ? leitor.DATA_NASC.slice(0,10) : ''}"/>
       </div>
       <div class="form-group">
         <label class="form-label">Género</label>
@@ -654,7 +688,7 @@ async function abrirModalSuspensoes(numCartao) {
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
             <div>
               <label class="form-label" style="font-size:11px">Nova data fim</label>
-              <input id="reduzir-data-${s.ID_SUSPENSAO}" type="date" class="input-field" style="font-size:12px"/>
+              <input id="reduzir-data-${s.ID_SUSPENSAO}" type="date" lang="pt-PT" class="input-field" style="font-size:12px"/>
             </div>
             <div>
               <label class="form-label" style="font-size:11px">Justificativa</label>

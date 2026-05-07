@@ -479,7 +479,7 @@ async function abrirModalEditarBib(cod) {
         </div>
         <div class="form-group">
           <label class="form-label">Data de Inauguração</label>
-          <input id="eb-inauguracao" type="date" class="input-field"
+          <input id="eb-inauguracao" type="date" lang="pt-PT" class="input-field"
                  value="${d.DATA_INAUGURACAO ? d.DATA_INAUGURACAO.substring(0,10) : ''}"/>
         </div>
         <div class="form-group" style="grid-column:1/-1">
@@ -627,7 +627,7 @@ function _wizBibStep1Html() {
       </div>
       <div class="form-group">
         <label class="form-label">Data de Inauguração</label>
-        <input id="wb1-inauguracao" type="date" class="input-field"
+        <input id="wb1-inauguracao" type="date" lang="pt-PT" class="input-field"
                value="${d.data_inauguracao || ''}"/>
       </div>
       <div class="form-group" style="grid-column:1/-1">
@@ -723,4 +723,74 @@ async function _submeterWizBib() {
       btn.onclick   = _submeterWizBib;
     }
   }
+}
+
+// ════════════════════════════════════════════════
+// INFO DA BIBLIOTECA DO UTILIZADOR ACTUAL (sidebar)
+// ════════════════════════════════════════════════
+
+async function abrirInfoMinhabiblioteca() {
+  const podEditar = ['Administrador','Coordenador'].includes(utilizadorActual?.NIVEL_ACESSO);
+  let bib;
+  try { bib = await get('/api/bibliotecas/minha'); }
+  catch (err) { toast('Erro ao carregar informação da biblioteca: ' + err.message, 'erro'); return; }
+
+  const fmtHorario = (h) =>
+    `<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border-soft)">
+      <span style="color:var(--text-muted)">${h.DIA_SEMANA}</span>
+      <span>${h.HORA_ABERTURA || '—'} – ${h.HORA_FECHO || '—'}</span>
+     </div>`;
+
+  const stats = bib.STATS || {};
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-minha-bib-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:flex;align-items:center;justify-content:center';
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.innerHTML = `
+    <div style="background:var(--surface);border-radius:12px;width:480px;max-width:96vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 12px;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-weight:600;font-size:15px;color:var(--text-primary)">${bib.NOME_BIBLIOTECA || '—'}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${bib.COD_BIBLIOTECA} · ${bib.PROVINCIA || ''}</div>
+        </div>
+        <button onclick="document.getElementById('modal-minha-bib-overlay').remove()"
+                class="btn-ghost btn-sm" style="font-size:16px">✕</button>
+      </div>
+      <div style="padding:16px 20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+          ${[
+            ['Materiais', stats.TOTAL_MATERIAIS ?? '—'],
+            ['Leitores',  stats.TOTAL_LEITORES  ?? '—'],
+            ['Empréstimos', stats.EMPRESTIMOS_ACTIVOS ?? '—'],
+          ].map(([l,v]) => `
+            <div style="background:var(--canvas);border-radius:8px;padding:10px 12px;text-align:center">
+              <div style="font-size:18px;font-weight:700;color:var(--text-primary)">${v}</div>
+              <div style="font-size:10px;color:var(--text-muted)">${l}</div>
+            </div>`).join('')}
+        </div>
+        ${campoDetalhe('Endereço', bib.ENDERECO)}
+        ${campoDetalhe('Contacto', bib.CONTACTO_BIBLIOTECA)}
+        ${campoDetalhe('Capacidade', bib.CAPACIDADE ? bib.CAPACIDADE + ' lugares' : null)}
+        ${campoDetalhe('Inauguração', bib.DATA_INAUGURACAO ? fmtData(bib.DATA_INAUGURACAO) : null)}
+        ${bib.HORARIOS?.length ? `
+          <div style="margin-top:12px">
+            <div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Horários</div>
+            ${bib.HORARIOS.map(fmtHorario).join('')}
+          </div>` : ''}
+        ${bib.RESPONSAVEIS?.length ? `
+          <div style="margin-top:12px">
+            <div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Responsáveis</div>
+            ${bib.RESPONSAVEIS.map(r => `
+              <div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border-soft)">
+                ${r.NOME_FUNCIONARIO} <span style="color:var(--text-muted)">${r.PAPEL ? '· ' + r.PAPEL : ''}</span>
+              </div>`).join('')}
+          </div>` : ''}
+        ${podEditar ? `
+          <button onclick="document.getElementById('modal-minha-bib-overlay').remove();navegarPara('biblioteca')"
+                  class="btn-secondary" style="width:100%;margin-top:16px">
+            <i class="fa-solid fa-pen" style="margin-right:6px"></i>Gerir Biblioteca
+          </button>` : ''}
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
 }
