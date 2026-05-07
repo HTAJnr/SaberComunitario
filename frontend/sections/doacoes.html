@@ -2,9 +2,11 @@
 
   <!-- Barra de acções -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    <input id="filtro-doac-q" type="text" placeholder="Pesquisar por doador…"
-           oninput="_renderizarTabelaDoacoes()"
-           class="input-field" style="flex:1;min-width:180px;max-width:280px"/>
+    <div class="search-wrapper" style="max-width:280px">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input id="filtro-doac-q" type="text" placeholder="Pesquisar por doador…"
+             oninput="_renderizarTabelaDoacoes()" class="input-field"/>
+    </div>
     <div id="btn-registar-doacao-wrap">
       <button onclick="abrirWizardDoacao()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
         <i class="fa-solid fa-plus" style="margin-right:5px"></i>Registar Doação

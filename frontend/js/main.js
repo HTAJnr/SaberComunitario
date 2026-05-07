@@ -166,6 +166,11 @@ function mostrarApp() {
   document.getElementById('sidebar-avatar').textContent = iniciais(nome);
   document.getElementById('sidebar-library-name').textContent =
     utilizadorActual.NOME_BIBLIOTECA || '';
+  const codeEl = document.getElementById('sidebar-library-code');
+  if (codeEl) {
+    const codBib = utilizadorActual.COD_BIBLIOTECA;
+    codeEl.textContent = codBib ? `${codBib} · ${utilizadorActual.PROVINCIA || ''}` : '';
+  }
 
   const isDemo = String(utilizadorActual.COD_FUNCIONARIO) === '0';
   const regionLabel = document.getElementById('sidebar-region-label');

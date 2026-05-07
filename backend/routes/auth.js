@@ -73,6 +73,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/me', (req, res) => {
+  if (!req.session.funcionario) return res.status(401).json({ erro: 'Não autenticado.' });
+  res.json(req.session.funcionario);
+});
+
 router.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });

@@ -634,6 +634,30 @@ body {
 
 .btn-sm { padding: 4px 10px; font-size: 11px; }
 
+/* ── Search wrapper ── */
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 180px;
+  max-width: 260px;
+}
+.search-wrapper .search-icon {
+  position: absolute;
+  left: 9px;
+  color: var(--text-muted);
+  font-size: 11px;
+  pointer-events: none;
+}
+.search-wrapper .input-field {
+  padding-left: 26px;
+  width: 100%;
+  max-width: none;
+  flex: unset;
+  min-width: unset;
+}
+
 /* ── Input / Select ── */
 .input-field,
 input.input-field,

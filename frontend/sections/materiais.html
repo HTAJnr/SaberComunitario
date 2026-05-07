@@ -2,9 +2,11 @@
 
   <!-- Barra de acções -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    <input id="filtro-mat-q" type="text" placeholder="Pesquisar por título, autor ou ISBN…"
-           oninput="_renderizarTabelaMat()"
-           class="input-field" style="flex:1;min-width:180px;max-width:260px"/>
+    <div class="search-wrapper">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input id="filtro-mat-q" type="text" placeholder="Pesquisar por título, autor ou ISBN…"
+             oninput="_renderizarTabelaMat()" class="input-field"/>
+    </div>
     <select id="filtro-mat-tipo" onchange="_renderizarTabelaMat()" class="input-field">
       <option value="">Todos os tipos</option>
       <option value="Livro">Livro Físico</option>
