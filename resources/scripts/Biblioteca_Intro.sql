@@ -16,16 +16,16 @@
 --   PROGRAMA      : PROBIBXXX20250000
 --
 -- Senhas (bcrypt, cost=10):
---   Ana Sitoe     → AS2026
---   Carlos Nhambiu→ CN2026
---   Beatriz Cossa → BC2026
---   Domingos Mach.→ DM2026
---   Esperança Bila→ EB2026
---   Fernando Mond.→ FM2026
---   Graça Tembe   → GT2026
---   Helder Zunguze→ HZ2026
---   Ilda Macuacua → IM2026
---   Jorge Nuvunga → JN2026
+--   Ana Sitoe     → AS2026@Saber
+--   Carlos Nhambiu→ CN2026@Saber
+--   Beatriz Cossa → BC2026@Saber
+--   Domingos Mach.→ DM2026@Saber
+--   Esperança Bila→ EB2026@Saber
+--   Fernando Mond.→ FM2026@Saber
+--   Graça Tembe   → GT2026@Saber
+--   Helder Zunguze→ HZ2026@Saber
+--   Ilda Macuacua → IM2026@Saber
+--   Jorge Nuvunga → JN2026@Saber
 -- ============================================================
 
 -- ============================================================
@@ -120,7 +120,7 @@ INSERT INTO FUNCAO_FUNCIONARIO (nome_funcao, nivel_acesso) VALUES ('Assistente',
 --    BIBSOF0001: Helder(Coord), Ilda(Biblio), Jorge(Assist)
 -- ============================================================
 
--- Ana Maria Sitoe — Administrador  (senha: AS2026)
+-- Ana Maria Sitoe — Administrador  (senha: AS2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -129,9 +129,9 @@ VALUES ('FUC20250001', 'Ana Maria Sitoe', 'Feminino', TO_DATE('1985-06-12','YYYY
     'Licenciatura em Biblioteconomia', '10 anos em gestão de bibliotecas públicas',
     TO_DATE('2018-03-15','YYYY-MM-DD'),
     'BIBMPC0001', 1, 'ana.sitoe@sabercom.mz',
-    '$2b$10$JCharxPOMG5G1gKHl58kseRCQ5YWL2A3tpGGZiUyZiqxcyX9aV9Qm');
+    '$2b$10$SjRi/FfNalqbt0CQTc2AOusi2PM8C7tGDRfhanQIeQtihSs/NJa.e');
 
--- Carlos Nhambiu — Coordenador BCP  (senha: CN2026)
+-- Carlos Nhambiu — Coordenador BCP  (senha: CN2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -140,9 +140,9 @@ VALUES ('FUC20250002', 'Carlos Nhambiu', 'Masculino', TO_DATE('1980-03-25','YYYY
     'Mestrado em Ciência da Informação', '8 anos como coordenador de biblioteca',
     TO_DATE('2018-03-15','YYYY-MM-DD'),
     'BIBMPC0001', 2, 'carlos.nhambiu@sabercom.mz',
-    '$2b$10$i6d0NUepW.qNWIrBO4gQIu9QFzQgaat7ZkfmWdYzKhPt3tHtsEL7u');
+    '$2b$10$TwqX/ik40poKWy1sxqSjcO3DJaeLJSmprsKlB3wDgcMCfW8zVXKGW');
 
--- Beatriz Cossa — Bibliotecária BCP  (senha: BC2026)
+-- Beatriz Cossa — Bibliotecária BCP  (senha: BC2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -151,9 +151,9 @@ VALUES ('FUC20250003', 'Beatriz Cossa', 'Feminino', TO_DATE('1992-09-08','YYYY-M
     'Licenciatura em Letras', '3 anos como bibliotecária escolar',
     TO_DATE('2019-01-07','YYYY-MM-DD'),
     'BIBMPC0001', 3, 'beatriz.cossa@sabercom.mz',
-    '$2b$10$Dh28.c9TnjUTcQJyChtT8uXa76wcwCIyuksYVKbbnGMPvxRS.XxzO');
+    '$2b$10$KHjHsH8VakqR6I5hdTjWveDwRSv5GdSDAdIpvSKyiWi2lSXtEmL9K');
 
--- Domingos Machava — Assistente BCP  (senha: DM2026)
+-- Domingos Machava — Assistente BCP  (senha: DM2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -162,9 +162,9 @@ VALUES ('FUC20250004', 'Domingos Machava', 'Masculino', TO_DATE('1998-11-30','YY
     'Técnico Médio em Administração', '1 ano em atendimento ao público',
     TO_DATE('2021-02-01','YYYY-MM-DD'),
     'BIBMPC0001', 4, 'domingos.machava@sabercom.mz',
-    '$2b$10$5KZGje/WuoLsPRb.JJUXquHBe1kDL9S37MWR45SMr8U3cIcCQZBTa');
+    '$2b$10$uqMaQZ3KVa8CjodDPckDwORfq.Hrekl/Lm8XYTVlqs.JPbsG48XrW');
 
--- Esperança Bila — Coordenadora BCX  (senha: EB2026)
+-- Esperança Bila — Coordenadora BCX  (senha: EB2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -173,9 +173,9 @@ VALUES ('FUC20250005', 'Esperança Bila', 'Feminino', TO_DATE('1983-04-17','YYYY
     'Licenciatura em Educação', '7 anos em coordenação de programas de leitura',
     TO_DATE('2019-07-04','YYYY-MM-DD'),
     'BIBGZA0001', 2, 'esperanca.bila@sabercom.mz',
-    '$2b$10$5ExeyIS/BNaTRuvASDH0aebdMXMLse43LZlyib8OL0VM8.9fYZe3a');
+    '$2b$10$/ix0jiN1UHr3hwVjZP8Zv.2H6Mcy2np.zvmNjUXucpolbTmmQyJJ.');
 
--- Fernando Mondlane — Bibliotecário BCX  (senha: FM2026)
+-- Fernando Mondlane — Bibliotecário BCX  (senha: FM2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -184,9 +184,9 @@ VALUES ('FUC20250006', 'Fernando Mondlane', 'Masculino', TO_DATE('1990-07-22','Y
     'Licenciatura em Biblioteconomia', '4 anos em bibliotecas municipais',
     TO_DATE('2019-09-01','YYYY-MM-DD'),
     'BIBGZA0001', 3, 'fernando.mondlane@sabercom.mz',
-    '$2b$10$4C0lfpZY/m6zV.YYo/VfZuFauJvaWWe9Zz4UHzj5pc8BwqmabL/82');
+    '$2b$10$4tcufPk.5BbFxVSt44sUyOwQalIIXJBqo/zo5NvNuBthsJ1ZswNNe');
 
--- Graça Tembe — Assistente BCX  (senha: GT2026)
+-- Graça Tembe — Assistente BCX  (senha: GT2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -195,9 +195,9 @@ VALUES ('FUC20250007', 'Graça Tembe', 'Feminino', TO_DATE('1997-02-14','YYYY-MM
     'Técnico Médio em Secretariado', '2 anos em arquivo e documentação',
     TO_DATE('2020-03-02','YYYY-MM-DD'),
     'BIBGZA0001', 4, 'graca.tembe@sabercom.mz',
-    '$2b$10$InU4VUOTqQ8VNDIyigt1Oe2LwZmEC/6dD.Yjy2zP8HlQxc/lfCFM2');
+    '$2b$10$uCsfi0HiGjvss6g4BAHpV.7zhrJbeOKFAyxKISllvx.xpgYCHHE.q');
 
--- Helder Zunguze — Coordenador BCB  (senha: HZ2026)
+-- Helder Zunguze — Coordenador BCB  (senha: HZ2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -206,9 +206,9 @@ VALUES ('FUC20250008', 'Helder Zunguze', 'Masculino', TO_DATE('1979-08-05','YYYY
     'Mestrado em Gestão Cultural', '12 anos em instituições culturais e bibliotecas',
     TO_DATE('2020-01-20','YYYY-MM-DD'),
     'BIBSOF0001', 2, 'helder.zunguze@sabercom.mz',
-    '$2b$10$TAVHzcNlwBtCquvb0AXQmenHvObxD8KYX5S9sAAh2I99O0Q.8fuuG');
+    '$2b$10$CCtyQs3EhI53theKmaR.PeHsxMohBDlP8swLz/koJ416OCkyxUEq.');
 
--- Ilda Macuacua — Bibliotecária BCB  (senha: IM2026)
+-- Ilda Macuacua — Bibliotecária BCB  (senha: IM2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -217,9 +217,9 @@ VALUES ('FUC20250009', 'Ilda Macuacua', 'Feminino', TO_DATE('1994-12-01','YYYY-M
     'Licenciatura em Ciências da Comunicação', '3 anos em gestão de acervos',
     TO_DATE('2020-04-01','YYYY-MM-DD'),
     'BIBSOF0001', 3, 'ilda.macuacua@sabercom.mz',
-    '$2b$10$Fn4kUIcXO0Xz9CEYKZQLr.yb0moqeuZlvihvHEnzCOFRWRXa3QD2W');
+    '$2b$10$2RDwmE2XrKUUwNHz1I1h6uX5hHZZyM.E.qyumfAECgMY7ArlWp.km');
 
--- Jorge Nuvunga — Assistente BCB  (senha: JN2026)
+-- Jorge Nuvunga — Assistente BCB  (senha: JN2026@Saber)
 INSERT INTO FUNCIONARIO (cod_funcionario, nome_funcionario, genero, data_nasc,
     contacto, endereco, formacao, experiencia, data_contratacao,
     cod_biblioteca, id_funcao, email, senha)
@@ -228,7 +228,7 @@ VALUES ('FUC20251000', 'Jorge Nuvunga', 'Masculino', TO_DATE('2000-05-18','YYYY-
     'Técnico Médio em Informática', 'Estagiário',
     TO_DATE('2022-01-10','YYYY-MM-DD'),
     'BIBSOF0001', 4, 'jorge.nuvunga@sabercom.mz',
-    '$2b$10$14i7clm8ioSYcJy4xwtKceFmkBwMdysBwA2J8RJt42T1B8CDBJaX.');
+    '$2b$10$BcG6s8HWGAFW/x0sB6sz.euIp46nNVMqpb7CpmWqRjxH3DCX877yW');
 
 -- ============================================================
 -- 5. HABILIDADES DOS FUNCIONÁRIOS
