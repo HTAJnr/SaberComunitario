@@ -42,15 +42,15 @@
   <!-- Drawer 08-B — Detalhe do Programa -->
   <div id="drawer-prog" class="drawer" style="width:460px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span id="drawer-prog-titulo" style="font-size:13px;font-weight:600;color:#111">Programa</span>
+      <span id="drawer-prog-titulo" style="font-size:13px;font-weight:600;color:var(--text-primary)">Programa</span>
       <button onclick="fecharDrawerProg()"
-              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--text-muted);padding:4px">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
 
     <!-- Tabs do drawer -->
-    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;flex-wrap:wrap">
+    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px;flex-wrap:wrap">
       <button id="dtab-prog-info" class="tab-btn tab-active" style="font-size:11px;padding:4px 10px"
               onclick="mudarTabDrawerProg('info')">Info</button>
       <button id="dtab-prog-niveis" class="tab-btn" style="font-size:11px;padding:4px 10px"

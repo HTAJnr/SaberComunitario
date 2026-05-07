@@ -51,15 +51,15 @@
   <!-- Drawer 11-B — Detalhe da Biblioteca -->
   <div id="drawer-bib" class="drawer" style="width:440px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span style="font-size:13px;font-weight:600;color:#111">Detalhe da Biblioteca</span>
+      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Detalhe da Biblioteca</span>
       <button onclick="fecharDrawerBiblioteca()"
-              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--text-muted);padding:4px">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
 
     <!-- Tabs -->
-    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px">
+    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">
       <button id="dtab-bib-info" class="tab-btn tab-active" onclick="mudarTabDrawerBib('info')">Informação</button>
       <button id="dtab-bib-horarios" class="tab-btn" onclick="mudarTabDrawerBib('horarios')">Horários</button>
       <button id="dtab-bib-responsaveis" class="tab-btn" onclick="mudarTabDrawerBib('responsaveis')">Responsáveis</button>

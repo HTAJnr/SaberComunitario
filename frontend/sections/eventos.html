@@ -56,15 +56,15 @@
   <!-- Drawer 06-B — Detalhe do Evento -->
   <div id="drawer-ev" class="drawer" style="width:420px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span id="drawer-ev-titulo" style="font-size:13px;font-weight:600;color:#111">Evento</span>
+      <span id="drawer-ev-titulo" style="font-size:13px;font-weight:600;color:var(--text-primary)">Evento</span>
       <button onclick="fecharDrawerEvento()"
-              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--text-muted);padding:4px">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
 
     <!-- Tabs do drawer -->
-    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;flex-wrap:wrap">
+    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px;flex-wrap:wrap">
       <button id="dtab-ev-info"          class="tab-btn tab-active" style="font-size:11px;padding:4px 10px"
               onclick="mudarTabDrawerEvento('info')">Info</button>
       <button id="dtab-ev-horarios"      class="tab-btn"            style="font-size:11px;padding:4px 10px"

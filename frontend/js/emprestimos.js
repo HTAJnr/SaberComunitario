@@ -173,7 +173,7 @@ function _renderizarDrawerEmp() {
 
   function campo(label, valor, estilo = '') {
     return `<div style="display:flex;justify-content:space-between;align-items:baseline;
-                        padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
+                        padding:5px 0;border-bottom:0.5px solid var(--border-soft);font-size:12px">
       <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
       <span style="font-weight:500;color:var(--text-primary);text-align:right;${estilo}">${valor}</span>
     </div>`;
@@ -405,9 +405,9 @@ async function _wzEmpPesquisarMaterial() {
       return;
     }
     lista.innerHTML =
-      `<div style="border:0.5px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:8px">` +
+      `<div style="border:0.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:8px">` +
       _wzEmpMateriaisRes.map((m, i) => `
-        <div class="ctx-menu-item" style="border-bottom:0.5px solid #f0f0f0" onclick="_wzEmpSelecionarMaterial(${i})">
+        <div class="ctx-menu-item" style="border-bottom:0.5px solid var(--border-soft)" onclick="_wzEmpSelecionarMaterial(${i})">
           <div style="font-weight:500;font-size:12px;color:var(--text-primary)">${m.TITULO || '—'}</div>
           <div style="font-size:10px;color:var(--text-muted)">
             ${m.AUTOR ? m.AUTOR + ' · ' : ''}
@@ -469,11 +469,11 @@ async function _wzEmpCarregarStep3() {
     const prazo = await post('/api/emprestimos/calcular-prazo', { num_cartao: nc });
     const det   = prazo.detalhes || {};
     document.getElementById('wzc-conteudo').innerHTML = `
-      <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:12px;background:white;margin-bottom:12px">
+      <div style="border:0.5px solid var(--border);border-radius:8px;padding:12px;background:white;margin-bottom:12px">
         <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:8px">Resumo</div>
         <div style="font-size:12px;display:flex;justify-content:space-between;
-                    padding:4px 0;border-bottom:0.5px solid #f0f0f0">
+                    padding:4px 0;border-bottom:0.5px solid var(--border-soft)">
           <span style="color:var(--text-muted)">Leitor</span>
           <span style="font-weight:500;color:var(--text-primary)">${_wzEmpLeitor.NOME_COMPLETO || _wzEmpLeitor.NOME_LEITOR || nc}</span>
         </div>
@@ -482,7 +482,7 @@ async function _wzEmpCarregarStep3() {
           <span style="font-weight:500;color:var(--text-primary)">${_wzEmpMaterial?.TITULO || '—'}</span>
         </div>
       </div>
-      <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:12px;background:white;
+      <div style="border:0.5px solid var(--border);border-radius:8px;padding:12px;background:white;
                   margin-bottom:14px;font-family:monospace;font-size:12px;color:var(--text-secondary);line-height:1.9">
         14 dias (base)<br>
         + ${det.geografico || 0} dias (distância)<br>
@@ -565,13 +565,13 @@ function _renderizarFormDevolucao() {
 
   document.getElementById('modal-emp-conteudo').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-      <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:10px;background:var(--surface-raised)">
+      <div style="border:0.5px solid var(--border);border-radius:8px;padding:10px;background:var(--surface-raised)">
         <div style="font-size:9px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:4px">Leitor</div>
         <div style="font-weight:600;font-size:12px;color:var(--text-primary)">${e.NOME_LEITOR || '—'}</div>
         <div style="font-family:monospace;font-size:10px;color:var(--text-muted)">${e.NUM_CARTAO || '—'}</div>
       </div>
-      <div style="border:0.5px solid #e5e5e5;border-radius:8px;padding:10px;background:var(--surface-raised)">
+      <div style="border:0.5px solid var(--border);border-radius:8px;padding:10px;background:var(--surface-raised)">
         <div style="font-size:9px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:4px">Material</div>
         <div style="font-weight:600;font-size:12px;color:var(--text-primary);

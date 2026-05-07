@@ -2,6 +2,12 @@
 -- SABER COMUNITÁRIO — DADOS DE TESTE v2
 -- Executar DEPOIS de: Create + Sequences + Views + Functions + Procedures + Triggers + Indexes
 --
+-- ACENTOS: Para evitar corrupção de caracteres, execute com:
+--   Windows CMD:  set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+--   Linux/CentOS: export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+-- Depois: sqlplus user/pass@XE @Biblioteca_Intro.sql
+-- O ficheiro deve estar guardado em UTF-8 (sem BOM).
+--
 -- Formatos de código (conforme DDv3):
 --   BIBLIOTECA    : BIBXXX0000   (XXX = código de província)
 --   FUNCIONARIO   : FUC20250000

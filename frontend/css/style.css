@@ -802,6 +802,8 @@ select.input-field option {
   border: 0.5px solid #5c2020;
 }
 
+#toast.hidden { display: none; }
+
 #toast {
   font-family: system-ui, -apple-system, sans-serif;
   transition: opacity 0.3s;

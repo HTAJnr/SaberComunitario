@@ -562,7 +562,7 @@ async function abrirModalAlterarStatus(numCartao, statusActual) {
     <div style="margin-bottom:14px">
       <span style="font-size:12px;color:var(--text-muted)">Estado actual: </span>${bdgEstado(statusActual)}
     </div>
-    ${temSuspActive ? `<div style="background:#fff0f0;border:1px solid #ffc0c0;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#f85149">
+    ${temSuspActive ? `<div style="background:#2d1015;border:1px solid #5c2020;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#f85149">
       <i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>
       Este leitor tem <b>${leitor.SUSPENSOES_ATIVAS.length}</b> suspensão(ões) activa(s). Não é possível activar até estas terminarem.
     </div>` : ''}

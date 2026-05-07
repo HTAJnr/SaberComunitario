@@ -143,7 +143,7 @@ function _renderizarDrawerTransf() {
 
   function campo(label, valor, estilo = '') {
     return `<div style="display:flex;justify-content:space-between;align-items:baseline;
-                        padding:5px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px">
+                        padding:5px 0;border-bottom:0.5px solid var(--border-soft);font-size:12px">
       <span style="color:var(--text-muted);flex-shrink:0;margin-right:8px">${label}</span>
       <span style="text-align:right;${estilo}">${valor ?? '—'}</span>
     </div>`;
@@ -266,12 +266,12 @@ async function _pesquisarMaterialTransf() {
       lista.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">Nenhum resultado.</p>';
       return;
     }
-    lista.innerHTML = `<div style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;margin-top:2px">
+    lista.innerHTML = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:2px">
       ${_transfMatRes.map(m => `
         <div onclick="_selecionarMaterialTransf('${m.COD_MATERIAL}','${(m.TITULO || '').replace(/'/g,"\\'")}','${(m.BIBLIOTECA_NOME || '').replace(/'/g,"\\'")}' )"
              style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border-soft);
                     display:flex;justify-content:space-between;align-items:center"
-             onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+             onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
           <span><strong class="mono">${m.COD_MATERIAL}</strong> — ${m.TITULO || '—'}</span>
           <span style="color:var(--text-muted);font-size:11px">${m.BIBLIOTECA_NOME || ''}</span>
         </div>`).join('')}

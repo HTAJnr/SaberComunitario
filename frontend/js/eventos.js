@@ -210,7 +210,7 @@ async function _renderizarDrawerHorariosEvento(id) {
     conteudo.innerHTML = `
       <div style="font-size:12px">
         ${rows.map(h => `
-          <div style="padding:8px 0;border-bottom:0.5px solid #f0f0f0">
+          <div style="padding:8px 0;border-bottom:0.5px solid var(--border-soft)">
             <div style="font-weight:500">${h.DIA_SEMANA || '—'}
               ${h.DATA_OCORRENCIA ? `<span style="color:var(--text-muted);font-weight:400"> — ${h.DATA_OCORRENCIA}</span>` : ''}
             </div>
@@ -238,11 +238,11 @@ async function _renderizarDrawerParticipantesEvento(id) {
           const pres   = p.PRESENCA_CONFIRMACAO === 'S';
           const bdgPres = pres
             ? '<span class="bdg bdg-devolvido" style="font-size:10px">Presente</span>'
-            : '<span class="bdg" style="font-size:10px;background:#e5e7eb;color:var(--text-secondary)">Pendente</span>';
+            : '<span class="bdg" style="font-size:10px;background:var(--surface-hover);color:var(--text-secondary)">Pendente</span>';
           const toggleLabel = pres ? 'Anular presença' : 'Confirmar presença';
           return `
             <div style="display:flex;align-items:center;justify-content:space-between;
-                        padding:8px 0;border-bottom:0.5px solid #f0f0f0;gap:6px">
+                        padding:8px 0;border-bottom:0.5px solid var(--border-soft);gap:6px">
               <div style="min-width:0">
                 <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                   ${p.NOME_LEITOR || '—'}
@@ -299,7 +299,7 @@ async function _renderizarDrawerAvaliacoesEvento(id) {
     conteudo.innerHTML = `
       <div style="font-size:12px">
         ${rows.map(a => `
-          <div style="padding:8px 0;border-bottom:0.5px solid #f0f0f0">
+          <div style="padding:8px 0;border-bottom:0.5px solid var(--border-soft)">
             <div style="display:flex;justify-content:space-between;align-items:baseline">
               <span style="font-weight:500">${a.NOME_LEITOR || a.NUM_CARTAO}</span>
               <span style="color:#d29922;font-size:14px">${estrelas(a.NOTA || 0)}</span>
@@ -468,7 +468,7 @@ async function _renderizarFormEvento(ev) {
                ${bibOpts}
              </select>`
           : `<input id="evf-bib" type="hidden" value="${utilizadorActual?.COD_BIBLIOTECA || ''}"/>
-             <div class="input-field" style="background:#f9fafb;color:var(--text-muted);cursor:default">
+             <div class="input-field" style="background:var(--surface-raised);color:var(--text-muted);cursor:default">
                ${utilizadorActual?.NOME_BIBLIOTECA || 'Biblioteca própria'}
              </div>`}
       </div>

@@ -98,15 +98,15 @@
   <!-- Drawer 07-B — Detalhe da Doação -->
   <div id="drawer-doac" class="drawer" style="width:420px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span id="drawer-doac-titulo" style="font-size:13px;font-weight:600;color:#111">Doação</span>
+      <span id="drawer-doac-titulo" style="font-size:13px;font-weight:600;color:var(--text-primary)">Doação</span>
       <button onclick="fecharDrawerDoacao()"
-              style="background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px">
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--text-muted);padding:4px">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
 
     <!-- Tabs do drawer -->
-    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;flex-wrap:wrap">
+    <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px;flex-wrap:wrap">
       <button id="dtab-doac-info" class="tab-btn tab-active" style="font-size:11px;padding:4px 10px"
               onclick="mudarTabDrawerDoacao('info')">Info</button>
       <button id="dtab-doac-itens" class="tab-btn" style="font-size:11px;padding:4px 10px"
@@ -152,21 +152,21 @@
       </div>
 
       <!-- Indicador de steps -->
-      <div style="display:flex;margin-bottom:18px;border-bottom:1px solid #e5e7eb;padding-bottom:14px">
+      <div style="display:flex;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px">
         <div id="wiz-step-1-ind" style="flex:1;text-align:center;font-size:11px;font-weight:600">
           <div style="width:22px;height:22px;border-radius:50%;background:#6366f1;color:#fff;
                       display:inline-flex;align-items:center;justify-content:center;margin-bottom:3px;font-size:11px">1</div><br>
           <span style="color:#6366f1">Doador</span>
         </div>
         <div id="wiz-step-2-ind" style="flex:1;text-align:center;font-size:11px;font-weight:600">
-          <div style="width:22px;height:22px;border-radius:50%;background:#e5e7eb;color:#888;
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--surface-hover);color:var(--text-muted);
                       display:inline-flex;align-items:center;justify-content:center;margin-bottom:3px;font-size:11px">2</div><br>
-          <span style="color:#aaa">Itens</span>
+          <span style="color:var(--text-muted)">Itens</span>
         </div>
         <div id="wiz-step-3-ind" style="flex:1;text-align:center;font-size:11px;font-weight:600">
-          <div style="width:22px;height:22px;border-radius:50%;background:#e5e7eb;color:#888;
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--surface-hover);color:var(--text-muted);
                       display:inline-flex;align-items:center;justify-content:center;margin-bottom:3px;font-size:11px">3</div><br>
-          <span style="color:#aaa">Confirmar</span>
+          <span style="color:var(--text-muted)">Confirmar</span>
         </div>
       </div>
 

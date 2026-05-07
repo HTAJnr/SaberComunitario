@@ -232,7 +232,7 @@ function _renderizarNiveisProg(d) {
     return;
   }
   conteudo.innerHTML = niveis.map((n, i) => `
-    <div style="padding:10px 0;border-bottom:0.5px solid #f0f0f0">
+    <div style="padding:10px 0;border-bottom:0.5px solid var(--border-soft)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
         <span style="width:22px;height:22px;border-radius:50%;background:#6366f1;color:#fff;
                      display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0">${n.ORDEM ?? i + 1}</span>
@@ -498,7 +498,7 @@ function _renderizarNiveisWiz() {
     return;
   }
   lista.innerHTML = _progNiveisWiz.map((n, i) => `
-    <div style="border:1px solid #e5e7eb;border-radius:6px;padding:10px;margin-bottom:8px">
+    <div style="border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
       <div style="display:flex;gap:8px;align-items:flex-start">
         <div style="flex:1">
           <input type="text" class="input-field" placeholder="Nome do nível *"

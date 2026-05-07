@@ -144,6 +144,7 @@ router.get('/rede', exigirNivel('Administrador'), async (req, res) => {
          TOTAL_BIBLIOTECAS_ATIVAS   AS TOTAL_BIBLIOTECAS,
          TOTAL_LEITORES_CADASTRADOS AS TOTAL_LEITORES,
          TOTAL_EMPRESTIMOS_ATIVOS   AS EMPRESTIMOS_ATIVOS,
+         TOTAL_MATERIAIS_ACERVO     AS MATERIAIS_ACERVO,
          VALOR_MULTAS_PENDENTES     AS TOTAL_MULTAS_POR_COBRAR
        FROM vw_metricas_sistema`,
       [],
@@ -181,6 +182,7 @@ router.get('/rede', exigirNivel('Administrador'), async (req, res) => {
       total_bibliotecas:        m.TOTAL_BIBLIOTECAS        || 0,
       total_leitores:           m.TOTAL_LEITORES            || 0,
       emprestimos_ativos:       m.EMPRESTIMOS_ATIVOS        || 0,
+      materiais_acervo:         m.MATERIAIS_ACERVO          || 0,
       emprestimos_vencidos:     vencResult.rows[0]?.TOTAL   || 0,
       transferencias_pendentes: transfResult.rows[0]?.TOTAL || 0,
       materiais_perdidos_mes:   perdidosResult.rows[0]?.TOTAL || 0,

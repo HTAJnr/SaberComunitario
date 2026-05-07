@@ -261,7 +261,7 @@ function _renderizarTabHistoricoMat(m) {
       </thead>
       <tbody>
         ${emp.map(e => `
-          <tr style="border-bottom:0.5px solid #f0f0f0">
+          <tr style="border-bottom:0.5px solid var(--border-soft)">
             <td style="padding:5px 4px;font-family:monospace;font-size:10px">${e.NUM_CARTAO||'—'}</td>
             <td style="padding:5px 4px">${fmtData(e.DATA_RETIRADA)}</td>
             <td style="padding:5px 4px">${fmtData(e.PRAZO_DEVOLUCAO)}</td>

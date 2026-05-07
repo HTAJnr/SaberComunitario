@@ -28,7 +28,7 @@ function _badgeTipoDoador(tipo) {
 
 function _badgeCertificado(numCert) {
   if (numCert) return `<span class="bdg bdg-devolvido" style="font-size:10px">Emitido</span>`;
-  return `<span class="bdg" style="font-size:10px;background:#e5e7eb;color:var(--text-secondary)">Pendente</span>`;
+  return `<span class="bdg" style="font-size:10px;background:var(--surface-hover);color:var(--text-secondary)">Pendente</span>`;
 }
 
 // ── Tab switching ──────────────────────────────
@@ -201,7 +201,7 @@ function _renderizarDrawerItensDoacao(d) {
   conteudo.innerHTML = `
     <div style="font-size:12px">
       ${itens.map(i => `
-        <div style="padding:8px 0;border-bottom:0.5px solid #f0f0f0">
+        <div style="padding:8px 0;border-bottom:0.5px solid var(--border-soft)">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
             <span style="font-weight:500">${i.NOME_BIBLIOTECA || i.COD_BIBLIOTECA || '—'}</span>
             <span style="color:#3fb27a">${fmtMoeda((i.VALOR_ESTIMADO || 0) * (i.QUANTIDADE || 1))}</span>
@@ -228,7 +228,7 @@ function _renderizarDrawerCertsDoacao(d) {
   conteudo.innerHTML = `
     <div style="font-size:12px">
       ${certs.map(c => `
-        <div style="padding:8px 0;border-bottom:0.5px solid #f0f0f0">
+        <div style="padding:8px 0;border-bottom:0.5px solid var(--border-soft)">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
             <span style="font-family:monospace;font-weight:500;color:#a78bfa">${c.NUM_CERTIFICADO || '—'}</span>
             <span class="bdg bdg-devolvido" style="font-size:10px">${c.TIPO_CERTIFICADO || '—'}</span>
@@ -340,8 +340,8 @@ function _atualizarIndicadorWiz(step) {
       circle.style.background = '#6366f1'; circle.style.color = '#fff';
       if (label) label.style.color = '#6366f1';
     } else {
-      circle.style.background = '#e5e7eb'; circle.style.color = '#888';
-      if (label) label.style.color = '#aaa';
+      circle.style.background = 'var(--surface-hover)'; circle.style.color = 'var(--text-muted)';
+      if (label) label.style.color = 'var(--text-muted)';
     }
   });
 }
@@ -469,13 +469,13 @@ async function _wizPesquisarDoador() {
       return;
     }
     resultados.innerHTML = `
-      <div style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;
+      <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;
                   font-size:12px;max-height:160px;overflow-y:auto">
         ${rows.map(r => `
           <div onclick="_wizSelecionarDoador(${r.ID_DOADOR},'${(r.NOME||'').replace(/'/g,"\\'")}','${r.TIPO||''}')"
-               style="padding:8px 10px;cursor:pointer;border-bottom:0.5px solid #f0f0f0;
+               style="padding:8px 10px;cursor:pointer;border-bottom:0.5px solid var(--border-soft);
                       display:flex;justify-content:space-between;align-items:center"
-               onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+               onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
             <span style="font-weight:500">${r.NOME || '—'}</span>
             <span class="bdg" style="font-size:10px">${r.TIPO === 'INDIVIDUAL' ? 'Individual' : 'Institucional'}</span>
           </div>`).join('')}

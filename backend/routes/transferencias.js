@@ -47,7 +47,7 @@ router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =>
       `SELECT * FROM (
          SELECT t.*, ROWNUM AS RN FROM (
            SELECT id_transferencia, estado_transferencia, motivo,
-                  data_solicitacao, data_aprovacao_destino, data_conclusao, dias_pendente,
+                  data_solicitacao, data_aprovacao, data_conclusao, dias_pendente,
                   material_titulo, material_codigo, material_estado,
                   biblioteca_origem_nome, biblioteca_origem_localizacao,
                   biblioteca_destino_nome, biblioteca_destino_localizacao,

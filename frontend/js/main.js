@@ -30,8 +30,9 @@ const del   = (p)    => api(p, { method: 'DELETE' });
 // ── Toast ─────────────────────────────────────
 function toast(msg, tipo = 'ok') {
   const t = document.getElementById('toast');
-  const icon = tipo === 'ok' ? 'fa-circle-check' : 'fa-circle-xmark';
-  t.className = tipo === 'ok' ? 'toast-ok' : 'toast-erro';
+  const ok = tipo === 'ok' || tipo === 'sucesso';
+  const icon = ok ? 'fa-circle-check' : 'fa-circle-xmark';
+  t.className = ok ? 'toast-ok' : 'toast-erro';
   t.innerHTML = `<i class="fa-solid ${icon}"></i><span>${msg}</span>`;
   t.classList.remove('hidden');
   setTimeout(() => t.classList.add('hidden'), 3500);
@@ -346,8 +347,8 @@ async function _carregarNotificacoes() {
     const stats = await get('/api/dashboard/biblioteca');
     const pendentes = [];
 
-    const emp = Number(stats.EMPRESTIMOS_VENCIDOS || 0);
-    const trf = Number(stats.TRANSFERENCIAS_PENDENTES || 0);
+    const emp = Number(stats.emprestimos_vencidos || 0);
+    const trf = Number(stats.transferencias_pendentes || 0);
 
     const badgeEmp = document.getElementById('nav-badge-emprestimos');
     if (badgeEmp) {

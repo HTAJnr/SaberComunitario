@@ -18,11 +18,11 @@ async function carregarDashboardAdmin() {
   try {
     const stats = await get('/api/dashboard/rede').catch(() => ({}));
     const cards = [
-      { label: 'Bibliotecas activas',        valor: stats.TOTAL_BIBLIOTECAS         ?? '—' },
-      { label: 'Empréstimos activos na rede', valor: stats.EMPRESTIMOS_ATIVOS         ?? '—' },
-      { label: 'Transferências pendentes',   valor: stats.TRANSFERENCIAS_PENDENTES   ?? '—',
-        alerta: (stats.TRANSFERENCIAS_PENDENTES > 0) ? 'laranja' : null },
-      { label: 'Materiais no acervo',         valor: stats.MATERIAIS_ACERVO            ?? '—' },
+      { label: 'Bibliotecas activas',        valor: stats.total_bibliotecas         ?? '—' },
+      { label: 'Empréstimos activos na rede', valor: stats.emprestimos_ativos         ?? '—' },
+      { label: 'Transferências pendentes',   valor: stats.transferencias_pendentes   ?? '—',
+        alerta: (stats.transferencias_pendentes > 0) ? 'laranja' : null },
+      { label: 'Materiais no acervo',         valor: stats.materiais_acervo            ?? '—' },
     ];
     document.getElementById('dash-rede-stats').innerHTML = cards.map(renderStatCard).join('');
     const bibs = await get('/api/bibliotecas').catch(() => []);
@@ -43,12 +43,12 @@ async function carregarDashboardBib(nivel) {
     ]);
 
     const allCards = [
-      { label: 'Empréstimos activos',       valor: stats.EMPRESTIMOS_ATIVOS      ?? '—' },
-      { label: 'Em atraso',                  valor: stats.EMPRESTIMOS_VENCIDOS     ?? '—',
-        alerta: (stats.EMPRESTIMOS_VENCIDOS > 0) ? 'vermelho' : null },
-      { label: 'Materiais disponíveis',      valor: stats.MATERIAIS_DISPONIVEIS    ?? '—' },
-      { label: 'Transferências pendentes',   valor: stats.TRANSFERENCIAS_PENDENTES ?? '—',
-        alerta: (stats.TRANSFERENCIAS_PENDENTES > 0) ? 'laranja' : null },
+      { label: 'Empréstimos activos',       valor: stats.emprestimos_ativos      ?? '—' },
+      { label: 'Em atraso',                  valor: stats.emprestimos_vencidos     ?? '—',
+        alerta: (stats.emprestimos_vencidos > 0) ? 'vermelho' : null },
+      { label: 'Materiais disponíveis',      valor: stats.materiais_disponiveis    ?? '—' },
+      { label: 'Transferências pendentes',   valor: stats.transferencias_pendentes ?? '—',
+        alerta: (stats.transferencias_pendentes > 0) ? 'laranja' : null },
     ];
     document.getElementById('dash-stats').innerHTML =
       (isAssistente ? allCards.slice(0, 2) : allCards).map(renderStatCard).join('');
@@ -63,7 +63,7 @@ async function carregarDashboardBib(nivel) {
     } else {
       if (grafico) grafico.style.display = '';
       if (linha2)  linha2.style.display  = '';
-      renderBarChart(stats.EMPRESTIMOS_SEMANA || []);
+      renderBarChart(stats.emprestimos_semana || []);
       renderLeitoresRecentes(leitores || []);
       renderTransferenciasRecentes(transferencias || []);
     }
@@ -102,7 +102,7 @@ function renderDevolucoes(lista) {
     else if (diff === 0) { badgeTxt = 'Hoje';    badgeCls = 'bdg-suspenso'; }
     else                 { badgeTxt = 'Pontual'; badgeCls = 'bdg-activo'; }
     return `
-      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid #f0f0f0">
+      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border-soft)">
         <div class="avatar-initials" style="width:26px;height:26px;font-size:9px;flex-shrink:0">${ini}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.NOME_LEITOR || '—'}</div>
@@ -192,7 +192,7 @@ function renderTransferenciasRecentes(lista) {
     const outra   = enviada ? (t.NOME_DESTINO || t.NOME_BIBLIOTECA_DESTINO) : (t.NOME_ORIGEM || t.NOME_BIBLIOTECA_ORIGEM);
     const titulo  = (t.TITULO || '—').substring(0, 30);
     return `
-      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid #f0f0f0">
+      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border-soft)">
         <div style="font-size:16px;color:${cor};flex-shrink:0;width:16px;text-align:center">${seta}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${titulo}</div>
