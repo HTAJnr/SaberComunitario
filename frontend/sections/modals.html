@@ -80,6 +80,43 @@
   </div>
 </div>
 
+<!-- ════════════ MODAL PERFIL ════════════ -->
+<div id="modal-perfil-overlay" class="modal-overlay hidden" onclick="fecharModalPerfil(event)">
+  <div class="modal" style="width:440px">
+    <div class="modal-header">
+      <span class="modal-title">
+        <i class="fa-solid fa-circle-user" style="margin-right:8px;color:var(--theme-accent)"></i>Meu Perfil
+      </span>
+      <button onclick="fecharModalPerfil()" class="modal-close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button id="ptab-info" class="tab-btn tab-active" style="font-size:12px;padding:4px 12px"
+              onclick="_mudarTabPerfil('info')">
+        <i class="fa-solid fa-user" style="margin-right:4px"></i>Perfil
+      </button>
+      <button id="ptab-senha" class="tab-btn" style="font-size:12px;padding:4px 12px"
+              onclick="_mudarTabPerfil('senha')">
+        <i class="fa-solid fa-lock" style="margin-right:4px"></i>Senha
+      </button>
+    </div>
+    <div id="modal-perfil-erro" class="modal-erro hidden">
+      <i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>
+      <span id="modal-perfil-erro-msg"></span>
+    </div>
+    <div id="modal-perfil-conteudo" style="padding:2px 0"></div>
+    <div id="modal-perfil-footer" class="modal-footer">
+      <button onclick="fecharModalPerfil()" class="btn-ghost">
+        <i class="fa-solid fa-xmark" style="margin-right:4px"></i>Cancelar
+      </button>
+      <button onclick="_submeterPerfil()" class="btn-primary">
+        <i class="fa-solid fa-floppy-disk" style="margin-right:4px"></i>Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════ MODAL CONFIRMAÇÃO ════════════ -->
 <div id="modal-confirm" class="modal-confirm hidden">
   <div class="modal-confirm-box">

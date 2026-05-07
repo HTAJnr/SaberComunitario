@@ -219,7 +219,7 @@ router.get('/:cod', autenticar, async (req, res) => {
     );
 
     const funcResult = await conn.execute(
-      `SELECT pf.papel, f.cod_funcionario, f.nome_completo
+      `SELECT pf.papel, f.cod_funcionario, f.nome_funcionario AS nome_completo
          FROM PROGRAMA_FUNCIONARIO pf
          JOIN FUNCIONARIO f ON f.cod_funcionario = pf.cod_funcionario
         WHERE pf.cod_programa = :cod`,

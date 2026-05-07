@@ -482,6 +482,9 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
 
 // PATCH /:id/acesso — altera nível de acesso (muda ID_FUNCAO); só Administrador
 router.patch('/:id/acesso', exigirNivel('Administrador'), async (req, res) => {
+  if (String(req.params.id) === String(req.session.cod_funcionario)) {
+    return res.status(403).json({ erro: 'Não pode alterar as suas próprias permissões.' });
+  }
   const { id_funcao } = req.body;
   if (!id_funcao) {
     return res.status(400).json({ erro: 'id_funcao é obrigatório.' });

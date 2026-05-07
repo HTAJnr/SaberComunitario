@@ -151,6 +151,8 @@ function mostrarLogin() {
   document.documentElement.className = 'theme-sul';
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app').classList.add('hidden');
+  const btnLogin = document.getElementById('login-btn');
+  if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Entrar'; }
 }
 
 function mostrarApp() {
@@ -185,7 +187,6 @@ function mostrarApp() {
   document.getElementById('topbar-region-pill').textContent = `${regiao} · ${prov}`;
 
   configurarNavPorRole();
-  configurarNavegacao();
   _carregarNotificacoes();
   navegarPara(location.hash.slice(1) || 'dashboard');
 }
@@ -219,6 +220,8 @@ function bindEventos() {
     utilizadorActual = null;
     mostrarLogin();
   });
+
+  configurarNavegacao();
 }
 
 // ════════════════════════════════════════════════
@@ -392,6 +395,126 @@ document.addEventListener('click', (e) => {
     panel.classList.add('hidden');
   }
 });
+
+// ════════════════════════════════════════════════
+// MODAL PERFIL
+// ════════════════════════════════════════════════
+let _perfilTab = 'info';
+
+async function abrirModalPerfil() {
+  _perfilTab = 'info';
+  const overlay = document.getElementById('modal-perfil-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('hidden');
+  document.getElementById('modal-perfil-erro').classList.add('hidden');
+  _mudarTabPerfil('info');
+
+  const isDemo = String(utilizadorActual?.COD_FUNCIONARIO) === '0';
+  const conteudo = document.getElementById('modal-perfil-conteudo');
+  if (isDemo) {
+    conteudo.innerHTML = `
+      <div style="padding:16px;background:var(--surface-raised);border-radius:8px;font-size:12px;color:var(--text-secondary);line-height:1.8">
+        <div><b>Nome:</b> ${utilizadorActual.NOME_FUNCIONARIO || '—'}</div>
+        <div><b>Email:</b> ${utilizadorActual.EMAIL || '—'}</div>
+        <div><b>Função:</b> ${utilizadorActual.FUNCAO || '—'}</div>
+        <div><b>Nível:</b> ${utilizadorActual.NIVEL_ACESSO || '—'}</div>
+      </div>
+      <p style="margin-top:12px;font-size:11px;color:var(--text-muted);text-align:center">Conta demo — edição desactivada.</p>`;
+    document.getElementById('modal-perfil-footer').style.display = 'none';
+    return;
+  }
+  document.getElementById('modal-perfil-footer').style.display = '';
+
+  try {
+    const d = await get('/api/funcionarios/me');
+    conteudo.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input class="input-field" value="${d.NOME_FUNCIONARIO || ''}" disabled style="opacity:.6"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="input-field" value="${d.EMAIL || ''}" disabled style="opacity:.6"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contacto</label>
+        <input id="perfil-contacto" class="input-field" value="${d.CONTACTO || ''}"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Endereço</label>
+        <input id="perfil-endereco" class="input-field" value="${d.ENDERECO || ''}"/>
+      </div>`;
+  } catch (err) {
+    conteudo.innerHTML = `<p style="color:#f85149;font-size:12px;padding:16px;text-align:center">Erro ao carregar perfil: ${err.message}</p>`;
+  }
+}
+
+function fecharModalPerfil(e) {
+  const overlay = document.getElementById('modal-perfil-overlay');
+  if (e && e.target !== overlay) return;
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function _mudarTabPerfil(tab) {
+  _perfilTab = tab;
+  ['info','senha'].forEach(t => {
+    document.getElementById(`ptab-${t}`)?.classList.toggle('tab-active', t === tab);
+  });
+  document.getElementById('modal-perfil-erro').classList.add('hidden');
+
+  const isDemo = String(utilizadorActual?.COD_FUNCIONARIO) === '0';
+  const footer = document.getElementById('modal-perfil-footer');
+  if (isDemo) { footer.style.display = 'none'; return; }
+  footer.style.display = '';
+
+  if (tab === 'senha') {
+    document.getElementById('modal-perfil-conteudo').innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Senha actual *</label>
+        <input id="perfil-senha-atual" type="password" class="input-field" placeholder="Senha actual"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nova senha *</label>
+        <input id="perfil-nova-senha" type="password" class="input-field" placeholder="Mínimo 6 caracteres"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar nova senha *</label>
+        <input id="perfil-confirmar-senha" type="password" class="input-field" placeholder="Repetir nova senha"/>
+      </div>`;
+  } else {
+    abrirModalPerfil();
+  }
+}
+
+async function _submeterPerfil() {
+  document.getElementById('modal-perfil-erro').classList.add('hidden');
+  if (_perfilTab === 'senha') {
+    const atual  = document.getElementById('perfil-senha-atual')?.value || '';
+    const nova   = document.getElementById('perfil-nova-senha')?.value || '';
+    const conf   = document.getElementById('perfil-confirmar-senha')?.value || '';
+    if (!atual || !nova) { _mostrarErroPerfil('Preencha a senha actual e a nova senha.'); return; }
+    if (nova !== conf)   { _mostrarErroPerfil('As senhas não coincidem.'); return; }
+    if (nova.length < 6) { _mostrarErroPerfil('A nova senha deve ter pelo menos 6 caracteres.'); return; }
+    try {
+      await patch('/api/funcionarios/me/senha', { senha_atual: atual, nova_senha: nova });
+      fecharModalPerfil();
+      toast('Senha alterada com sucesso.', 'sucesso');
+    } catch (err) { _mostrarErroPerfil(err.message); }
+  } else {
+    const contacto = document.getElementById('perfil-contacto')?.value.trim() || null;
+    const endereco = document.getElementById('perfil-endereco')?.value.trim() || null;
+    try {
+      await patch('/api/funcionarios/me', { contacto, endereco });
+      fecharModalPerfil();
+      toast('Perfil actualizado.', 'sucesso');
+    } catch (err) { _mostrarErroPerfil(err.message); }
+  }
+}
+
+function _mostrarErroPerfil(msg) {
+  document.getElementById('modal-perfil-erro-msg').textContent = msg;
+  document.getElementById('modal-perfil-erro').classList.remove('hidden');
+}
 
 // ════════════════════════════════════════════════
 // INICIALIZAÇÃO

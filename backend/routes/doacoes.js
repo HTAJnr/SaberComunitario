@@ -86,6 +86,7 @@ router.get('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), as
          SELECT a.*, ROWNUM AS RN FROM (
            SELECT ID_DOACAO, DATA_DOACAO,
                   DOADOR_NOME              AS NOME_DOADOR,
+                  DOADOR_TIPO              AS TIPO_DOADOR,
                   VALOR_TOTAL_DOACAO       AS VALOR_TOTAL,
                   BIBLIOTECAS_BENEFICIADAS AS NOME_BIBLIOTECA,
                   TOTAL_ITENS, CERTIFICADO_NUMERO

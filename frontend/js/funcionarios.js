@@ -148,9 +148,11 @@ function abrirCtxMenuFunc(evt, cod) {
      </div>`,
   ];
   if (isAdmin) {
-    itens.push(`<div class="ctx-menu-item" onclick="fecharCtxMenuFunc();abrirModalPermissoes('${cod}')">
-       <i class="fa-solid fa-shield-halved fa-fw"></i> Gerir permissões
-     </div>`);
+    if (String(cod) !== String(utilizadorActual?.COD_FUNCIONARIO)) {
+      itens.push(`<div class="ctx-menu-item" onclick="fecharCtxMenuFunc();abrirModalPermissoes('${cod}')">
+         <i class="fa-solid fa-shield-halved fa-fw"></i> Gerir permissões
+       </div>`);
+    }
     itens.push(`<div class="ctx-menu-item ctx-menu-danger" onclick="fecharCtxMenuFunc();_desactivarFunc('${cod}')">
        <i class="fa-solid fa-user-slash fa-fw"></i> Desactivar
      </div>`);

@@ -40,10 +40,12 @@ function _linhaPermissao(r) {
     <td>${_badgeNivel(r.NIVEL_ACESSO)}</td>
     <td style="color:var(--text-muted)">${r.NOME_BIBLIOTECA || '—'}</td>
     <td style="text-align:right;padding-right:10px">
-      <button class="btn-ghost btn-sm"
-              onclick="abrirModalPermissoes('${r.COD_FUNCIONARIO}');_permRefreshOnClose()">
-        <i class="fa-solid fa-shield-halved" style="margin-right:4px"></i>Gerir
-      </button>
+      ${String(r.COD_FUNCIONARIO) === String(utilizadorActual?.COD_FUNCIONARIO)
+        ? `<span style="font-size:11px;color:var(--text-muted)">—</span>`
+        : `<button class="btn-ghost btn-sm"
+                onclick="abrirModalPermissoes('${r.COD_FUNCIONARIO}');_permRefreshOnClose()">
+             <i class="fa-solid fa-shield-halved" style="margin-right:4px"></i>Gerir
+           </button>`}
     </td>
   </tr>`;
 }

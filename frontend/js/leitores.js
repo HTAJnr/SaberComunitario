@@ -5,6 +5,17 @@
 let _wizardStep = 1, _wizardDados = {}, _wizardInteresses = [], _wizardDisciplinas = [];
 let _drawerNumCartao = null, _drawerLeitor = null, _drawerTabActual = 'perfil';
 
+function _calcularIdade(dataStr) {
+  if (!dataStr) return null;
+  const nasc = new Date(dataStr);
+  if (isNaN(nasc)) return null;
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - nasc.getFullYear();
+  const m = hoje.getMonth() - nasc.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+  return idade;
+}
+
 function bdgPontualidade(h) {
   const m = { Pontual: 'bdg-activo', Irregular: 'bdg-suspenso', Mau: 'bdg-bloqueado' };
   return `<span class="bdg ${m[h] || ''}">${h || '—'}</span>`;
@@ -161,17 +172,27 @@ function _renderizarWizardStep() {
       <button class="btn-primary" onclick="_wizardAvancar()">Próximo <i class="fa-solid fa-arrow-right" style="margin-left:4px"></i></button>`;
 
   } else if (_wizardStep === 2) {
-    const tipo = _wizardDados.tipo || 'Adulto';
+    const idade = _calcularIdade(_wizardDados.data_nasc);
+    const menor = idade !== null && idade < 18;
+    // forçar tipo compatível com a idade
+    if (menor && _wizardDados.tipo !== 'Crianca') _wizardDados.tipo = 'Crianca';
+    if (!menor && _wizardDados.tipo === 'Crianca') _wizardDados.tipo = 'Adulto';
+    const tipo = _wizardDados.tipo || (menor ? 'Crianca' : 'Adulto');
+    const tiposDisponiveis = menor ? ['Crianca'] : ['Adulto','Professor'];
+    const notaIdade = menor
+      ? `<p style="font-size:11px;color:var(--text-muted);margin:4px 0 0;font-style:italic">Registo de menor — tipo fixado automaticamente.</p>`
+      : '';
     conteudo.innerHTML = _wizardIndicador(2) + `
       <div class="form-group" style="margin-bottom:14px">
         <label class="form-label">Tipo de leitor *</label>
         <div style="display:flex;gap:16px;margin-top:6px">
-          ${['Adulto','Professor','Crianca'].map(t => `
+          ${tiposDisponiveis.map(t => `
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
               <input type="radio" name="wz-tipo" value="${t}" ${tipo===t?'checked':''} onchange="_renderizarCamposTipo()"/>
               ${t==='Crianca'?'Criança':t}
             </label>`).join('')}
         </div>
+        ${notaIdade}
       </div>
       <div id="wz-campos-tipo"></div>`;
     _renderizarCamposTipo();
@@ -364,6 +385,13 @@ function _wizardAvancar() {
     if (!_wizardDados.localizacao_leitor)  { mostrarErroLeitor('Localização é obrigatória.'); return; }
   } else if (_wizardStep === 2) {
     _wizardRecolherStep2();
+    const idade = _calcularIdade(_wizardDados.data_nasc);
+    if (idade !== null && idade >= 18 && _wizardDados.tipo === 'Crianca') {
+      mostrarErroLeitor('Leitor adulto não pode ser registado como Criança.'); return;
+    }
+    if (idade !== null && idade < 18 && _wizardDados.tipo !== 'Crianca') {
+      mostrarErroLeitor('Leitor menor de idade deve ser registado como Criança.'); return;
+    }
     if (_wizardDados.tipo === 'Crianca' && !_wizardDados.nome_responsavel) {
       mostrarErroLeitor('Nome do responsável é obrigatório para Criança.'); return;
     }

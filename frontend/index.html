@@ -95,8 +95,10 @@
 
     <!-- Rodapé: avatar + utilizador + logout -->
     <div class="sidebar-footer">
-      <div id="sidebar-avatar" class="avatar-initials"></div>
-      <div class="sidebar-user-info">
+      <div id="sidebar-avatar" class="avatar-initials" onclick="abrirModalPerfil()"
+           style="cursor:pointer" title="Ver perfil"></div>
+      <div class="sidebar-user-info" onclick="abrirModalPerfil()"
+           style="cursor:pointer;flex:1" title="Ver perfil">
         <div id="sidebar-user-name" class="sidebar-user-name"></div>
         <div id="sidebar-user-role" class="sidebar-user-role"></div>
       </div>

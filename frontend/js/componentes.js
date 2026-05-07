@@ -4,8 +4,11 @@
 // ════════════════════════════════════════════════
 
 function emptyState(icone, msg, sub) {
+  const iconHtml = icone && icone.startsWith('fa-')
+    ? `<i class="fa-solid ${icone}" style="font-size:28px"></i>`
+    : icone;
   return `<div class="empty-state">
-    <div class="empty-state-icon">${icone}</div>
+    <div class="empty-state-icon">${iconHtml}</div>
     <div class="empty-state-text">${msg}</div>
     ${sub ? `<div class="empty-state-sub">${sub}</div>` : ''}
   </div>`;
