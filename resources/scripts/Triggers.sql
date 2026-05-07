@@ -289,9 +289,9 @@ CREATE OR REPLACE TRIGGER trg_valida_transferencia
 BEFORE INSERT OR UPDATE ON TRANSFERENCIA
 FOR EACH ROW
 DECLARE
-    v_biblioteca_material    NUMBER;
-    v_biblioteca_solicitante NUMBER;
-    v_biblioteca_aprovador   NUMBER;
+    v_biblioteca_material    VARCHAR2(10);
+    v_biblioteca_solicitante VARCHAR2(10);
+    v_biblioteca_aprovador   VARCHAR2(10);
 BEGIN
     IF :NEW.cod_biblioteca_origem = :NEW.cod_biblioteca_destino THEN
         RAISE_APPLICATION_ERROR(-20102,
