@@ -268,6 +268,8 @@ function configurarNavPorRole() {
   };
 
   ['transferencias', 'funcionarios', 'doacoes', 'permissoes', 'biblioteca'].forEach(show);
+  const labelGestao = document.getElementById('nav-label-gestao');
+  if (labelGestao) labelGestao.style.display = '';
 
   if (nivel === 'Assistente') {
     hide('transferencias');
@@ -275,11 +277,13 @@ function configurarNavPorRole() {
     hide('doacoes');
     hide('permissoes');
     hide('biblioteca');
+    if (labelGestao) labelGestao.style.display = 'none';
   } else if (nivel === 'Bibliotecario') {
     hide('transferencias');
     hide('funcionarios');
     hide('permissoes');
     hide('biblioteca');
+    if (labelGestao) labelGestao.style.display = 'none';
   } else if (nivel === 'Coordenador') {
     hide('permissoes');
   }
@@ -349,6 +353,8 @@ async function _carregarNotificacoes() {
   try {
     const stats = await get('/api/dashboard/biblioteca');
     const pendentes = [];
+    const nivel = utilizadorActual?.NIVEL_ACESSO || '';
+    const podeVerTransf = ['Administrador', 'Coordenador'].includes(nivel);
 
     const emp = Number(stats.emprestimos_vencidos || 0);
     const trf = Number(stats.transferencias_pendentes || 0);
@@ -361,12 +367,12 @@ async function _carregarNotificacoes() {
 
     const badgeTrf = document.getElementById('nav-badge-transferencias');
     if (badgeTrf) {
-      if (trf > 0) { badgeTrf.textContent = trf; badgeTrf.classList.remove('hidden'); }
+      if (podeVerTransf && trf > 0) { badgeTrf.textContent = trf; badgeTrf.classList.remove('hidden'); }
       else badgeTrf.classList.add('hidden');
     }
 
     if (emp > 0) pendentes.push({ label: `${emp} empréstimo${emp > 1 ? 's' : ''} vencido${emp > 1 ? 's' : ''}`, section: 'emprestimos' });
-    if (trf > 0) pendentes.push({ label: `${trf} transferência${trf > 1 ? 's' : ''} pendente${trf > 1 ? 's' : ''}`, section: 'transferencias' });
+    if (podeVerTransf && trf > 0) pendentes.push({ label: `${trf} transferência${trf > 1 ? 's' : ''} pendente${trf > 1 ? 's' : ''}`, section: 'transferencias' });
 
     const dot = document.getElementById('notif-dot');
     const lista = document.getElementById('notif-lista');
@@ -401,16 +407,10 @@ document.addEventListener('click', (e) => {
 // ════════════════════════════════════════════════
 let _perfilTab = 'info';
 
-async function abrirModalPerfil() {
-  _perfilTab = 'info';
-  const overlay = document.getElementById('modal-perfil-overlay');
-  if (!overlay) return;
-  overlay.classList.remove('hidden');
-  document.getElementById('modal-perfil-erro').classList.add('hidden');
-  _mudarTabPerfil('info');
-
+async function _carregarConteudoPerfil() {
   const isDemo = String(utilizadorActual?.COD_FUNCIONARIO) === '0';
   const conteudo = document.getElementById('modal-perfil-conteudo');
+  const footer   = document.getElementById('modal-perfil-footer');
   if (isDemo) {
     conteudo.innerHTML = `
       <div style="padding:16px;background:var(--surface-raised);border-radius:8px;font-size:12px;color:var(--text-secondary);line-height:1.8">
@@ -420,11 +420,10 @@ async function abrirModalPerfil() {
         <div><b>Nível:</b> ${utilizadorActual.NIVEL_ACESSO || '—'}</div>
       </div>
       <p style="margin-top:12px;font-size:11px;color:var(--text-muted);text-align:center">Conta demo — edição desactivada.</p>`;
-    document.getElementById('modal-perfil-footer').style.display = 'none';
+    if (footer) footer.style.display = 'none';
     return;
   }
-  document.getElementById('modal-perfil-footer').style.display = '';
-
+  if (footer) footer.style.display = '';
   try {
     const d = await get('/api/funcionarios/me');
     conteudo.innerHTML = `
@@ -449,6 +448,18 @@ async function abrirModalPerfil() {
   }
 }
 
+async function abrirModalPerfil() {
+  _perfilTab = 'info';
+  const overlay = document.getElementById('modal-perfil-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('hidden');
+  document.getElementById('modal-perfil-erro').classList.add('hidden');
+  ['info','senha'].forEach(t =>
+    document.getElementById(`ptab-${t}`)?.classList.toggle('tab-active', t === 'info')
+  );
+  await _carregarConteudoPerfil();
+}
+
 function fecharModalPerfil(e) {
   const overlay = document.getElementById('modal-perfil-overlay');
   if (e && e.target !== overlay) return;
@@ -457,15 +468,15 @@ function fecharModalPerfil(e) {
 
 function _mudarTabPerfil(tab) {
   _perfilTab = tab;
-  ['info','senha'].forEach(t => {
-    document.getElementById(`ptab-${t}`)?.classList.toggle('tab-active', t === tab);
-  });
+  ['info','senha'].forEach(t =>
+    document.getElementById(`ptab-${t}`)?.classList.toggle('tab-active', t === tab)
+  );
   document.getElementById('modal-perfil-erro').classList.add('hidden');
 
   const isDemo = String(utilizadorActual?.COD_FUNCIONARIO) === '0';
   const footer = document.getElementById('modal-perfil-footer');
-  if (isDemo) { footer.style.display = 'none'; return; }
-  footer.style.display = '';
+  if (isDemo) { if (footer) footer.style.display = 'none'; return; }
+  if (footer) footer.style.display = '';
 
   if (tab === 'senha') {
     document.getElementById('modal-perfil-conteudo').innerHTML = `
@@ -482,7 +493,7 @@ function _mudarTabPerfil(tab) {
         <input id="perfil-confirmar-senha" type="password" class="input-field" placeholder="Repetir nova senha"/>
       </div>`;
   } else {
-    abrirModalPerfil();
+    _carregarConteudoPerfil();
   }
 }
 

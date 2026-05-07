@@ -368,18 +368,12 @@ function _renderizarDrawerInfoBib(d) {
 
     ${utilizadorActual?.NIVEL_ACESSO === 'Administrador' ? `
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
-      <button onclick="_desativarBiblioteca('${d.COD_BIBLIOTECA}')"
-              style="width:100%;padding:9px;border:1px solid #ef4444;color:#ef4444;background:transparent;border-radius:7px;cursor:not-allowed;font-size:12px;font-weight:500;opacity:.6"
-              disabled title="Funcionalidade ainda não disponível no backend">
-        <i class="fa-solid fa-power-off" style="margin-right:6px"></i>Desativar Biblioteca
+      <button onclick="fecharDrawerBiblioteca();_confirmarDesactivarBib('${d.COD_BIBLIOTECA}')"
+              style="width:100%;padding:9px;border:1px solid #ef4444;color:#ef4444;background:transparent;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500">
+        <i class="fa-solid fa-ban" style="margin-right:6px"></i>Desactivar Biblioteca
       </button>
-      <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:5px">Disponível em breve</div>
     </div>` : ''}
   `;
-}
-
-function _desativarBiblioteca(cod) {
-  toast('Funcionalidade de desativação ainda não disponível.', 'erro');
 }
 
 function _renderizarDrawerHorariosBib(d) {

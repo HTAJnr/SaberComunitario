@@ -33,13 +33,15 @@ async function carregarDashboardAdmin() {
 }
 
 async function carregarDashboardBib(nivel) {
-  const isAssistente = nivel === 'Assistente';
+  const isAssistente   = nivel === 'Assistente';
+  const isBibliotecario = nivel === 'Bibliotecario';
+  const podeVerTransf  = !isAssistente && !isBibliotecario;
   try {
     const [stats, devHoje, leitores, transferencias] = await Promise.all([
       get('/api/dashboard/biblioteca').catch(() => ({})),
       get('/api/dashboard/devolucoes-hoje').catch(() => []),
       isAssistente ? Promise.resolve([]) : get('/api/dashboard/leitores-recentes').catch(() => []),
-      isAssistente ? Promise.resolve([]) : get('/api/dashboard/transferencias-recentes').catch(() => []),
+      podeVerTransf ? get('/api/dashboard/transferencias-recentes').catch(() => []) : Promise.resolve([]),
     ]);
 
     const allCards = [
@@ -50,13 +52,20 @@ async function carregarDashboardBib(nivel) {
       { label: 'Transferências pendentes',   valor: stats.transferencias_pendentes ?? '—',
         alerta: (stats.transferencias_pendentes > 0) ? 'laranja' : null },
     ];
-    document.getElementById('dash-stats').innerHTML =
-      (isAssistente ? allCards.slice(0, 2) : allCards).map(renderStatCard).join('');
+
+    let cards;
+    if (isAssistente)    cards = allCards.slice(0, 2);
+    else if (podeVerTransf) cards = allCards;
+    else                 cards = allCards.slice(0, 3); // Bibliotecario: sem transferências
+
+    document.getElementById('dash-stats').innerHTML = cards.map(renderStatCard).join('');
 
     renderDevolucoes(devHoje || []);
 
-    const grafico = document.getElementById('dash-grafico-panel');
-    const linha2  = document.getElementById('dash-linha2');
+    const grafico     = document.getElementById('dash-grafico-panel');
+    const linha2      = document.getElementById('dash-linha2');
+    const panelTransf = document.getElementById('dash-transferencias')?.closest?.('.panel');
+
     if (isAssistente) {
       if (grafico) grafico.style.display = 'none';
       if (linha2)  linha2.style.display  = 'none';
@@ -65,7 +74,12 @@ async function carregarDashboardBib(nivel) {
       if (linha2)  linha2.style.display  = '';
       renderBarChart(stats.emprestimos_semana || []);
       renderLeitoresRecentes(leitores || []);
-      renderTransferenciasRecentes(transferencias || []);
+      if (podeVerTransf) {
+        if (panelTransf) panelTransf.style.display = '';
+        renderTransferenciasRecentes(transferencias || []);
+      } else {
+        if (panelTransf) panelTransf.style.display = 'none';
+      }
     }
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');

@@ -459,6 +459,9 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, re
 });
 
 router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
+  if (String(req.params.id) === String(req.session.cod_funcionario)) {
+    return res.status(403).json({ erro: 'Não pode desactivar a sua própria conta.' });
+  }
   let conn;
   try {
     conn = await getConnection();

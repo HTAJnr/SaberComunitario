@@ -463,7 +463,7 @@ async function _wizPesquisarDoador() {
 
   resultados.innerHTML = '<p style="font-size:11px;color:var(--text-muted)">A pesquisar…</p>';
   try {
-    const rows = await get(`/api/doacoes/doadores?search=${encodeURIComponent(q)}`);
+    const rows = await get(`/api/doadores?search=${encodeURIComponent(q)}`);
     if (!rows.length) {
       resultados.innerHTML = '<p style="font-size:11px;color:var(--text-muted);padding:4px 0">Nenhum doador encontrado.</p>';
       return;
@@ -497,7 +497,7 @@ async function _wizCriarNovoDoador() {
   const endereco = document.getElementById('wiz-nd-endereco')?.value || null;
   if (!nome) { _mostrarErroWiz('Nome do doador é obrigatório.'); return; }
   try {
-    const r = await post('/api/doacoes/doadores', { nome_doador: nome, tipo_doador: tipo, contacto, endereco });
+    const r = await post('/api/doadores', { nome_doador: nome, tipo_doador: tipo, contacto, endereco });
     _wizDoador = { id_doador: r.id_doador, nome, tipo, anonimo: false };
     toast('Doador criado.', 'sucesso');
     _renderizarWizStep1();
@@ -693,7 +693,7 @@ function _mostrarErroWiz(msg) {
 
 async function carregarDoadores() {
   try {
-    const rows = await get('/api/doacoes/doadores');
+    const rows = await get('/api/doadores');
     const tbody = document.getElementById('tabela-doadores');
     if (!tbody) return;
     tbody.innerHTML = rows.length
@@ -745,7 +745,7 @@ function abrirModalDoador() {
   modalSalvarFn = async () => {
     const nome = (document.getElementById('df-nome')?.value || '').trim();
     if (!nome) { mostrarErroModal('Nome é obrigatório.'); return; }
-    await post('/api/doacoes/doadores', {
+    await post('/api/doadores', {
       nome_doador:  nome,
       tipo_doador:  document.getElementById('df-tipo').value,
       contacto:     document.getElementById('df-contacto').value || null,
