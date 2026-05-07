@@ -30,6 +30,19 @@ app.use(session({
   cookie: { maxAge: 8 * 60 * 60 * 1000 } // 8 horas
 }));
 
+// Remove acentos de todos os campos string no req.body
+function normalizarBody(obj) {
+  if (!obj || typeof obj !== 'object') return;
+  for (const key of Object.keys(obj)) {
+    if (typeof obj[key] === 'string') {
+      obj[key] = obj[key].normalize('NFD').replace(/[̀-ͯ]/g, '');
+    } else if (typeof obj[key] === 'object') {
+      normalizarBody(obj[key]);
+    }
+  }
+}
+app.use((req, res, next) => { normalizarBody(req.body); next(); });
+
 // Log de cada pedido HTTP recebido
 app.use((req, res, next) => {
   const inicio = Date.now();
