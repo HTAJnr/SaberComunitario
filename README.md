@@ -282,22 +282,7 @@ git push origin feature/<tua-branch>
    - ✅ Require a pull request before merging
    - ✅ Require at least 1 approval
    - ✅ Do not allow bypassing the above settings
-
----
-
-## 9 · Melhorias sugeridas
-
-Ideias para enriquecer o projecto além do mínimo exigido:
-
-| Ideia | Ferramenta | Valor |
-|---|---|---|
-| **Testes de API** | `jest` + `supertest` | Cada rota testada antes de PR |
-| **Documentação da API** | `swagger-jsdoc` + `swagger-ui-express` | Útil na defesa; colegas consomem as APIs sem ter de ler o código |
-| **CI no GitHub** | GitHub Actions | Verifica que `npm install` e o servidor arrancam em cada PR |
-| **Seed script** | `npm run seed` | Popula a BD com dados de teste consistentes para toda a equipa |
-| **Docker Compose** | Docker | Isola o Node.js; evita conflitos de versão entre máquinas |
-| **Makefile** | `make` | Atalhos: `make dev`, `make seed`, `make lint` |
-
+     
 ---
 
 ## Dependências do backend
