@@ -1,0 +1,15 @@
+-- Roles
+CREATE ROLE role_NACIONALDB_read;
+CREATE ROLE role_NACIONALDB_write;
+
+-- Privilégios de sessão
+GRANT CREATE SESSION TO usr_NACIONALDB;
+GRANT CREATE SESSION TO app_NACIONALDB;
+
+-- Privilégios DDL ao utilizador principal
+GRANT CREATE TABLE, CREATE VIEW, CREATE SEQUENCE,
+      CREATE TRIGGER, CREATE PROCEDURE, CREATE SYNONYM
+TO usr_NACIONALDB;
+
+-- Role de leitura ao utilizador de aplicação
+GRANT role_NACIONALDB_read TO app_NACIONALDB;

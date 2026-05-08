@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/c/Users/HTAJnr/Desktop/TP_BD1_WEB/frontend/**)"
+      "Read(//c/c/Users/HTAJnr/Desktop/TP_BD1_WEB/frontend/**)",
+      "Bash(rtk find *)",
+      "Bash(rtk tree *)",
+      "Bash(rtk ls *)",
+      "Bash(rtk git *)"
     ]
   }
 }
