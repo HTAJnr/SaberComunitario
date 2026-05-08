@@ -33,10 +33,13 @@
     <div class="sidebar-library">
       <div id="sidebar-region-label" class="nav-section-label" style="padding:6px 0 2px"></div>
       <div id="sidebar-library-header" onclick="abrirInfoMinhabiblioteca()"
-           style="cursor:pointer;border-radius:6px;padding:4px 6px;margin:-4px -6px;background:var(--surface-raised);transition:background .15s"
-           onmouseenter="this.style.background='var(--surface-hover,var(--surface-raised))'" onmouseleave="this.style.background='var(--surface-raised)'">
-        <div id="sidebar-library-name" class="sidebar-library-name"></div>
-        <div id="sidebar-library-code" class="sidebar-library-code"></div>
+           style="cursor:pointer;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--theme-sidebar-hover);border:0.5px solid var(--theme-sidebar-border);transition:background .15s"
+           onmouseenter="this.style.background='var(--theme-sidebar-active)'" onmouseleave="this.style.background='var(--theme-sidebar-hover)'">
+        <div>
+          <div id="sidebar-library-name" class="sidebar-library-name"></div>
+          <div id="sidebar-library-code" class="sidebar-library-code"></div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:9px;color:var(--theme-sidebar-border);flex-shrink:0;margin-left:6px"></i>
       </div>
     </div>
 

@@ -168,7 +168,7 @@ function mostrarApp() {
     utilizadorActual.NIVEL_ACESSO || utilizadorActual.FUNCAO || '';
   document.getElementById('sidebar-avatar').textContent = iniciais(nome);
   document.getElementById('sidebar-library-name').textContent =
-    utilizadorActual.NOME_BIBLIOTECA || '';
+    (utilizadorActual.NOME_BIBLIOTECA || '').replace(/\bBiblioteca\b/i, 'Bib.');
   const codeEl = document.getElementById('sidebar-library-code');
   if (codeEl) {
     const codBib = utilizadorActual.COD_BIBLIOTECA;
@@ -379,7 +379,15 @@ async function _carregarNotificacoes() {
 
     const dot = document.getElementById('notif-dot');
     const lista = document.getElementById('notif-lista');
+    const bell = document.querySelector('#notif-btn .fa-bell');
     if (dot) dot.classList.toggle('hidden', pendentes.length === 0);
+    if (bell && pendentes.length > 0) {
+      bell.classList.remove('bell-ringing');
+      void bell.offsetWidth; // força reflow para reiniciar animação
+      bell.classList.add('bell-ringing');
+    } else if (bell) {
+      bell.classList.remove('bell-ringing');
+    }
     if (lista) {
       lista.innerHTML = pendentes.length === 0
         ? `<div style="padding:14px;font-size:12px;color:var(--text-muted);text-align:center">Sem pendências</div>`

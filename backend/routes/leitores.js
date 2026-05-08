@@ -339,6 +339,31 @@ router.post('/', autenticar, async (req, res) => {
 
   contacto = normalizarTelefone(contacto);
 
+  // Validação de comprimentos (DD v3) ─────────────────────────────
+  const limites = [
+    ['nome_completo',         nome_completo,         100],
+    ['nivel_escolar',         nivel_escolar,          20],
+    ['localizacao_leitor',    localizacao_leitor,    200],
+    ['contacto',              contacto,               50],
+    ['profissao',             profissao,              50],
+    ['nivel_literacia',       nivel_literacia,        15],
+    ['escola_instituto',      escola_instituto,      100],
+    ['nivel_ensino',          nivel_ensino,           15],
+    ['nome_responsavel',      nome_responsavel,      100],
+    ['telefone_responsavel',  telefone_responsavel,   20],
+    ['escola_frequenta',      escola_frequenta,      100],
+    ['classe',                classe,                 10],
+  ];
+  for (const [campo, val, max] of limites) {
+    if (val && String(val).length > max)
+      return res.status(400).json({ erro: true, codigo: 'COMPRIMENTO_EXCEDIDO', mensagem: `${campo} não pode exceder ${max} caracteres (recebido: ${String(val).length}).` });
+  }
+  const dist = distancia_biblioteca != null ? Number(distancia_biblioteca) : 0;
+  if (isNaN(dist) || dist < 0 || dist > 9999.99)
+    return res.status(400).json({ erro: true, codigo: 'VALOR_INVALIDO', mensagem: 'distancia_biblioteca deve ser um número entre 0 e 9999.99.' });
+  if (num_alunos != null && (isNaN(Number(num_alunos)) || Number(num_alunos) < 0 || Number(num_alunos) > 99999))
+    return res.status(400).json({ erro: true, codigo: 'VALOR_INVALIDO', mensagem: 'num_alunos deve ser um número entre 0 e 99999.' });
+
   let conn;
   try {
     conn = await getConnection();
@@ -367,7 +392,7 @@ router.post('/', autenticar, async (req, res) => {
         localizacao:   localizacao_leitor || null,
         contacto:      contacto || null,
         cod_biblioteca,
-        dist_bib:      distancia_biblioteca ? Number(distancia_biblioteca) : 0,
+        dist_bib:      dist,
       }
     );
 

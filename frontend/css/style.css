@@ -26,6 +26,7 @@
   --theme-sidebar-bg:     #063a35;
   --theme-sidebar-hover:  rgba(255,255,255,0.07);
   --theme-sidebar-active: rgba(255,255,255,0.12);
+  --theme-sidebar-border: rgba(255,255,255,0.1);
   --theme-accent:         #1aab96;
   --theme-accent-light:   #0d2820;
   --theme-accent-text:    #1aab96;
@@ -39,6 +40,7 @@
   --theme-sidebar-bg:     #2a3010;
   --theme-sidebar-hover:  rgba(255,255,255,0.07);
   --theme-sidebar-active: rgba(255,255,255,0.12);
+  --theme-sidebar-border: rgba(255,255,255,0.1);
   --theme-accent:         #8fa830;
   --theme-accent-light:   #1a2208;
   --theme-accent-text:    #8fa830;
@@ -52,6 +54,7 @@
   --theme-sidebar-bg:     #3d1c04;
   --theme-sidebar-hover:  rgba(255,255,255,0.07);
   --theme-sidebar-active: rgba(255,255,255,0.12);
+  --theme-sidebar-border: rgba(255,255,255,0.1);
   --theme-accent:         #e07820;
   --theme-accent-light:   #2a1804;
   --theme-accent-text:    #e07820;
@@ -227,13 +230,13 @@ body {
 }
 
 .sidebar-library {
-  padding: 10px 12px 6px;
+  padding: 10px 10px 6px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .sidebar-library-name {
-  font-size: 11px;
-  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -241,10 +244,10 @@ body {
 }
 
 .sidebar-library-code {
-  font-size: 9px;
-  color: rgba(255,255,255,0.3);
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
   font-family: monospace;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .sidebar-nav {
@@ -830,6 +833,19 @@ select.input-field option {
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Bell shake ── */
+@keyframes bell-shake {
+  0%,100% { transform: rotate(0deg); }
+  10%      { transform: rotate(18deg); }
+  20%      { transform: rotate(-16deg); }
+  30%      { transform: rotate(14deg); }
+  40%      { transform: rotate(-10deg); }
+  50%      { transform: rotate(7deg); }
+  60%      { transform: rotate(-4deg); }
+  70%      { transform: rotate(2deg); }
+}
+.bell-ringing { animation: bell-shake 0.65s ease-in-out 3; transform-origin: top center; }
 
 /* ── Fade-in ── */
 .fade-in { animation: fadein 0.25s ease-out; }
