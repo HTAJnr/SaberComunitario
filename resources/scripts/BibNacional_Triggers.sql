@@ -89,27 +89,29 @@ FOR EACH ROW
 DECLARE
     v_count NUMBER;
 BEGIN
-    -- Não pode apagar responsável activo de biblioteca
-    SELECT COUNT(*) INTO v_count
-      FROM BIBLIOTECA_RESPONSAVEL
-     WHERE cod_funcionario = :OLD.cod_funcionario AND data_fim IS NULL;
+    -- Não pode apagar responsável activo de biblioteca.
+    -- BIBLIOTECA_RESPONSAVEL reside no EventosBibliotecasDB (nó do Gerson).
+    -- EXECUTE IMMEDIATE: resolve @eventosdb em runtime — evita ORA-00942
+    -- na compilação quando a tabela remota não está acessível localmente.
+    EXECUTE IMMEDIATE
+        'SELECT COUNT(*) FROM biblioteca_responsavel@eventosdb
+          WHERE cod_funcionario = :1 AND data_fim IS NULL'
+        INTO v_count USING :OLD.cod_funcionario;
 
     IF v_count > 0 THEN
         RAISE_APPLICATION_ERROR(-20302,
             'Coordenador nao pode ser removido enquanto for responsavel de biblioteca');
     END IF;
-END;
-/
-
--- TRIGGER: protege_anonimo
--- Impede eliminação do doador anónimo (RN10)
-CREATE OR REPLACE TRIGGER protege_anonimo
-BEFORE DELETE ON DOADOR
-FOR EACH ROW
-BEGIN
-    IF :OLD.id_doador = 0 THEN
-        RAISE_APPLICATION_ERROR(-20001, 'O doador Anonimo (ID 0) nao pode ser eliminado');
-    END IF;
+EXCEPTION
+    -- Se o nó EventosBibliotecasDB estiver offline, permite a operação
+    -- com aviso — não bloqueia o funcionamento local por indisponibilidade remota.
+    WHEN OTHERS THEN
+        IF SQLCODE = -12560 OR SQLCODE = -02019 THEN
+            DBMS_OUTPUT.PUT_LINE(
+                'Aviso: EventosBibliotecasDB indisponivel. Validacao de responsabilidade ignorada.');
+        ELSE
+            RAISE;
+        END IF;
 END;
 /
 
