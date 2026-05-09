@@ -99,29 +99,6 @@ JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
 WHERE f.data_demissao IS NULL;
 /
 
--- OBJETIVO: KPIs consolidados dos programas de alfabetização
--- USADO EM: Dashboard de coordenação, relatórios de impacto
-CREATE OR REPLACE VIEW vw_programas_detalhados AS
-SELECT
-    p.cod_programa,
-    p.cod_biblioteca,
-    p.nome_programa,
-    p.publico_alvo,
-    p.duracao_semanas,
-    p.estado_programa,
-    COUNT(DISTINCT nl.id_nivel)          AS total_niveis,
-    COUNT(DISTINCT pf.cod_funcionario)   AS total_funcionarios,
-    COUNT(DISTINCT pp.num_cartao)        AS total_participantes_ativos
-FROM PROGRAMA_ALFABETIZACAO p
-LEFT JOIN NIVEL_PROGRESSAO nl   ON p.cod_programa = nl.cod_programa
-LEFT JOIN PROGRAMA_FUNCIONARIO pf ON p.cod_programa = pf.cod_programa
-LEFT JOIN PARTICIPACAO_PROGRAMA pp
-    ON p.cod_programa = pp.cod_programa AND pp.estado_participacao = 'Activo'
-GROUP BY
-    p.cod_programa, p.cod_biblioteca, p.nome_programa,
-    p.publico_alvo, p.duracao_semanas, p.estado_programa;
-/
-
 -- OBJETIVO: Grade horária semanal de cada funcionário
 -- USADO EM: Gestão de escalas, verificação de disponibilidade
 CREATE OR REPLACE VIEW vw_horarios_funcionario_semana AS
@@ -136,3 +113,169 @@ FROM FUNCIONARIO f
 LEFT JOIN HORARIO_FUNCIONARIO h ON f.cod_funcionario = h.cod_funcionario
 WHERE f.data_demissao IS NULL;
 /
+
+-- ============================================================
+-- SECÇÃO 2: LEITORES — VISTA UNIFICADA (local com join cross-node para BIBLIOTECA)
+-- OBJETIVO: Dados completos de leitores com tipo e biblioteca
+-- USADO EM: Gestão de leitores, filtros, backend
+-- ============================================================
+
+CREATE OR REPLACE VIEW vw_leitores_completos AS
+SELECT
+    l.num_cartao,
+    l.nome_completo,
+    l.data_nasc,
+    l.genero,
+    l.nivel_escolar,
+    l.localizacao_leitor,
+    l.contacto,
+    l.foto_path,
+    l.distancia_biblioteca,
+    l.historico_pontualidade,
+    l.cod_biblioteca,
+    l.status_leitor,
+    CASE
+        WHEN pr.num_cartao IS NOT NULL THEN 'Professor'
+        WHEN a.num_cartao  IS NOT NULL THEN 'Adulto'
+        WHEN cr.num_cartao IS NOT NULL THEN 'Crianca'
+    END AS tipo_leitor,
+    a.profissao,
+    a.nivel_literacia,
+    pr.escola_instituto,
+    pr.nivel_ensino,
+    pr.num_alunos,
+    cr.nome_responsavel,
+    cr.escola_frequenta,
+    cr.classe
+FROM LEITOR l
+LEFT JOIN ADULTO a   ON l.num_cartao = a.num_cartao
+LEFT JOIN PROFESSOR pr ON l.num_cartao = pr.num_cartao
+LEFT JOIN CRIANCA cr  ON l.num_cartao = cr.num_cartao;
+/
+
+-- ============================================================
+-- SECÇÃO 3: FRAGMENTAÇÃO VERTICAL DE LEITOR (Fase 1.3)
+--
+-- Critério de divisão: operacional vs. pessoal.
+-- Fragmento público: o que outros nós precisam para verificações.
+-- Fragmento privado: dados pessoais que ficam exclusivamente aqui.
+--
+-- As 3 regras (Guia BD2 Tema 8):
+--   Completude   — cada atributo aparece em pelo menos um fragmento.
+--   Reconstrução — JOIN pelo num_cartao reconstrói a tabela completa.
+--   Disjuntividade — cada atributo num único fragmento, excepto num_cartao
+--                    (chave primária, necessária em ambos para a Reconstrução).
+-- ============================================================
+
+-- Fragmento 1 — dados públicos (expostos a outros nós via database link)
+CREATE OR REPLACE VIEW vw_leitor_publico AS
+SELECT
+    num_cartao,
+    nome_completo,
+    cod_biblioteca,
+    status_leitor,
+    historico_pontualidade,
+    distancia_biblioteca
+FROM LEITOR;
+/
+
+-- Fragmento 2 — dados privados (exclusivos deste nó)
+CREATE OR REPLACE VIEW vw_leitor_privado AS
+SELECT
+    num_cartao,
+    data_nasc,
+    genero,
+    nivel_escolar,
+    localizacao_leitor,
+    contacto,
+    foto_path
+FROM LEITOR;
+/
+
+-- ============================================================
+-- SECÇÃO 4: VISTAS GLOBAIS — TRANSPARÊNCIA DE LOCALIZAÇÃO (Fase 2.5)
+-- Agregam dados de múltiplos nós via database links.
+-- O utilizador faz SELECT como se os dados estivessem todos num só lugar.
+-- ============================================================
+
+-- Vista global 1: leitores com estado de empréstimo actual
+-- Nós consultados: local (LEITOR) + EmprestimosDB (EMPRESTIMO via @emprestimosdb)
+CREATE OR REPLACE VIEW vw_global_leitores_emprestimos AS
+SELECT
+    l.num_cartao,
+    l.nome_completo,
+    l.cod_biblioteca,
+    l.status_leitor,
+    l.historico_pontualidade,
+    e.id_emprestimo,
+    e.cod_material,
+    e.data_retirada,
+    e.prazo_devolucao,
+    CASE WHEN e.id_emprestimo IS NOT NULL THEN 'S' ELSE 'N' END AS tem_emprestimo_activo
+FROM LEITOR l
+LEFT JOIN emprestimo@emprestimosdb e
+    ON l.num_cartao = e.num_cartao
+   AND e.data_devolucao IS NULL;
+/
+
+-- Vista global 2: catálogo completo com disponibilidade e localização
+-- Nós consultados: MateriaisDB (MATERIAL_BIBLIOGRAFICO via @materiaisdb)
+--                + EventosBibliotecasDB (BIBLIOTECA via @eventosdb)
+CREATE OR REPLACE VIEW vw_global_catalogo AS
+SELECT
+    m.cod_material,
+    m.titulo,
+    m.autor,
+    m.editora,
+    m.ano_publicacao,
+    m.estado_material_conservacao,
+    m.cod_biblioteca,
+    b.nome_biblioteca,
+    b.provincia,
+    CASE
+        WHEN m.estado_material_conservacao = 'Indisponivel' THEN 'N'
+        ELSE 'S'
+    END AS potencialmente_disponivel
+FROM material_bibliografico@materiaisdb m
+JOIN biblioteca@eventosdb b ON m.cod_biblioteca = b.cod_biblioteca;
+/
+
+-- Vista global 3: programação de eventos com participação
+-- Nós consultados: EventosBibliotecasDB (EVENTO, PARTICIPACAO_EVENTO via @eventosdb)
+CREATE OR REPLACE VIEW vw_global_eventos_participacao AS
+SELECT
+    e.id_evento,
+    e.titulo_evento,
+    e.data_evento,
+    e.status_evento,
+    e.publico_alvo,
+    e.capacidade,
+    e.cod_biblioteca,
+    COUNT(pe.num_cartao) AS total_inscritos
+FROM evento@eventosdb e
+LEFT JOIN participacao_evento@eventosdb pe ON e.id_evento = pe.id_evento
+GROUP BY
+    e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
+    e.publico_alvo, e.capacidade, e.cod_biblioteca;
+/
+
+-- ============================================================
+-- SECÇÃO 1: VISTA FONTE DE REPLICAÇÃO
+-- Expõe apenas os dados operacionalmente necessários noutros nós.
+-- Dados pessoais (senha, endereco, data_nasc) ficam exclusivamente aqui.
+-- ============================================================
+
+CREATE OR REPLACE VIEW vw_replica_funcionarios AS
+SELECT
+    f.cod_funcionario,
+    f.nome_funcionario,
+    f.cod_biblioteca,
+    f.id_funcao,
+    fn.nivel_acesso,
+    fn.nome_funcao
+FROM FUNCIONARIO f
+JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
+WHERE f.data_demissao IS NULL;
+/
+
+

@@ -32,20 +32,20 @@ Tabelas com a palavra "código" no enunciado usam VARCHAR2 como PK com formato f
 ## Domínios e Tamanhos Específicos
 
 ### LEITOR
-| Atributo                 | Tipo     | Tamanho | Notas                                                        |
-| ------------------------ | -------- | ------- | ------------------------------------------------------------ |
+| Atributo                 | Tipo     | Tamanho | Notas                                                                     |
+| ------------------------ | -------- | ------- | ------------------------------------------------------------------------- |
 | `num_cartao`             | VARCHAR2 | 12      | PK. Formato: `XXX202XYYYYY` — ver Convenção de Códigos. Gerado no backend |
-| `nome_completo`          | VARCHAR2 | 100     | —                                                            |
-| `data_nasc`              | DATE     | —       | —                                                            |
-| `genero`                 | VARCHAR2 | 9       | `'Masculino'`, `'Feminino'`                                  |
-| `nivel_escolar`          | VARCHAR2 | 20      | Ex: `'Sem Escolaridade'`, `'Primário Completo'`              |
-| `localizacao_leitor`     | VARCHAR2 | 200     | Endereço descritivo                                          |
-| `contacto`               | VARCHAR2 | 50      | Sem UNIQUE — RN11 (contacto partilhado com responsável)      |
-| `foto_path`              | VARCHAR2 | 300     | Nullable. Caminho do ficheiro no servidor                    |
-| `distancia_biblioteca`   | NUMBER   | (6,2)   | km até à biblioteca — usado em RN02                          |
-| `historico_pontualidade` | VARCHAR2 | 10      | DEFAULT `'Pontual'`. `'Pontual'`, `'Irregular'`, `'Mau'`     |
-| `cod_biblioteca`         | VARCHAR2 | 10      | FK → BIBLIOTECA (NO ACTION)                                  |
-| `status_leitor`          | VARCHAR2 | 12      | DEFAULT `'Activo'`. `'Activo'`, `'Suspenso'`, `'Bloqueado'`  |
+| `nome_completo`          | VARCHAR2 | 100     | —                                                                         |
+| `data_nasc`              | DATE     | —       | —                                                                         |
+| `genero`                 | VARCHAR2 | 9       | `'Masculino'`, `'Feminino'`                                               |
+| `nivel_escolar`          | VARCHAR2 | 20      | Ex: `'Sem Escolaridade'`, `'Primário Completo'`                           |
+| `localizacao_leitor`     | VARCHAR2 | 200     | Endereço descritivo                                                       |
+| `contacto`               | VARCHAR2 | 50      | Sem UNIQUE — RN11 (contacto partilhado com responsável)                   |
+| `foto_path`              | VARCHAR2 | 300     | Nullable. Caminho do ficheiro no servidor                                 |
+| `distancia_biblioteca`   | NUMBER   | (6,2)   | km até à biblioteca — usado em RN02                                       |
+| `historico_pontualidade` | VARCHAR2 | 10      | DEFAULT `'Pontual'`. `'Pontual'`, `'Irregular'`, `'Mau'`                  |
+| `cod_biblioteca`         | VARCHAR2 | 10      | FK → BIBLIOTECA (NO ACTION)                                               |
+| `status_leitor`          | VARCHAR2 | 12      | DEFAULT `'Activo'`. `'Activo'`, `'Suspenso'`, `'Bloqueado'`               |
 
 > `status_leitor = 'Suspenso'` é mantido por trigger com base na tabela `SUSPENSAO`. Não existe `data_fim_suspensao` em LEITOR.
 
@@ -203,22 +203,22 @@ Tabelas com a palavra "código" no enunciado usam VARCHAR2 como PK com formato f
 ---
 
 ### FUNCIONARIO
-| Atributo           | Tipo     | Tamanho | Notas                                              |
-| ------------------ | -------- | ------- | -------------------------------------------------- |
+| Atributo           | Tipo     | Tamanho | Notas                                                      |
+| ------------------ | -------- | ------- | ---------------------------------------------------------- |
 | `cod_funcionario`  | VARCHAR2 | 12      | PK. Formato: `FUC20XXYYYY`. Gerado por trigger + sequência |
-| `nome_funcionario` | VARCHAR2 | 100     | —                                                  |
-| `genero`           | VARCHAR2 | 9       | `'Masculino'`, `'Feminino'`                        |
-| `data_nasc`        | DATE     | —       | Nullable                                           |
-| `contacto`         | VARCHAR2 | 50      | —                                                  |
-| `endereco`         | VARCHAR2 | 200     | Nullable                                           |
-| `formacao`         | VARCHAR2 | 100     | Nullable. Ex: `'Licenciatura em Biblioteconomia'`  |
-| `experiencia`      | VARCHAR2 | 300     | Nullable                                           |
-| `data_contratacao` | DATE     | —       | Data de início do vínculo laboral                  |
-| `data_demissao`    | DATE     | —       | Nullable. Preenchido na saída do funcionário       |
-| `cod_biblioteca`   | VARCHAR2 | 10      | FK → BIBLIOTECA (NO ACTION)                        |
-| `id_funcao`        | NUMBER   | —       | FK → FUNCAO_FUNCIONARIO (NO ACTION)                |
-| `email`            | VARCHAR2 | 100     | UNIQUE                                             |
-| `senha`            | VARCHAR2 | 64      | Hash SHA-256                                       |
+| `nome_funcionario` | VARCHAR2 | 100     | —                                                          |
+| `genero`           | VARCHAR2 | 9       | `'Masculino'`, `'Feminino'`                                |
+| `data_nasc`        | DATE     | —       | Nullable                                                   |
+| `contacto`         | VARCHAR2 | 50      | —                                                          |
+| `endereco`         | VARCHAR2 | 200     | Nullable                                                   |
+| `formacao`         | VARCHAR2 | 100     | Nullable. Ex: `'Licenciatura em Biblioteconomia'`          |
+| `experiencia`      | VARCHAR2 | 300     | Nullable                                                   |
+| `data_contratacao` | DATE     | —       | Data de início do vínculo laboral                          |
+| `data_demissao`    | DATE     | —       | Nullable. Preenchido na saída do funcionário               |
+| `cod_biblioteca`   | VARCHAR2 | 10      | FK → BIBLIOTECA (NO ACTION)                                |
+| `id_funcao`        | NUMBER   | —       | FK → FUNCAO_FUNCIONARIO (NO ACTION)                        |
+| `email`            | VARCHAR2 | 100     | UNIQUE                                                     |
+| `senha`            | VARCHAR2 | 64      | Hash SHA-256                                               |
 
 > `habilidades`: tabela `FUNCIONARIO_HABILIDADE`. Horário semanal: tabela `HORARIO_FUNCIONARIO`.
 
@@ -441,6 +441,21 @@ Tabelas com a palavra "código" no enunciado usam VARCHAR2 como PK com formato f
 | `data_conclusao`      | DATE     | —       | Nullable                                           |
 | `estado_participacao` | VARCHAR2 | 10      | DEFAULT `'Activo'`. `'Activo'`, `'Concluido'`, `'Desistiu'` |
 
+### AUDITORIA_OPERACOES
+| Atributo          | Tipo     | Tamanho | Notas                                                                      |
+| ----------------- | -------- | ------- | -------------------------------------------------------------------------- |
+| `id_auditoria`    | NUMBER   | —       | PK. Gerado por SEQ_AUDITORIA                                               |
+| `data_operacao`   | DATE     | —       | DEFAULT SYSDATE. Momento exacto da operação                                |
+| `cod_funcionario` | VARCHAR2 | 12      | FK lógica → FUNCIONARIO. Quem executou a operação                          |
+| `operacao`        | VARCHAR2 | 50      | Ex: `'APAGAR_LEITOR'`, `'REMOVER_FUNCIONARIO'`, `'MODIFICAR_NIVEL_ACESSO'` |
+| `objeto_afetado`  | VARCHAR2 | 100     | Identificador do registo alvo (ex: `num_cartao`, `cod_funcionario`)        |
+| `resultado`       | VARCHAR2 | 10      | `'SUCESSO'` ou `'FALHA'`                                                   |
+| `motivo_falha`    | VARCHAR2 | 300     | Nullable. Preenchido apenas em caso de FALHA                               |
+| `nos_afetados`    | VARCHAR2 | 200     | Nullable. Ex: `'EmprestimosDB, EventosBibliotecasDB'`                      |
+| `observacoes`     | VARCHAR2 | 300     | Nullable. Contexto adicional da operação                                   |
+
+> Usa `PRAGMA AUTONOMOUS_TRANSACTION` na procedure de inserção — o registo é confirmado independentemente do resultado da transacção principal. Sem isto, um ROLLBACK da operação principal apagaria também o log, tornando a auditoria inútil para rastrear falhas.
+
 ---
 
 ## Anatomia da Destruição Relacional
@@ -459,57 +474,58 @@ Tabelas com a palavra "código" no enunciado usam VARCHAR2 como PK com formato f
 
 ### Matriz de Decisão Completa
 
-| FK | Tabela Filho | Tabela Pai | DELETE RULE | Razão |
-|---|---|---|---|---|
-| ✓ | ADULTO | LEITOR | CASCADE | Hierarquia |
-| ✓ | ADULTO_INTERESSE | ADULTO | CASCADE | Multivalor |
-| ✓ | PROFESSOR | ADULTO | CASCADE | Hierarquia |
-| ✓ | PROFESSOR_DISCIPLINA | PROFESSOR | CASCADE | Multivalor |
-| ✓ | CRIANCA | LEITOR | CASCADE | Hierarquia |
-| ✓ | LIVRO_FISICO | MATERIAL_BIBLIOGRAFICO | CASCADE | Hierarquia |
-| ✓ | EBOOK | MATERIAL_BIBLIOGRAFICO | CASCADE | Hierarquia |
-| ✓ | PERIODICO | MATERIAL_BIBLIOGRAFICO | CASCADE | Hierarquia |
-| ✓ | PARTICIPACAO_EVENTO | LEITOR | CASCADE | Associativa |
-| ✓ | PARTICIPACAO_EVENTO | EVENTO | CASCADE | Associativa |
-| ✓ | AVALIACAO_EVENTO | EVENTO | CASCADE | Multivalor |
-| ✓ | EVENTO_RECURSO | EVENTO | CASCADE | Multivalor |
-| ✓ | HORARIO_EVENTO | EVENTO | CASCADE | Multivalor |
-| ✓ | ITEM_DOACAO | DOACAO | CASCADE | Multivalor |
-| ✓ | CERTIFICADO_DOACAO | DOACAO | CASCADE | Multivalor |
-| ✓ | HORARIO_BIBLIOTECA | BIBLIOTECA | CASCADE | Multivalor |
-| ✓ | HORARIO_FUNCIONARIO | FUNCIONARIO | CASCADE | Multivalor |
-| ✓ | FUNCIONARIO_HABILIDADE | FUNCIONARIO | CASCADE | Multivalor |
-| ✓ | BIBLIOTECA_RESPONSAVEL | BIBLIOTECA | CASCADE | Associativa |
-| ✓ | NIVEL_PROGRESSAO | PROGRAMA_ALFABETIZACAO | CASCADE | Composição |
-| ✓ | PROGRAMA_MATERIAL | PROGRAMA_ALFABETIZACAO | CASCADE | Associativa |
-| ✓ | PROGRAMA_FUNCIONARIO | PROGRAMA_ALFABETIZACAO | CASCADE | Associativa |
-| ✓ | PARTICIPACAO_PROGRAMA | LEITOR | CASCADE | Associativa |
-| ✓ | PARTICIPACAO_PROGRAMA | PROGRAMA_ALFABETIZACAO | CASCADE | Associativa |
-| ⊗ | SUSPENSAO | LEITOR | NO ACTION | Histórico legal |
-| ⊗ | SUSPENSAO | EMPRESTIMO | NO ACTION | Rastreabilidade |
-| ⊗ | BIBLIOTECA_RESPONSAVEL | FUNCIONARIO | NO ACTION | Histórico organizacional |
-| ⊗ | AVALIACAO_EVENTO | LEITOR | NO ACTION | Histórico |
-| ⊗ | LEITOR | BIBLIOTECA | NO ACTION | Activo organizacional |
-| ⊗ | FUNCIONARIO | BIBLIOTECA | NO ACTION | Activo organizacional |
-| ⊗ | FUNCIONARIO | FUNCAO_FUNCIONARIO | NO ACTION | Dados mestre |
-| ⊗ | MATERIAL_BIBLIOGRAFICO | BIBLIOTECA | NO ACTION | Activo patrimonial |
-| ⊗ | MATERIAL_BIBLIOGRAFICO | CATEGORIA | NO ACTION | Dados mestre |
-| ⊗ | MATERIAL_BIBLIOGRAFICO | ITEM_DOACAO | NO ACTION | Rastreabilidade doação |
-| ⊗ | ITEM_DOACAO | BIBLIOTECA | NO ACTION | Histórico doação |
-| ⊗ | PROGRAMA_ALFABETIZACAO | BIBLIOTECA | NO ACTION | Activo organizacional |
-| ⊗ | PROGRAMA_MATERIAL | MATERIAL_BIBLIOGRAFICO | NO ACTION | Activo patrimonial |
-| ⊗ | PROGRAMA_FUNCIONARIO | FUNCIONARIO | NO ACTION | Auditoria |
-| ⊗ | EMPRESTIMO | LEITOR | NO ACTION | Histórico legal |
-| ⊗ | EMPRESTIMO | FUNCIONARIO | NO ACTION | Auditoria |
-| ⊗ | EMPRESTIMO | MATERIAL_BIBLIOGRAFICO | NO ACTION | Rastreabilidade |
-| ⊗ | EVENTO | FUNCIONARIO | NO ACTION | Histórico eventos |
-| ⊗ | EVENTO | BIBLIOTECA | NO ACTION | Histórico eventos |
-| ⊗ | TRANSFERENCIA | MATERIAL_BIBLIOGRAFICO | NO ACTION | Auditoria patrimonial |
-| ⊗ | TRANSFERENCIA | BIBLIOTECA (origem) | NO ACTION | Histórico |
-| ⊗ | TRANSFERENCIA | BIBLIOTECA (destino) | NO ACTION | Histórico |
-| ⊗ | TRANSFERENCIA | FUNCIONARIO (solicitante) | NO ACTION | Auditoria |
-| ⊗ | TRANSFERENCIA | FUNCIONARIO (aprovador) | NO ACTION | Auditoria |
-| ⊗ | DOACAO | DOADOR | NO ACTION | Preserva histórico doador |
+| FK  | Tabela Filho           | Tabela Pai                | DELETE RULE | Razão                     |
+| --- | ---------------------- | ------------------------- | ----------- | ------------------------- |
+| ✓   | ADULTO                 | LEITOR                    | CASCADE     | Hierarquia                |
+| ✓   | ADULTO_INTERESSE       | ADULTO                    | CASCADE     | Multivalor                |
+| ✓   | PROFESSOR              | ADULTO                    | CASCADE     | Hierarquia                |
+| ✓   | PROFESSOR_DISCIPLINA   | PROFESSOR                 | CASCADE     | Multivalor                |
+| ✓   | CRIANCA                | LEITOR                    | CASCADE     | Hierarquia                |
+| ✓   | LIVRO_FISICO           | MATERIAL_BIBLIOGRAFICO    | CASCADE     | Hierarquia                |
+| ✓   | EBOOK                  | MATERIAL_BIBLIOGRAFICO    | CASCADE     | Hierarquia                |
+| ✓   | PERIODICO              | MATERIAL_BIBLIOGRAFICO    | CASCADE     | Hierarquia                |
+| ✓   | PARTICIPACAO_EVENTO    | LEITOR                    | CASCADE     | Associativa               |
+| ✓   | PARTICIPACAO_EVENTO    | EVENTO                    | CASCADE     | Associativa               |
+| ✓   | AVALIACAO_EVENTO       | EVENTO                    | CASCADE     | Multivalor                |
+| ✓   | EVENTO_RECURSO         | EVENTO                    | CASCADE     | Multivalor                |
+| ✓   | HORARIO_EVENTO         | EVENTO                    | CASCADE     | Multivalor                |
+| ✓   | ITEM_DOACAO            | DOACAO                    | CASCADE     | Multivalor                |
+| ✓   | CERTIFICADO_DOACAO     | DOACAO                    | CASCADE     | Multivalor                |
+| ✓   | HORARIO_BIBLIOTECA     | BIBLIOTECA                | CASCADE     | Multivalor                |
+| ✓   | HORARIO_FUNCIONARIO    | FUNCIONARIO               | CASCADE     | Multivalor                |
+| ✓   | FUNCIONARIO_HABILIDADE | FUNCIONARIO               | CASCADE     | Multivalor                |
+| ✓   | BIBLIOTECA_RESPONSAVEL | BIBLIOTECA                | CASCADE     | Associativa               |
+| ✓   | NIVEL_PROGRESSAO       | PROGRAMA_ALFABETIZACAO    | CASCADE     | Composição                |
+| ✓   | PROGRAMA_MATERIAL      | PROGRAMA_ALFABETIZACAO    | CASCADE     | Associativa               |
+| ✓   | PROGRAMA_FUNCIONARIO   | PROGRAMA_ALFABETIZACAO    | CASCADE     | Associativa               |
+| ✓   | PARTICIPACAO_PROGRAMA  | LEITOR                    | CASCADE     | Associativa               |
+| ✓   | PARTICIPACAO_PROGRAMA  | PROGRAMA_ALFABETIZACAO    | CASCADE     | Associativa               |
+| ⊗   | SUSPENSAO              | LEITOR                    | NO ACTION   | Histórico legal           |
+| ⊗   | SUSPENSAO              | EMPRESTIMO                | NO ACTION   | Rastreabilidade           |
+| ⊗   | BIBLIOTECA_RESPONSAVEL | FUNCIONARIO               | NO ACTION   | Histórico organizacional  |
+| ⊗   | AVALIACAO_EVENTO       | LEITOR                    | NO ACTION   | Histórico                 |
+| ⊗   | LEITOR                 | BIBLIOTECA                | NO ACTION   | Activo organizacional     |
+| ⊗   | FUNCIONARIO            | BIBLIOTECA                | NO ACTION   | Activo organizacional     |
+| ⊗   | FUNCIONARIO            | FUNCAO_FUNCIONARIO        | NO ACTION   | Dados mestre              |
+| ⊗   | MATERIAL_BIBLIOGRAFICO | BIBLIOTECA                | NO ACTION   | Activo patrimonial        |
+| ⊗   | MATERIAL_BIBLIOGRAFICO | CATEGORIA                 | NO ACTION   | Dados mestre              |
+| ⊗   | MATERIAL_BIBLIOGRAFICO | ITEM_DOACAO               | NO ACTION   | Rastreabilidade doação    |
+| ⊗   | ITEM_DOACAO            | BIBLIOTECA                | NO ACTION   | Histórico doação          |
+| ⊗   | PROGRAMA_ALFABETIZACAO | BIBLIOTECA                | NO ACTION   | Activo organizacional     |
+| ⊗   | PROGRAMA_MATERIAL      | MATERIAL_BIBLIOGRAFICO    | NO ACTION   | Activo patrimonial        |
+| ⊗   | PROGRAMA_FUNCIONARIO   | FUNCIONARIO               | NO ACTION   | Auditoria                 |
+| ⊗   | EMPRESTIMO             | LEITOR                    | NO ACTION   | Histórico legal           |
+| ⊗   | EMPRESTIMO             | FUNCIONARIO               | NO ACTION   | Auditoria                 |
+| ⊗   | EMPRESTIMO             | MATERIAL_BIBLIOGRAFICO    | NO ACTION   | Rastreabilidade           |
+| ⊗   | EVENTO                 | FUNCIONARIO               | NO ACTION   | Histórico eventos         |
+| ⊗   | EVENTO                 | BIBLIOTECA                | NO ACTION   | Histórico eventos         |
+| ⊗   | TRANSFERENCIA          | MATERIAL_BIBLIOGRAFICO    | NO ACTION   | Auditoria patrimonial     |
+| ⊗   | TRANSFERENCIA          | BIBLIOTECA (origem)       | NO ACTION   | Histórico                 |
+| ⊗   | TRANSFERENCIA          | BIBLIOTECA (destino)      | NO ACTION   | Histórico                 |
+| ⊗   | TRANSFERENCIA          | FUNCIONARIO (solicitante) | NO ACTION   | Auditoria                 |
+| ⊗   | TRANSFERENCIA          | FUNCIONARIO (aprovador)   | NO ACTION   | Auditoria                 |
+| ⊗   | DOACAO                 | DOADOR                    | NO ACTION   | Preserva histórico doador |
+| ⊗   | AUDITORIA_OPERACOES    | FUNCIONARIO               | NO ACTION   | Auditoria                 |
 
 ---
 
@@ -543,3 +559,4 @@ Tabelas com a palavra "código" no enunciado usam VARCHAR2 como PK com formato f
 | `PROGRAMA_ALFABETIZACAO` | `chk_estado_programa`        | CHECK            | `IN ('Activo','Concluido','Suspenso')`                                                  |
 | `PARTICIPACAO_PROGRAMA`  | `chk_estado_participacao`    | CHECK            | `IN ('Activo','Concluido','Desistiu')`                                                  |
 | `DOADOR`                 | —                            | Registo especial | `id_doador = 0`, `nome = 'Anonimo'`, `contacto = NULL` — nunca apagar (RN10)            |
+| `AUDITORIA_OPERACOES`    | `chk_resultado_audit`        | CHECK            | `IN ('SUCESSO', 'FALHA')`                                                               |

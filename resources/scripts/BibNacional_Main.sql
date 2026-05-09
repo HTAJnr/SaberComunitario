@@ -1,41 +1,44 @@
 -- ============================================================
 -- BibNacional_Main.sql — Script de instalação completo
 -- Executar como SYSDBA:
---   sqlplus sys/bd2.isctem as sysdba @/caminho/BibNacional_Main.sql
+--   sqlplus sys/bd2.isctem as sysdba @/root/TP/BibNacional_Main.sql
 -- ============================================================
 
 -- 1. Tablespaces
-@TP/BibNacional_Tablespaces.sql
+@/root/TP/BibNacional_Tablespaces.sql
 
 -- 2. Utilizadores
-@TP/BibNacional_Users.sql
+@/root/TP/BibNacional_Users.sql
 
 -- 3. Roles e permissões
-@TP/BibNacional_Roles.sql
+@/root/TP/BibNacional_Roles.sql
 
 -- Passa para o schema owner — o resto corre como usr_NACIONALDB
-CONNECT usr_NACIONALDB/HTAJnr#020403@XE
+CONNECT usr_NACIONALDB/"HTAJnr#020403"
+
+-- 3.5. Database Links
+@/root/TP/BibNacional_Database_Links.sql
 
 -- 4. Estruturas base (tabelas + constraints)
-@TP/BibNacional_Create.sql
+@/root/TP/BibNacional_Create.sql
 
 -- 5. Sequências
-@TP/BibNacional_Sequences.sql
+@/root/TP/BibNacional_Sequences.sql
 
 -- 6. Views
-@TP/BibNacional_Views.sql
+@/root/TP/BibNacional_Views.sql
 
 -- 7. Funções
-@TP/BibNacional_Functions.sql
+@/root/TP/BibNacional_Functions.sql
 
 -- 8. Procedimentos
-@TP/BibNacional_Procedures.sql
+@/root/TP/BibNacional_Procedures.sql
 
 -- 9. Triggers
-@TP/BibNacional_Triggers.sql
+@/root/TP/BibNacional_Triggers.sql
 
 -- 10. Índices
-@TP/BibNacional_Indexes.sql
+@/root/TP/BibNacional_Indexes.sql
 
 -- 11. Dados iniciais
-@TP/BibNacional_Intro.sql
+@/root/TP/BibNacional_Intro.sql

@@ -61,17 +61,17 @@ Oracle Instant Client must exist at `INSTANT_CLIENT_PATH` for the thick client m
 
 `main.js` is the core — global state, HTTP helpers, auth, router, generic modals. All section logic lives in its own file:
 
-| File                 | Contents                                                          |
-| -------------------- | ----------------------------------------------------------------- |
-| `js/componentes.js`  | Reusable helpers (`emptyState`, etc.) — **loads first**           |
-| `js/dashboard.js`    | `carregarDashboard`, dashboard render helpers                     |
-| `js/leitores.js`     | Reader wizard, drawer, modals                                     |
-| `js/materiais.js`    | Materials CRUD                                                    |
-| `js/emprestimos.js`  | Loans and returns                                                 |
-| `js/funcionarios.js` | Staff CRUD                                                        |
-| `js/eventos.js`      | Events and participations                                         |
-| `js/doacoes.js`      | Donations, donors, certificates                                   |
-| `js/main.js`         | Global state, auth, router — **loads last**                       |
+| File                 | Contents                                                |
+| -------------------- | ------------------------------------------------------- |
+| `js/componentes.js`  | Reusable helpers (`emptyState`, etc.) — **loads first** |
+| `js/dashboard.js`    | `carregarDashboard`, dashboard render helpers           |
+| `js/leitores.js`     | Reader wizard, drawer, modals                           |
+| `js/materiais.js`    | Materials CRUD                                          |
+| `js/emprestimos.js`  | Loans and returns                                       |
+| `js/funcionarios.js` | Staff CRUD                                              |
+| `js/eventos.js`      | Events and participations                               |
+| `js/doacoes.js`      | Donations, donors, certificates                         |
+| `js/main.js`         | Global state, auth, router — **loads last**             |
 
 **Mandatory rules:**
 
@@ -83,22 +83,27 @@ Oracle Instant Client must exist at `INSTANT_CLIENT_PATH` for the thick client m
 ## Code Quality Rules
 
 **DRY — Don't Repeat Yourself:**
+
 - Before writing any helper, badge, layout block, or utility function, search for an existing equivalent.
 - If a pattern appears (or will appear) in 2+ places, it belongs in `componentes.js`. Create it there and import via the existing script-load order.
 - The shared helpers currently in `componentes.js`: `emptyState`, `campoDetalhe`, `secaoDetalhe`, `avatarCirculo`, `regiaoDeProvinccia`, `PROVINCIAS_SUL`, `PROVINCIAS_CENTRO`. Use these — never redefine inline.
 
 **Frontend / Backend separation:**
+
 - The backend must never contain hardcoded UI strings, HTML fragments, or presentation logic. It returns data; the frontend renders it.
 - API responses use neutral field names and values (e.g., status codes as strings like `'Activo'`). Display labels, badge classes, and formatting live exclusively in frontend JS.
 
 **Before touching the frontend — always check:**
+
 1. The DB create script (`resources/` or `sql/`) to know the exact table/column names and constraints.
 2. The corresponding backend route to know what the API actually returns (field names, shape, pagination).
 
 **Before touching the backend — always check:**
+
 1. The DB create script to confirm table structure, column types, constraints, sequences, and triggers that may fire automatically.
 
 **Business rules — always verify:**
+
 - Check for triggers that run automatically (e.g., certificate auto-generation on donation insert).
 - Check for existing guards/validations so you don't duplicate or conflict with them.
 - If a route writes data that has a FK dependency, confirm the referenced row exists before inserting.
@@ -270,3 +275,17 @@ Types: `feat`, `fix`, `refactor`, `docs`, `chore`. Example:
 ```
 feat(transferencias): implementar route completa §8 — GET lista, POST solicitar, PATCH aprovar/rejeitar/concluir
 ```
+
+## Workflow Rules
+
+- For SQL scripts, seeds, or standalone files: write DIRECTLY.
+
+Read ONLY the indicated reference file (e.g., DD.md). Do not explore the codebase.
+
+- You never read more than 1 context file before starting to implement,
+
+unless explicitly requested.
+
+- For new screens: read ONE existing similar file for patterns, then implement.
+
+Do not freely explore.

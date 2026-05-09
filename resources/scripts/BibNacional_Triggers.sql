@@ -75,35 +75,31 @@ BEGIN
 END;
 /
 
--- 8. PROGRAMA_ALFABETIZACAO — gera PROBIB + XXX (extraído de cod_biblioteca) + ano + sequencial 4 dígitos
---    Exemplo: cod_biblioteca = 'BIBMPC0001' → SUBSTR(..., 4, 3) = 'MPC' → 'PROBIBMPC20250001'
-CREATE OR REPLACE TRIGGER trg_cod_programa
-BEFORE INSERT ON PROGRAMA_ALFABETIZACAO FOR EACH ROW
-DECLARE
-    v_seq       NUMBER;
-    v_provincia VARCHAR2(3);
-BEGIN
-    IF :NEW.cod_programa IS NULL THEN
-        v_provincia := SUBSTR(:NEW.cod_biblioteca, 4, 3);
-        SELECT SEQ_PROGRAMA.NEXTVAL INTO v_seq FROM DUAL;
-        :NEW.cod_programa := 'PROBIB' || v_provincia || TO_CHAR(SYSDATE, 'YYYY') || LPAD(v_seq, 4, '0');
-    END IF;
-END;
-/
-
--- 9. NIVEL_PROGRESSAO
-CREATE OR REPLACE TRIGGER trg_nivel_id
-BEFORE INSERT ON NIVEL_PROGRESSAO FOR EACH ROW
-BEGIN
-    IF :NEW.id_nivel IS NULL THEN
-        SELECT SEQ_NIVEL.NEXTVAL INTO :NEW.id_nivel FROM DUAL;
-    END IF;
-END;
-/
-
 -- ============================================================
 -- SECÇÃO 2: INTEGRIDADE DE DADOS
 -- ============================================================
+
+-- TRIGGER: impede_exclusao_coordenador
+-- Impede remoção de coordenador responsável por biblioteca ou com transferências activas.
+-- (prc_remover_funcionario usa soft-delete para funcionários com histórico — este trigger
+-- protege o DELETE físico directo que pode ser tentado fora da procedure.)
+CREATE OR REPLACE TRIGGER impede_exclusao_coordenador
+BEFORE DELETE ON FUNCIONARIO
+FOR EACH ROW
+DECLARE
+    v_count NUMBER;
+BEGIN
+    -- Não pode apagar responsável activo de biblioteca
+    SELECT COUNT(*) INTO v_count
+      FROM BIBLIOTECA_RESPONSAVEL
+     WHERE cod_funcionario = :OLD.cod_funcionario AND data_fim IS NULL;
+
+    IF v_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20302,
+            'Coordenador nao pode ser removido enquanto for responsavel de biblioteca');
+    END IF;
+END;
+/
 
 -- TRIGGER: protege_anonimo
 -- Impede eliminação do doador anónimo (RN10)

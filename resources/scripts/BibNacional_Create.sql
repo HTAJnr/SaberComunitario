@@ -1,13 +1,15 @@
 -- Tabelas de associação e dependentes primeiro
-DROP TABLE PARTICIPACAO_PROGRAMA CASCADE CONSTRAINTS;
-DROP TABLE PROGRAMA_FUNCIONARIO CASCADE CONSTRAINTS;
-DROP TABLE PROGRAMA_MATERIAL CASCADE CONSTRAINTS;
-DROP TABLE NIVEL_PROGRESSAO CASCADE CONSTRAINTS;
-DROP TABLE PROGRAMA_ALFABETIZACAO CASCADE CONSTRAINTS;  
+DROP TABLE AUDITORIA_OPERACOES CASCADE CONSTRAINTS;
 DROP TABLE CERTIFICADO_DOACAO CASCADE CONSTRAINTS;
 DROP TABLE ITEM_DOACAO CASCADE CONSTRAINTS;
 DROP TABLE DOACAO CASCADE CONSTRAINTS;
 DROP TABLE DOADOR CASCADE CONSTRAINTS;
+DROP TABLE ADULTO_INTERESSE CASCADE CONSTRAINTS;
+DROP TABLE PROFESSOR_DISCIPLINA CASCADE CONSTRAINTS;
+DROP TABLE PROFESSOR CASCADE CONSTRAINTS;
+DROP TABLE CRIANCA CASCADE CONSTRAINTS;
+DROP TABLE ADULTO CASCADE CONSTRAINTS;
+DROP TABLE LEITOR CASCADE CONSTRAINTS;
 DROP TABLE FUNCIONARIO_HABILIDADE CASCADE CONSTRAINTS;
 DROP TABLE HORARIO_FUNCIONARIO CASCADE CONSTRAINTS;
 DROP TABLE FUNCIONARIO CASCADE CONSTRAINTS;
@@ -151,87 +153,126 @@ ALTER TABLE CERTIFICADO_DOACAO
     CHECK (tipo_certificado IN ('Original','Reemissao','Honorifico'));
 
 -- ============================================================
--- PROGRAMA_ALFABETIZACAO
+-- AUDITORIA_OPERACOES
 -- ============================================================
-CREATE TABLE PROGRAMA_ALFABETIZACAO (
-    cod_programa        VARCHAR2(18 BYTE)  NOT NULL,
-    cod_biblioteca      VARCHAR2(10 BYTE)  NOT NULL,
-    nome_programa       VARCHAR2(100 BYTE) NOT NULL,
-    descricao           VARCHAR2(500 BYTE),
-    publico_alvo        VARCHAR2(22 BYTE)  NOT NULL,
-    duracao_semanas     NUMBER(3),
-    metodologia         VARCHAR2(300 BYTE),
-    resultados_esperados VARCHAR2(300 BYTE),
-    estado_programa     VARCHAR2(10 BYTE)  DEFAULT 'Activo' NOT NULL
+CREATE TABLE AUDITORIA_OPERACOES (
+    id_auditoria     NUMBER          NOT NULL,
+    data_operacao    DATE            DEFAULT SYSDATE NOT NULL,
+    cod_funcionario  VARCHAR2(12)    NOT NULL,          -- quem executou
+    operacao         VARCHAR2(50)    NOT NULL,          -- ex: 'APAGAR_LEITOR'
+    objeto_afetado   VARCHAR2(100)   NOT NULL,          -- ex: num_cartao ou cod_funcionario alvo
+    resultado        VARCHAR2(10)    NOT NULL,          -- 'SUCESSO' ou 'FALHA'
+    motivo_falha     VARCHAR2(300),                     -- preenchido só em FALHA
+    nos_afetados     VARCHAR2(200),                     -- ex: 'EmprestimosDB, EventosDB'
+    observacoes      VARCHAR2(300)
 ) TABLESPACE tbs_NACIONALDB;
 
-ALTER TABLE PROGRAMA_ALFABETIZACAO
-    ADD CONSTRAINT PROGRAMA_ALFABETIZACAO_PK PRIMARY KEY (cod_programa);
-ALTER TABLE PROGRAMA_ALFABETIZACAO
-    ADD CONSTRAINT chk_estado_programa
-    CHECK (estado_programa IN ('Activo','Concluido','Suspenso'));
-ALTER TABLE PROGRAMA_ALFABETIZACAO
-    ADD CONSTRAINT chk_publico_alvo_prog
-    CHECK (publico_alvo IN ('Iniciantes','Intermedios','Avancados','Todos'));
+ALTER TABLE AUDITORIA_OPERACOES
+    ADD CONSTRAINT AUDITORIA_PK PRIMARY KEY (id_auditoria);
+ALTER TABLE AUDITORIA_OPERACOES
+    ADD CONSTRAINT chk_resultado_audit
+    CHECK (resultado IN ('SUCESSO', 'FALHA'));
 
 -- ============================================================
--- NIVEL_PROGRESSAO
+-- LEITOR
 -- ============================================================
-CREATE TABLE NIVEL_PROGRESSAO (
-    id_nivel     NUMBER              NOT NULL,
-    cod_programa VARCHAR2(18 BYTE)   NOT NULL,
-    nome_nivel   VARCHAR2(50 BYTE)   NOT NULL,
-    descricao    VARCHAR2(300 BYTE),
-    ordem        NUMBER(2)           NOT NULL
+CREATE TABLE LEITOR (
+    num_cartao               VARCHAR2(12 BYTE)  NOT NULL,
+    nome_completo            VARCHAR2(100 BYTE) NOT NULL,
+    data_nasc                DATE               NOT NULL,
+    genero                   VARCHAR2(9 BYTE)   NOT NULL,
+    nivel_escolar            VARCHAR2(20 BYTE)  NOT NULL,
+    localizacao_leitor       VARCHAR2(200 BYTE) NOT NULL,
+    contacto                 VARCHAR2(50 BYTE),
+    foto_path                VARCHAR2(300 BYTE),
+    distancia_biblioteca     NUMBER(6,2)        NOT NULL,
+    historico_pontualidade   VARCHAR2(10 BYTE)  DEFAULT 'Pontual' NOT NULL,
+    cod_biblioteca           VARCHAR2(10 BYTE)  NOT NULL,
+    status_leitor            VARCHAR2(12 BYTE)  DEFAULT 'Activo' NOT NULL
 ) TABLESPACE tbs_NACIONALDB;
 
-ALTER TABLE NIVEL_PROGRESSAO
-    ADD CONSTRAINT NIVEL_PROGRESSAO_PK PRIMARY KEY (id_nivel);
+ALTER TABLE LEITOR
+    ADD CONSTRAINT LEITOR_PK PRIMARY KEY (num_cartao);
+ALTER TABLE LEITOR
+    ADD CONSTRAINT chk_status_leitor
+    CHECK (status_leitor IN ('Activo','Suspenso','Bloqueado'));
+ALTER TABLE LEITOR
+    ADD CONSTRAINT chk_historico_pontualidade
+    CHECK (historico_pontualidade IN ('Pontual','Irregular','Mau'));
+ALTER TABLE LEITOR
+    ADD CONSTRAINT chk_genero_leitor
+    CHECK (genero IN ('Masculino','Feminino'));
 
 -- ============================================================
--- PROGRAMA_MATERIAL (N:M)
+-- ADULTO
 -- ============================================================
-CREATE TABLE PROGRAMA_MATERIAL (
-    cod_programa VARCHAR2(18 BYTE) NOT NULL,
-    cod_material VARCHAR2(12 BYTE) NOT NULL,
-    observacoes  VARCHAR2(200 BYTE)
+CREATE TABLE ADULTO (
+    num_cartao      VARCHAR2(12 BYTE) NOT NULL,
+    profissao       VARCHAR2(50 BYTE),
+    nivel_literacia VARCHAR2(15 BYTE) NOT NULL
 ) TABLESPACE tbs_NACIONALDB;
 
-ALTER TABLE PROGRAMA_MATERIAL
-    ADD CONSTRAINT PROGRAMA_MATERIAL_PK PRIMARY KEY (cod_programa, cod_material);
+ALTER TABLE ADULTO
+    ADD CONSTRAINT ADULTO_PK PRIMARY KEY (num_cartao);
+ALTER TABLE ADULTO
+    ADD CONSTRAINT chk_nivel_literacia
+    CHECK (nivel_literacia IN ('Basico','Funcional','Avancado'));
 
 -- ============================================================
--- PROGRAMA_FUNCIONARIO (N:M)
+-- ADULTO_INTERESSE
 -- ============================================================
-CREATE TABLE PROGRAMA_FUNCIONARIO (
-    cod_programa    VARCHAR2(18 BYTE) NOT NULL,
-    cod_funcionario VARCHAR2(12 BYTE) NOT NULL,
-    papel           VARCHAR2(20 BYTE) NOT NULL
+CREATE TABLE ADULTO_INTERESSE (
+    num_cartao VARCHAR2(12 BYTE) NOT NULL,
+    interesse  VARCHAR2(50 BYTE) NOT NULL
 ) TABLESPACE tbs_NACIONALDB;
 
-ALTER TABLE PROGRAMA_FUNCIONARIO
-    ADD CONSTRAINT PROGRAMA_FUNCIONARIO_PK PRIMARY KEY (cod_programa, cod_funcionario);
-ALTER TABLE PROGRAMA_FUNCIONARIO
-    ADD CONSTRAINT chk_papel_prog_func
-    CHECK (papel IN ('Responsavel','Instrutor','Auxiliar'));
+ALTER TABLE ADULTO_INTERESSE
+    ADD CONSTRAINT ADULTO_INTERESSE_PK PRIMARY KEY (num_cartao, interesse);
 
 -- ============================================================
--- PARTICIPACAO_PROGRAMA
+-- PROFESSOR
 -- ============================================================
-CREATE TABLE PARTICIPACAO_PROGRAMA (
-    num_cartao         VARCHAR2(12 BYTE) NOT NULL,
-    cod_programa       VARCHAR2(18 BYTE) NOT NULL,
-    id_nivel_atual     NUMBER,
-    data_inscricao     DATE              NOT NULL,
-    data_conclusao     DATE,
-    estado_participacao VARCHAR2(10 BYTE) DEFAULT 'Activo' NOT NULL
+CREATE TABLE PROFESSOR (
+    num_cartao       VARCHAR2(12 BYTE)  NOT NULL,
+    escola_instituto VARCHAR2(100 BYTE),
+    nivel_ensino     VARCHAR2(15 BYTE)  NOT NULL,
+    num_alunos       NUMBER(5)
 ) TABLESPACE tbs_NACIONALDB;
 
-ALTER TABLE PARTICIPACAO_PROGRAMA
-    ADD CONSTRAINT PARTICIPACAO_PROGRAMA_PK PRIMARY KEY (num_cartao, cod_programa);
-ALTER TABLE PARTICIPACAO_PROGRAMA
-    ADD CONSTRAINT chk_estado_participacao
-    CHECK (estado_participacao IN ('Activo','Concluido','Desistiu'));
+ALTER TABLE PROFESSOR
+    ADD CONSTRAINT PROFESSOR_PK PRIMARY KEY (num_cartao);
+ALTER TABLE PROFESSOR
+    ADD CONSTRAINT chk_nivel_ensino
+    CHECK (nivel_ensino IN ('Primario','Secundario','Tecnico','Universitario'));
+
+-- ============================================================
+-- PROFESSOR_DISCIPLINA
+-- ============================================================
+CREATE TABLE PROFESSOR_DISCIPLINA (
+    num_cartao VARCHAR2(12 BYTE) NOT NULL,
+    disciplina VARCHAR2(50 BYTE) NOT NULL
+) TABLESPACE tbs_NACIONALDB;
+
+ALTER TABLE PROFESSOR_DISCIPLINA
+    ADD CONSTRAINT PROFESSOR_DISCIPLINA_PK PRIMARY KEY (num_cartao, disciplina);
+
+-- ============================================================
+-- CRIANCA
+-- ============================================================
+CREATE TABLE CRIANCA (
+    num_cartao           VARCHAR2(12 BYTE)  NOT NULL,
+    nome_responsavel     VARCHAR2(100 BYTE) NOT NULL,
+    telefone_responsavel VARCHAR2(20 BYTE),
+    escola_frequenta     VARCHAR2(100 BYTE),
+    classe               VARCHAR2(10 BYTE)
+) TABLESPACE tbs_NACIONALDB;
+
+ALTER TABLE CRIANCA
+    ADD CONSTRAINT CRIANCA_PK PRIMARY KEY (num_cartao);
+
+-- ============================================================
+-- CONSTRAINTS DE FK's
+-- ============================================================
 
 -- FUNCIONARIO
 ALTER TABLE FUNCIONARIO ADD CONSTRAINT FUNC_FUNCAO_FK
@@ -245,6 +286,18 @@ ALTER TABLE FUNCIONARIO_HABILIDADE ADD CONSTRAINT FH_FUNCIONARIO_FK
 ALTER TABLE HORARIO_FUNCIONARIO ADD CONSTRAINT HFUNC_FUNCIONARIO_FK
     FOREIGN KEY (cod_funcionario) REFERENCES FUNCIONARIO (cod_funcionario) ON DELETE CASCADE;
 
+-- LEITOR (cod_biblioteca é FK lógica para BIBLIOTECA@eventosdb — sem DDL cross-node)
+ALTER TABLE ADULTO ADD CONSTRAINT ADULTO_LEITOR_FK
+    FOREIGN KEY (num_cartao) REFERENCES LEITOR (num_cartao) ON DELETE CASCADE;
+ALTER TABLE ADULTO_INTERESSE ADD CONSTRAINT AI_ADULTO_FK
+    FOREIGN KEY (num_cartao) REFERENCES ADULTO (num_cartao) ON DELETE CASCADE;
+ALTER TABLE PROFESSOR ADD CONSTRAINT PROF_ADULTO_FK
+    FOREIGN KEY (num_cartao) REFERENCES ADULTO (num_cartao) ON DELETE CASCADE;
+ALTER TABLE PROFESSOR_DISCIPLINA ADD CONSTRAINT PD_PROFESSOR_FK
+    FOREIGN KEY (num_cartao) REFERENCES PROFESSOR (num_cartao) ON DELETE CASCADE;
+ALTER TABLE CRIANCA ADD CONSTRAINT CRIANCA_LEITOR_FK
+    FOREIGN KEY (num_cartao) REFERENCES LEITOR (num_cartao) ON DELETE CASCADE;
+
 -- DOACAO / ITEM_DOACAO / CERTIFICADO_DOACAO
 ALTER TABLE DOACAO ADD CONSTRAINT DOA_DOADOR_FK
     FOREIGN KEY (id_doador) REFERENCES DOADOR (id_doador);
@@ -253,16 +306,4 @@ ALTER TABLE ITEM_DOACAO ADD CONSTRAINT ITEM_DOACAO_FK
 ALTER TABLE CERTIFICADO_DOACAO ADD CONSTRAINT CERT_DOACAO_FK
     FOREIGN KEY (id_doacao) REFERENCES DOACAO (id_doacao) ON DELETE CASCADE;
 
--- PROGRAMA_ALFABETIZACAO e relacionadas
-ALTER TABLE NIVEL_PROGRESSAO ADD CONSTRAINT NP_PROGRAMA_FK
-    FOREIGN KEY (cod_programa) REFERENCES PROGRAMA_ALFABETIZACAO (cod_programa) ON DELETE CASCADE;
-ALTER TABLE PROGRAMA_MATERIAL ADD CONSTRAINT PM_PROGRAMA_FK
-    FOREIGN KEY (cod_programa) REFERENCES PROGRAMA_ALFABETIZACAO (cod_programa) ON DELETE CASCADE;
-ALTER TABLE PROGRAMA_FUNCIONARIO ADD CONSTRAINT PF_PROGRAMA_FK
-    FOREIGN KEY (cod_programa) REFERENCES PROGRAMA_ALFABETIZACAO (cod_programa) ON DELETE CASCADE;
-ALTER TABLE PROGRAMA_FUNCIONARIO ADD CONSTRAINT PF_FUNCIONARIO_FK
-    FOREIGN KEY (cod_funcionario) REFERENCES FUNCIONARIO (cod_funcionario);
-ALTER TABLE PARTICIPACAO_PROGRAMA ADD CONSTRAINT PP_PROGRAMA_FK
-    FOREIGN KEY (cod_programa) REFERENCES PROGRAMA_ALFABETIZACAO (cod_programa) ON DELETE CASCADE;
-ALTER TABLE PARTICIPACAO_PROGRAMA ADD CONSTRAINT PP_NIVEL_FK
-    FOREIGN KEY (id_nivel_atual) REFERENCES NIVEL_PROGRESSAO (id_nivel);
+

@@ -5,7 +5,9 @@
       "Bash(rtk find *)",
       "Bash(rtk tree *)",
       "Bash(rtk ls *)",
-      "Bash(rtk git *)"
+      "Bash(rtk git *)",
+      "Bash(python3 *)",
+      "Bash(rtk read *)"
     ]
   }
 }
