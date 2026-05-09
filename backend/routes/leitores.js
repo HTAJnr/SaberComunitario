@@ -605,13 +605,14 @@ router.patch('/:id/status', exigirNivel('Administrador', 'Coordenador'), async (
 });
 
 // ── DELETE /:id — eliminar leitor ────────────────────────────
+// Operação exclusiva do BibliotecaNacionalDB — apenas este nó tem GRANT de DELETE nestas tabelas.
 router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
 
     const empCheck = await conn.execute(
-      `SELECT COUNT(*) AS N FROM EMPRESTIMO WHERE NUM_CARTAO = :id AND DATA_DEVOLUCAO IS NULL`,
+      `SELECT COUNT(*) AS N FROM EMPRESTIMO@emprestimosdb WHERE NUM_CARTAO = :id AND DATA_DEVOLUCAO IS NULL`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -620,7 +621,7 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
     }
 
     const multaCheck = await conn.execute(
-      `SELECT COUNT(*) AS N FROM EMPRESTIMO WHERE NUM_CARTAO = :id AND MULTA_VALOR > 0 AND MULTA_PAGA = 'N'`,
+      `SELECT COUNT(*) AS N FROM EMPRESTIMO@emprestimosdb WHERE NUM_CARTAO = :id AND MULTA_VALOR > 0 AND MULTA_PAGA = 'N'`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -630,9 +631,31 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
 
     await conn.execute(`DELETE FROM LEITOR WHERE NUM_CARTAO = :id`, { id: req.params.id });
     await conn.commit();
+
+    try {
+      await conn.execute(
+        `INSERT INTO AUDITORIA_OPERACOES
+           (id_auditoria, cod_funcionario, operacao, objeto_afetado, resultado, nos_afetados)
+         VALUES (SEQ_AUDITORIA.NEXTVAL, :cf, 'ELIMINAR_LEITOR', :obj, 'SUCESSO', 'BibliotecaNacionalDB')`,
+        { cf: req.session.cod_funcionario, obj: String(req.params.id) },
+        { autoCommit: true }
+      );
+    } catch (_) { /* best-effort — não falhar por causa de auditoria */ }
+
     res.json({ ok: true });
   } catch (err) {
-    if (conn) await conn.rollback();
+    if (conn) {
+      try { await conn.rollback(); } catch (_) {}
+      try {
+        await conn.execute(
+          `INSERT INTO AUDITORIA_OPERACOES
+             (id_auditoria, cod_funcionario, operacao, objeto_afetado, resultado, motivo_falha, nos_afetados)
+           VALUES (SEQ_AUDITORIA.NEXTVAL, :cf, 'ELIMINAR_LEITOR', :obj, 'FALHA', :mf, 'BibliotecaNacionalDB')`,
+          { cf: req.session.cod_funcionario, obj: String(req.params.id), mf: (err.message || '').substring(0, 300) },
+          { autoCommit: true }
+        );
+      } catch (_) {}
+    }
     erroInterno(res, err, `DELETE /:id (${req.params.id})`);
   } finally {
     if (conn) await conn.close();

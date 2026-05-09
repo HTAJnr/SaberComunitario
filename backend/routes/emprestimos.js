@@ -32,7 +32,7 @@ async function calcularMulta(conn, prazo, numCartao, tipoLeitor) {
 
   if (tipoLeitor === 'PROFESSOR') {
     const r = await conn.execute(
-      `SELECT COUNT(*) AS N FROM EMPRESTIMO
+      `SELECT COUNT(*) AS N FROM EMPRESTIMO@emprestimosdb
        WHERE NUM_CARTAO = :nc AND MULTA_VALOR > 0 AND DATA_DEVOLUCAO IS NOT NULL`,
       { nc: numCartao },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -51,7 +51,7 @@ async function calcularMultaDano(conn, codMaterial, estadoRetorno) {
   if (estado === 'bom') return { multaDano: 0, valorEstimado: null };
 
   const r = await conn.execute(
-    `SELECT VALOR_AQUISICAO FROM MATERIAL_BIBLIOGRAFICO WHERE COD_MATERIAL = :id`,
+    `SELECT VALOR_AQUISICAO FROM MATERIAL_BIBLIOGRAFICO@materiaisdb WHERE COD_MATERIAL = :id`,
     { id: codMaterial },
     { outFormat: oracledb.OUT_FORMAT_OBJECT }
   );
@@ -119,14 +119,14 @@ router.get('/', autenticar, async (req, res) => {
     const estadoLower = (estado || 'activo').toLowerCase();
 
     if (estadoLower === 'activo') {
-      innerSql = `SELECT ${colunasActivos} FROM vw_emprestimos_ativos WHERE 1=1${bibWhere} ORDER BY DATA_RETIRADA DESC`;
+      innerSql = `SELECT ${colunasActivos} FROM vw_emprestimos_ativos@emprestimosdb WHERE 1=1${bibWhere} ORDER BY DATA_RETIRADA DESC`;
     } else if (estadoLower === 'vencido') {
-      innerSql = `SELECT ${colunasActivos} FROM vw_emprestimos_ativos WHERE DIAS_ATRASO > 0${bibWhere} ORDER BY DIAS_ATRASO DESC`;
+      innerSql = `SELECT ${colunasActivos} FROM vw_emprestimos_ativos@emprestimosdb WHERE DIAS_ATRASO > 0${bibWhere} ORDER BY DIAS_ATRASO DESC`;
     } else if (estadoLower === 'devolvido') {
-      innerSql = `SELECT ${colunasHistorico} FROM vw_historico_emprestimos WHERE DATA_DEVOLUCAO IS NOT NULL${bibWhere} ORDER BY DATA_RETIRADA DESC`;
+      innerSql = `SELECT ${colunasHistorico} FROM vw_historico_emprestimos@emprestimosdb WHERE DATA_DEVOLUCAO IS NOT NULL${bibWhere} ORDER BY DATA_RETIRADA DESC`;
     } else {
       // todos
-      innerSql = `SELECT ${colunasHistorico} FROM vw_historico_emprestimos WHERE 1=1${bibWhere} ORDER BY DATA_RETIRADA DESC`;
+      innerSql = `SELECT ${colunasHistorico} FROM vw_historico_emprestimos@emprestimosdb WHERE 1=1${bibWhere} ORDER BY DATA_RETIRADA DESC`;
     }
 
     const sql = `SELECT * FROM (
@@ -182,7 +182,7 @@ router.get('/validar-leitor/:num_cartao', autenticar, async (req, res) => {
 
     // Verificar suspensão activa
     const suspR = await conn.execute(
-      `SELECT s.ID_SUSPENSAO, s.DATA_FIM FROM SUSPENSAO s
+      `SELECT s.ID_SUSPENSAO, s.DATA_FIM FROM SUSPENSAO@emprestimosdb s
         WHERE s.NUM_CARTAO = :nc AND s.ESTADO_SUSPENSAO = 'Activa' AND SYSDATE <= s.DATA_FIM
           AND ROWNUM = 1`,
       { nc },
@@ -200,8 +200,8 @@ router.get('/validar-leitor/:num_cartao', autenticar, async (req, res) => {
     // Verificar empréstimo activo
     const empR = await conn.execute(
       `SELECT e.ID_EMPRESTIMO, m.TITULO, e.PRAZO_DEVOLUCAO
-         FROM EMPRESTIMO e
-         JOIN MATERIAL_BIBLIOGRAFICO m ON m.COD_MATERIAL = e.COD_MATERIAL
+         FROM EMPRESTIMO@emprestimosdb e
+         JOIN MATERIAL_BIBLIOGRAFICO@materiaisdb m ON m.COD_MATERIAL = e.COD_MATERIAL
         WHERE e.NUM_CARTAO = :nc AND e.DATA_DEVOLUCAO IS NULL
           AND ROWNUM = 1`,
       { nc },
@@ -280,7 +280,7 @@ router.post('/preview-devolucao', autenticar, async (req, res) => {
                    WHEN a.NUM_CARTAO IS NOT NULL THEN 'ADULTO'
                    WHEN cr.NUM_CARTAO IS NOT NULL THEN 'CRIANCA'
                    ELSE 'ADULTO' END AS TIPO_LEITOR
-         FROM EMPRESTIMO e
+         FROM EMPRESTIMO@emprestimosdb e
          JOIN LEITOR l ON l.NUM_CARTAO = e.NUM_CARTAO
          LEFT JOIN PROFESSOR p  ON p.NUM_CARTAO  = l.NUM_CARTAO
          LEFT JOIN ADULTO    a  ON a.NUM_CARTAO  = l.NUM_CARTAO
@@ -326,9 +326,9 @@ router.get('/:id', autenticar, async (req, res) => {
       `SELECT e.*,
               l.NOME_COMPLETO AS NOME_LEITOR,
               m.TITULO, m.AUTOR
-         FROM EMPRESTIMO e
+         FROM EMPRESTIMO@emprestimosdb e
          JOIN LEITOR l ON l.NUM_CARTAO = e.NUM_CARTAO
-         JOIN MATERIAL_BIBLIOGRAFICO m ON m.COD_MATERIAL = e.COD_MATERIAL
+         JOIN MATERIAL_BIBLIOGRAFICO@materiaisdb m ON m.COD_MATERIAL = e.COD_MATERIAL
         WHERE e.ID_EMPRESTIMO = :id`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -361,12 +361,12 @@ router.post('/', autenticar, async (req, res) => {
     // 1. Verificar disponibilidade do material
     const matR = await conn.execute(
       `SELECT m.ESTADO_MATERIAL_CONSERVACAO, m.COD_CATEGORIA,
-              (SELECT COUNT(*) FROM EMPRESTIMO e
+              (SELECT COUNT(*) FROM EMPRESTIMO@emprestimosdb e
                WHERE e.COD_MATERIAL = m.COD_MATERIAL AND e.DATA_DEVOLUCAO IS NULL) AS EMP_ATIVOS,
-              (SELECT COUNT(*) FROM TRANSFERENCIA t
+              (SELECT COUNT(*) FROM TRANSFERENCIA@materiaisdb t
                WHERE t.COD_MATERIAL = m.COD_MATERIAL
                  AND t.ESTADO_TRANSFERENCIA IN ('Pendente','Aprovada')) AS TRANS_ATIVAS
-         FROM MATERIAL_BIBLIOGRAFICO m WHERE m.COD_MATERIAL = :id`,
+         FROM MATERIAL_BIBLIOGRAFICO@materiaisdb m WHERE m.COD_MATERIAL = :id`,
       { id: cod_material },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -388,7 +388,7 @@ router.post('/', autenticar, async (req, res) => {
                    WHEN a.NUM_CARTAO IS NOT NULL THEN 'ADULTO'
                    WHEN cr.NUM_CARTAO IS NOT NULL THEN 'CRIANCA'
                    ELSE 'ADULTO' END AS TIPO_LEITOR,
-              (SELECT COUNT(*) FROM EMPRESTIMO e
+              (SELECT COUNT(*) FROM EMPRESTIMO@emprestimosdb e
                WHERE e.NUM_CARTAO = l.NUM_CARTAO AND e.DATA_DEVOLUCAO IS NULL) AS ATIVOS
          FROM LEITOR l
          LEFT JOIN PROFESSOR p  ON p.NUM_CARTAO  = l.NUM_CARTAO
@@ -416,7 +416,7 @@ router.post('/', autenticar, async (req, res) => {
 
     // Verificar suspensão activa na tabela SUSPENSAO (leitor pode estar Activo mas com suspensão pendente de trigger)
     const suspR = await conn.execute(
-      `SELECT COUNT(*) AS CNT FROM SUSPENSAO
+      `SELECT COUNT(*) AS CNT FROM SUSPENSAO@emprestimosdb
         WHERE NUM_CARTAO = :nc AND ESTADO_SUSPENSAO = 'Activa' AND SYSDATE <= DATA_FIM`,
       { nc: num_cartao },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -426,7 +426,7 @@ router.post('/', autenticar, async (req, res) => {
 
     // RN04.1 — faixa etária
     const catR = await conn.execute(
-      `SELECT FAIXA_ETARIA, NIVEL_LEITURA FROM CATEGORIA WHERE ID_CATEGORIA = :id`,
+      `SELECT FAIXA_ETARIA, NIVEL_LEITURA FROM CATEGORIA@materiaisdb WHERE ID_CATEGORIA = :id`,
       { id: mat.COD_CATEGORIA },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -462,11 +462,11 @@ router.post('/', autenticar, async (req, res) => {
     const prazoStr = prazo.toISOString().slice(0, 10);
 
     const empResult = await conn.execute(
-      `INSERT INTO EMPRESTIMO
+      `INSERT INTO EMPRESTIMO@emprestimosdb
          (ID_EMPRESTIMO, NUM_CARTAO, COD_MATERIAL, DATA_RETIRADA, PRAZO_DEVOLUCAO,
           ESTADO_MATERIAL_SAIDA, MULTA_PAGA, COD_FUNCIONARIO)
        VALUES
-         (SEQ_EMPRESTIMO.NEXTVAL, :nc, :id_mat, SYSDATE,
+         (SEQ_EMPRESTIMO.NEXTVAL@emprestimosdb, :nc, :id_mat, SYSDATE,
           TO_DATE(:prazo, 'YYYY-MM-DD'), :estado_saida, 'N', :id_func)
        RETURNING ID_EMPRESTIMO INTO :id_out`,
       {
@@ -508,7 +508,7 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
                    WHEN a.NUM_CARTAO IS NOT NULL THEN 'ADULTO'
                    WHEN cr.NUM_CARTAO IS NOT NULL THEN 'CRIANCA'
                    ELSE 'ADULTO' END AS TIPO_LEITOR
-         FROM EMPRESTIMO e
+         FROM EMPRESTIMO@emprestimosdb e
          JOIN LEITOR l ON l.NUM_CARTAO = e.NUM_CARTAO
          LEFT JOIN PROFESSOR p  ON p.NUM_CARTAO  = l.NUM_CARTAO
          LEFT JOIN ADULTO    a  ON a.NUM_CARTAO  = l.NUM_CARTAO
@@ -536,7 +536,7 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
     const estadoLower = estadoRetorno.toLowerCase();
     if (estadoLower === 'destruido') {
       await conn.execute(
-        `UPDATE MATERIAL_BIBLIOGRAFICO
+        `UPDATE MATERIAL_BIBLIOGRAFICO@materiaisdb
             SET ESTADO_MATERIAL_CONSERVACAO = 'Indisponivel',
                 MOTIVO_INDISPONIBILIDADE    = 'Destruído'
           WHERE COD_MATERIAL = :id`,
@@ -544,7 +544,7 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
       );
     } else if (estadoLower === 'perdido') {
       await conn.execute(
-        `UPDATE MATERIAL_BIBLIOGRAFICO
+        `UPDATE MATERIAL_BIBLIOGRAFICO@materiaisdb
             SET MOTIVO_INDISPONIBILIDADE = 'Perdido em empréstimo'
           WHERE COD_MATERIAL = :id`,
         { id: emp.COD_MATERIAL }
@@ -553,7 +553,7 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
 
     // Chamar procedure — faz COMMIT internamente e dispara trigger trg_aplica_suspensao
     const devolR = await conn.execute(
-      `BEGIN processar_devolucao(:id_emp, :cond, :obs, :multa_val, :sucesso); END;`,
+      `BEGIN processar_devolucao@emprestimosdb(:id_emp, :cond, :obs, :multa_val, :sucesso); END;`,
       {
         id_emp:    parseInt(req.params.id),
         cond:      estadoRetorno,
@@ -573,7 +573,7 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
     try {
       const suspR = await conn.execute(
         `SELECT DIAS_SUSPENSAO, DATA_FIM FROM (
-           SELECT DIAS_SUSPENSAO, DATA_FIM FROM SUSPENSAO
+           SELECT DIAS_SUSPENSAO, DATA_FIM FROM SUSPENSAO@emprestimosdb
             WHERE ID_EMPRESTIMO = :id ORDER BY DATA_INICIO DESC
          ) WHERE ROWNUM = 1`,
         { id: parseInt(req.params.id) },
@@ -602,7 +602,7 @@ router.patch('/:id/pagar-multa', autenticar, async (req, res) => {
     conn = await getConnection();
 
     const empR = await conn.execute(
-      `SELECT MULTA_VALOR, MULTA_PAGA FROM EMPRESTIMO WHERE ID_EMPRESTIMO = :id`,
+      `SELECT MULTA_VALOR, MULTA_PAGA FROM EMPRESTIMO@emprestimosdb WHERE ID_EMPRESTIMO = :id`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -618,7 +618,7 @@ router.patch('/:id/pagar-multa', autenticar, async (req, res) => {
     const dataPag = data_pagamento_multa || new Date().toISOString().slice(0, 10);
 
     await conn.execute(
-      `UPDATE EMPRESTIMO
+      `UPDATE EMPRESTIMO@emprestimosdb
           SET MULTA_PAGA = 'S',
               DATA_PAGAMENTO_MULTA = TO_DATE(:data, 'YYYY-MM-DD')
         WHERE ID_EMPRESTIMO = :id`,
@@ -647,7 +647,7 @@ router.get('/:id/multa', autenticar, async (req, res) => {
                    WHEN a.NUM_CARTAO IS NOT NULL THEN 'ADULTO'
                    WHEN cr.NUM_CARTAO IS NOT NULL THEN 'CRIANCA'
                    ELSE 'ADULTO' END AS TIPO_LEITOR
-         FROM EMPRESTIMO e
+         FROM EMPRESTIMO@emprestimosdb e
          JOIN LEITOR l ON l.NUM_CARTAO = e.NUM_CARTAO
          LEFT JOIN PROFESSOR p  ON p.NUM_CARTAO  = l.NUM_CARTAO
          LEFT JOIN ADULTO    a  ON a.NUM_CARTAO  = l.NUM_CARTAO

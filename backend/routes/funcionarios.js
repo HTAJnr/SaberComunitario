@@ -471,6 +471,7 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, re
   }
 });
 
+// Operação exclusiva do BibliotecaNacionalDB — apenas este nó tem GRANT de DELETE nestas tabelas.
 router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
   if (String(req.params.id) === String(req.session.cod_funcionario)) {
     return res.status(403).json({ erro: 'Não pode desactivar a sua própria conta.' });
@@ -484,9 +485,31 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
       { id: req.params.id }
     );
     await conn.commit();
+
+    try {
+      await conn.execute(
+        `INSERT INTO AUDITORIA_OPERACOES
+           (id_auditoria, cod_funcionario, operacao, objeto_afetado, resultado, nos_afetados)
+         VALUES (SEQ_AUDITORIA.NEXTVAL, :cf, 'REMOVER_FUNCIONARIO', :obj, 'SUCESSO', 'BibliotecaNacionalDB')`,
+        { cf: req.session.cod_funcionario, obj: String(req.params.id) },
+        { autoCommit: true }
+      );
+    } catch (_) { /* best-effort */ }
+
     res.json({ ok: true });
   } catch (err) {
-    if (conn) await conn.rollback();
+    if (conn) {
+      try { await conn.rollback(); } catch (_) {}
+      try {
+        await conn.execute(
+          `INSERT INTO AUDITORIA_OPERACOES
+             (id_auditoria, cod_funcionario, operacao, objeto_afetado, resultado, motivo_falha, nos_afetados)
+           VALUES (SEQ_AUDITORIA.NEXTVAL, :cf, 'REMOVER_FUNCIONARIO', :obj, 'FALHA', :mf, 'BibliotecaNacionalDB')`,
+          { cf: req.session.cod_funcionario, obj: String(req.params.id), mf: (err.message || '').substring(0, 300) },
+          { autoCommit: true }
+        );
+      } catch (_) {}
+    }
     console.error(`\x1b[31m[FUNCIONARIOS DELETE /${req.params.id}] ERRO ao desactivar funcionário\x1b[0m`);
     console.error('     BD: UPDATE FUNCIONARIO SET DATA_DEMISSAO');
     console.error('     Detalhe:', err.message);
@@ -516,9 +539,31 @@ router.patch('/:id/acesso', exigirNivel('Administrador'), async (req, res) => {
       return res.status(404).json({ erro: 'Funcionário não encontrado.' });
     }
     await conn.commit();
+
+    try {
+      await conn.execute(
+        `INSERT INTO AUDITORIA_OPERACOES
+           (id_auditoria, cod_funcionario, operacao, objeto_afetado, resultado, nos_afetados)
+         VALUES (SEQ_AUDITORIA.NEXTVAL, :cf, 'ALTERAR_NIVEL_ACESSO', :obj, 'SUCESSO', 'BibliotecaNacionalDB')`,
+        { cf: req.session.cod_funcionario, obj: String(req.params.id) },
+        { autoCommit: true }
+      );
+    } catch (_) { /* best-effort */ }
+
     res.json({ ok: true });
   } catch (err) {
-    if (conn) await conn.rollback();
+    if (conn) {
+      try { await conn.rollback(); } catch (_) {}
+      try {
+        await conn.execute(
+          `INSERT INTO AUDITORIA_OPERACOES
+             (id_auditoria, cod_funcionario, operacao, objeto_afetado, resultado, motivo_falha, nos_afetados)
+           VALUES (SEQ_AUDITORIA.NEXTVAL, :cf, 'ALTERAR_NIVEL_ACESSO', :obj, 'FALHA', :mf, 'BibliotecaNacionalDB')`,
+          { cf: req.session.cod_funcionario, obj: String(req.params.id), mf: (err.message || '').substring(0, 300) },
+          { autoCommit: true }
+        );
+      } catch (_) {}
+    }
     console.error(`\x1b[31m[FUNCIONARIOS PATCH /${req.params.id}/acesso] ERRO ao alterar nível de acesso\x1b[0m`);
     console.error('     BD: UPDATE FUNCIONARIO SET ID_FUNCAO');
     console.error('     Detalhe:', err.message);

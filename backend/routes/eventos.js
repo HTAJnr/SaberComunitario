@@ -17,7 +17,7 @@ router.get('/', autenticar, async (req, res) => {
                 TITULO_EVENTO   AS NOME,
                 DATA_EVENTO     AS DATA_INICIO,
                 BIBLIOTECA_NOME AS NOME_BIBLIOTECA
-           FROM vw_eventos_proximos ORDER BY DATA_EVENTO`,
+           FROM vw_eventos_proximos@eventosdb ORDER BY DATA_EVENTO`,
         [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
       return res.json(result.rows);
@@ -37,9 +37,9 @@ router.get('/', autenticar, async (req, res) => {
               e.DESCRICAO_EVENTO, e.PUBLICO_ALVO, e.RECORRENTE,
               e.STATUS_EVENTO, e.COD_BIBLIOTECA,
               b.NOME_BIBLIOTECA,
-              (SELECT COUNT(*) FROM PARTICIPACAO_EVENTO p WHERE p.ID_EVENTO = e.ID_EVENTO) AS INSCRITOS
-         FROM EVENTO e
-         LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = e.COD_BIBLIOTECA
+              (SELECT COUNT(*) FROM PARTICIPACAO_EVENTO@eventosdb p WHERE p.ID_EVENTO = e.ID_EVENTO) AS INSCRITOS
+         FROM EVENTO@eventosdb e
+         LEFT JOIN BIBLIOTECA@eventosdb b ON b.COD_BIBLIOTECA = e.COD_BIBLIOTECA
          ${where}
         ORDER BY e.DATA_EVENTO DESC`,
       binds, { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -59,7 +59,7 @@ router.get('/:id', autenticar, async (req, res) => {
   try {
     conn = await getConnection();
     const result = await conn.execute(
-      `SELECT * FROM vw_eventos_completos WHERE id_evento = :id`,
+      `SELECT * FROM vw_eventos_completos@eventosdb WHERE id_evento = :id`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -94,7 +94,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     const schedResult = await conn.execute(
       `SELECT COUNT(*) AS TOTAL,
               SUM(CASE WHEN DIA_SEMANA = :dia THEN 1 ELSE 0 END) AS NESTE_DIA
-         FROM HORARIO_BIBLIOTECA
+         FROM HORARIO_BIBLIOTECA@eventosdb
         WHERE COD_BIBLIOTECA = :cod_bib`,
       { dia: diaSemana, cod_bib: cod_biblioteca },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -105,11 +105,11 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     }
 
     const result = await conn.execute(
-      `INSERT INTO EVENTO
+      `INSERT INTO EVENTO@eventosdb
          (ID_EVENTO, TITULO_EVENTO, DESCRICAO_EVENTO, LOCAL_EVENTO, DATA_EVENTO,
           PUBLICO_ALVO, CAPACIDADE, STATUS_EVENTO, RECORRENTE, COD_BIBLIOTECA)
        VALUES
-         (SEQ_EVENTO.NEXTVAL, :titulo, :desc, :local, TO_DATE(:data,'YYYY-MM-DD'),
+         (SEQ_EVENTO.NEXTVAL@eventosdb, :titulo, :desc, :local, TO_DATE(:data,'YYYY-MM-DD'),
           :pub_alvo, :cap, 'Planeado', NVL(:rec,'N'), :cod_bib)
        RETURNING ID_EVENTO INTO :id_out`,
       {
@@ -124,13 +124,13 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     // Inserir horários do evento
     if (Array.isArray(horarios) && horarios.length > 0) {
       const maxRes = await conn.execute(
-        `SELECT NVL(MAX(ID_HORARIO_EV),0) AS M FROM HORARIO_EVENTO`,
+        `SELECT NVL(MAX(ID_HORARIO_EV),0) AS M FROM HORARIO_EVENTO@eventosdb`,
         [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
       let nextId = maxRes.rows[0].M + 1;
       for (const h of horarios) {
         await conn.execute(
-          `INSERT INTO HORARIO_EVENTO
+          `INSERT INTO HORARIO_EVENTO@eventosdb
              (ID_HORARIO_EV, ID_EVENTO, DIA_SEMANA, DATA_OCORRENCIA, HORA_INICIO, HORA_FIM)
            VALUES (:id, :ev, :dia, TO_DATE(:data,'YYYY-MM-DD'), :inicio, :fim)`,
           { id: nextId++, ev: idEvento, dia: h.dia_semana,
@@ -142,13 +142,13 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     // Inserir recursos do evento
     if (Array.isArray(recursos) && recursos.length > 0) {
       const maxRes = await conn.execute(
-        `SELECT NVL(MAX(ID_RECURSO),0) AS M FROM EVENTO_RECURSO`,
+        `SELECT NVL(MAX(ID_RECURSO),0) AS M FROM EVENTO_RECURSO@eventosdb`,
         [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
       let nextId = maxRes.rows[0].M + 1;
       for (const r of recursos) {
         await conn.execute(
-          `INSERT INTO EVENTO_RECURSO (ID_RECURSO, ID_EVENTO, NOME_RECURSO, QUANTIDADE)
+          `INSERT INTO EVENTO_RECURSO@eventosdb (ID_RECURSO, ID_EVENTO, NOME_RECURSO, QUANTIDADE)
            VALUES (:id, :ev, :nome, :qtd)`,
           { id: nextId++, ev: idEvento, nome: r.nome_recurso, qtd: r.quantidade }
         );
@@ -174,7 +174,7 @@ router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
   try {
     conn = await getConnection();
     await conn.execute(
-      `UPDATE EVENTO SET
+      `UPDATE EVENTO@eventosdb SET
          TITULO_EVENTO    = NVL(:titulo, TITULO_EVENTO),
          DESCRICAO_EVENTO = NVL(:desc, DESCRICAO_EVENTO),
          LOCAL_EVENTO     = NVL(:local, LOCAL_EVENTO),
@@ -213,7 +213,7 @@ router.patch('/:id/status', exigirNivel('Administrador', 'Coordenador', 'Bibliot
   try {
     conn = await getConnection();
     const upd = await conn.execute(
-      `UPDATE EVENTO SET STATUS_EVENTO = :status WHERE ID_EVENTO = :id`,
+      `UPDATE EVENTO@eventosdb SET STATUS_EVENTO = :status WHERE ID_EVENTO = :id`,
       { status: status_evento, id: req.params.id }
     );
     if (upd.rowsAffected === 0) return res.status(404).json({ erro: 'Evento não encontrado.' });
@@ -234,7 +234,7 @@ router.delete('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario
   let conn;
   try {
     conn = await getConnection();
-    await conn.execute(`DELETE FROM EVENTO WHERE ID_EVENTO = :id`, { id: req.params.id });
+    await conn.execute(`DELETE FROM EVENTO@eventosdb WHERE ID_EVENTO = :id`, { id: req.params.id });
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
@@ -255,7 +255,7 @@ router.get('/:id/participantes', autenticar, async (req, res) => {
     const result = await conn.execute(
       `SELECT p.NUM_CARTAO, p.DATA_INSCRICAO, p.PRESENCA_CONFIRMACAO,
               l.NOME_COMPLETO AS NOME_LEITOR
-         FROM PARTICIPACAO_EVENTO p
+         FROM PARTICIPACAO_EVENTO@eventosdb p
          JOIN LEITOR l ON l.NUM_CARTAO = p.NUM_CARTAO
         WHERE p.ID_EVENTO = :id
         ORDER BY p.DATA_INSCRICAO`,
@@ -283,7 +283,7 @@ router.post('/:id/participantes', autenticar, async (req, res) => {
 
     // 1. Verificar que o evento existe e não passou
     const eventoResult = await conn.execute(
-      `SELECT DATA_EVENTO, PUBLICO_ALVO, COD_BIBLIOTECA FROM EVENTO WHERE ID_EVENTO = :id`,
+      `SELECT DATA_EVENTO, PUBLICO_ALVO, COD_BIBLIOTECA FROM EVENTO@eventosdb WHERE ID_EVENTO = :id`,
       { id: parseInt(req.params.id) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -297,7 +297,7 @@ router.post('/:id/participantes', autenticar, async (req, res) => {
 
     // 2. Verificar inscrição duplicada
     const dupResult = await conn.execute(
-      `SELECT COUNT(*) AS N FROM PARTICIPACAO_EVENTO WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
+      `SELECT COUNT(*) AS N FROM PARTICIPACAO_EVENTO@eventosdb WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
       { id: parseInt(req.params.id), nc: num_cartao },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -329,7 +329,7 @@ router.post('/:id/participantes', autenticar, async (req, res) => {
 
     // 4. Chamar procedure
     await conn.execute(
-      `BEGIN insere_participacao_evento(:nc, :id_ev, :presenca); END;`,
+      `BEGIN insere_participacao_evento@eventosdb(:nc, :id_ev, :presenca); END;`,
       { nc: num_cartao, id_ev: parseInt(req.params.id), presenca: presenca_confirmacao || 'N' }
     );
     await conn.commit();
@@ -350,7 +350,7 @@ router.delete('/:id/participantes/:num_cartao', autenticar, async (req, res) => 
   try {
     conn = await getConnection();
     await conn.execute(
-      `DELETE FROM PARTICIPACAO_EVENTO WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
+      `DELETE FROM PARTICIPACAO_EVENTO@eventosdb WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
       { id: req.params.id, nc: req.params.num_cartao }
     );
     await conn.commit();
@@ -379,7 +379,7 @@ router.post('/:id/avaliacoes', autenticar, async (req, res) => {
 
     // 1. Verificar que o evento foi realizado
     const eventoResult = await conn.execute(
-      `SELECT STATUS_EVENTO FROM EVENTO WHERE ID_EVENTO = :id`,
+      `SELECT STATUS_EVENTO FROM EVENTO@eventosdb WHERE ID_EVENTO = :id`,
       { id: parseInt(req.params.id) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -390,7 +390,7 @@ router.post('/:id/avaliacoes', autenticar, async (req, res) => {
 
     // 2. Verificar presença confirmada
     const presResult = await conn.execute(
-      `SELECT PRESENCA_CONFIRMACAO FROM PARTICIPACAO_EVENTO
+      `SELECT PRESENCA_CONFIRMACAO FROM PARTICIPACAO_EVENTO@eventosdb
        WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
       { id: parseInt(req.params.id), nc: num_cartao },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -402,7 +402,7 @@ router.post('/:id/avaliacoes', autenticar, async (req, res) => {
 
     // 3. Verificar avaliação duplicada
     const dupResult = await conn.execute(
-      `SELECT COUNT(*) AS N FROM AVALIACAO_EVENTO WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
+      `SELECT COUNT(*) AS N FROM AVALIACAO_EVENTO@eventosdb WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
       { id: parseInt(req.params.id), nc: num_cartao },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -411,8 +411,8 @@ router.post('/:id/avaliacoes', autenticar, async (req, res) => {
 
     // 4. Inserir avaliação
     await conn.execute(
-      `INSERT INTO AVALIACAO_EVENTO (ID_AVALIACAO, ID_EVENTO, NUM_CARTAO, NOTA, COMENTARIO, DATA_AVALIACAO)
-       VALUES (SEQ_AVALIACAO.NEXTVAL, :id_ev, :nc, :nota, :coment, SYSDATE)`,
+      `INSERT INTO AVALIACAO_EVENTO@eventosdb (ID_AVALIACAO, ID_EVENTO, NUM_CARTAO, NOTA, COMENTARIO, DATA_AVALIACAO)
+       VALUES (SEQ_AVALIACAO.NEXTVAL@eventosdb, :id_ev, :nc, :nota, :coment, SYSDATE)`,
       { id_ev: parseInt(req.params.id), nc: num_cartao,
         nota: parseInt(nota), coment: comentario || null }
     );
@@ -437,7 +437,7 @@ router.get('/:id/horarios', autenticar, async (req, res) => {
       `SELECT ID_HORARIO_EV, DIA_SEMANA,
               TO_CHAR(DATA_OCORRENCIA,'YYYY-MM-DD') AS DATA_OCORRENCIA,
               HORA_INICIO, HORA_FIM
-         FROM HORARIO_EVENTO
+         FROM HORARIO_EVENTO@eventosdb
         WHERE ID_EVENTO = :id
         ORDER BY DATA_OCORRENCIA, HORA_INICIO`,
       { id: req.params.id },
@@ -462,7 +462,7 @@ router.get('/:id/avaliacoes', autenticar, async (req, res) => {
       `SELECT av.ID_AVALIACAO, av.NUM_CARTAO, av.NOTA, av.COMENTARIO,
               TO_CHAR(av.DATA_AVALIACAO,'YYYY-MM-DD') AS DATA_AVALIACAO,
               l.NOME_COMPLETO AS NOME_LEITOR
-         FROM AVALIACAO_EVENTO av
+         FROM AVALIACAO_EVENTO@eventosdb av
          JOIN LEITOR l ON l.NUM_CARTAO = av.NUM_CARTAO
         WHERE av.ID_EVENTO = :id
         ORDER BY av.DATA_AVALIACAO DESC`,
@@ -488,7 +488,7 @@ router.patch('/:id/participantes/:num_cartao/presenca', autenticar, async (req, 
   try {
     conn = await getConnection();
     const upd = await conn.execute(
-      `UPDATE PARTICIPACAO_EVENTO
+      `UPDATE PARTICIPACAO_EVENTO@eventosdb
           SET PRESENCA_CONFIRMACAO = :presenca
         WHERE ID_EVENTO = :id AND NUM_CARTAO = :nc`,
       { presenca, id: req.params.id, nc: req.params.num_cartao }

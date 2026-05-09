@@ -17,7 +17,7 @@ async function gerarCodPrograma(conn) {
   const year   = new Date().getFullYear();
   const prefix = 'PRG' + year;
   const r = await conn.execute(
-    `SELECT COUNT(*) AS N FROM PROGRAMA_ALFABETIZACAO WHERE COD_PROGRAMA LIKE :pat`,
+    `SELECT COUNT(*) AS N FROM PROGRAMA_ALFABETIZACAO@emprestimosdb WHERE COD_PROGRAMA LIKE :pat`,
     { pat: prefix + '%' },
     { outFormat: oracledb.OUT_FORMAT_OBJECT }
   );
@@ -63,11 +63,11 @@ router.get('/', autenticar, async (req, res) => {
                   p.duracao_semanas, p.metodologia, p.resultados_esperados, p.estado_programa,
                   p.cod_biblioteca,
                   b.nome_biblioteca,
-                  (SELECT COUNT(*) FROM PARTICIPACAO_PROGRAMA pp
+                  (SELECT COUNT(*) FROM PARTICIPACAO_PROGRAMA@emprestimosdb pp
                     WHERE pp.cod_programa = p.cod_programa
                       AND pp.estado_participacao = 'Activo') AS total_participantes_activos
-             FROM PROGRAMA_ALFABETIZACAO p
-             JOIN BIBLIOTECA b ON b.cod_biblioteca = p.cod_biblioteca
+             FROM PROGRAMA_ALFABETIZACAO@emprestimosdb p
+             JOIN BIBLIOTECA@eventosdb b ON b.cod_biblioteca = p.cod_biblioteca
             WHERE 1=1${whereClause}
             ORDER BY p.nome_programa
          ) t WHERE ROWNUM <= :rn_max
@@ -119,7 +119,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     const codPrograma = await gerarCodPrograma(conn);
 
     await conn.execute(
-      `INSERT INTO PROGRAMA_ALFABETIZACAO (
+      `INSERT INTO PROGRAMA_ALFABETIZACAO@emprestimosdb (
          cod_programa, cod_biblioteca, nome_programa, descricao,
          publico_alvo, duracao_semanas, metodologia, resultados_esperados, estado_programa
        ) VALUES (
@@ -141,8 +141,8 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
 
     for (const n of niveis) {
       await conn.execute(
-        `INSERT INTO NIVEL_PROGRESSAO (id_nivel, cod_programa, nome_nivel, descricao, ordem)
-         VALUES (SEQ_NIVEL.NEXTVAL, :cod, :nome, :desc, :ordem)`,
+        `INSERT INTO NIVEL_PROGRESSAO@emprestimosdb (id_nivel, cod_programa, nome_nivel, descricao, ordem)
+         VALUES (SEQ_NIVEL.NEXTVAL@emprestimosdb, :cod, :nome, :desc, :ordem)`,
         {
           cod:   codPrograma,
           nome:  n.nome_nivel,
@@ -154,7 +154,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
 
     for (const m of materiais) {
       await conn.execute(
-        `INSERT INTO PROGRAMA_MATERIAL (cod_programa, cod_material, observacoes)
+        `INSERT INTO PROGRAMA_MATERIAL@emprestimosdb (cod_programa, cod_material, observacoes)
          VALUES (:cod, :mat, :obs)`,
         { cod: codPrograma, mat: m.cod_material, obs: m.observacoes || null }
       );
@@ -163,7 +163,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     for (const f of funcionarios) {
       if (!PAPEIS_VALIDOS.includes(f.papel)) continue;
       await conn.execute(
-        `INSERT INTO PROGRAMA_FUNCIONARIO (cod_programa, cod_funcionario, papel)
+        `INSERT INTO PROGRAMA_FUNCIONARIO@emprestimosdb (cod_programa, cod_funcionario, papel)
          VALUES (:cod, :func, :papel)`,
         { cod: codPrograma, func: f.cod_funcionario, papel: f.papel }
       );
@@ -190,8 +190,8 @@ router.get('/:cod', autenticar, async (req, res) => {
       `SELECT p.cod_programa, p.nome_programa, p.descricao, p.publico_alvo,
               p.duracao_semanas, p.metodologia, p.resultados_esperados, p.estado_programa,
               p.cod_biblioteca, b.nome_biblioteca
-         FROM PROGRAMA_ALFABETIZACAO p
-         JOIN BIBLIOTECA b ON b.cod_biblioteca = p.cod_biblioteca
+         FROM PROGRAMA_ALFABETIZACAO@emprestimosdb p
+         JOIN BIBLIOTECA@eventosdb b ON b.cod_biblioteca = p.cod_biblioteca
         WHERE p.cod_programa = :cod`,
       { cod },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -202,7 +202,7 @@ router.get('/:cod', autenticar, async (req, res) => {
 
     const niveisResult = await conn.execute(
       `SELECT id_nivel, nome_nivel, descricao, ordem
-         FROM NIVEL_PROGRESSAO
+         FROM NIVEL_PROGRESSAO@emprestimosdb
         WHERE cod_programa = :cod
         ORDER BY ordem`,
       { cod },
@@ -211,8 +211,8 @@ router.get('/:cod', autenticar, async (req, res) => {
 
     const matResult = await conn.execute(
       `SELECT pm.cod_material, pm.observacoes, m.titulo, m.autor
-         FROM PROGRAMA_MATERIAL pm
-         JOIN MATERIAL_BIBLIOGRAFICO m ON m.cod_material = pm.cod_material
+         FROM PROGRAMA_MATERIAL@emprestimosdb pm
+         JOIN MATERIAL_BIBLIOGRAFICO@materiaisdb m ON m.cod_material = pm.cod_material
         WHERE pm.cod_programa = :cod`,
       { cod },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -220,7 +220,7 @@ router.get('/:cod', autenticar, async (req, res) => {
 
     const funcResult = await conn.execute(
       `SELECT pf.papel, f.cod_funcionario, f.nome_funcionario AS nome_completo
-         FROM PROGRAMA_FUNCIONARIO pf
+         FROM PROGRAMA_FUNCIONARIO@emprestimosdb pf
          JOIN FUNCIONARIO f ON f.cod_funcionario = pf.cod_funcionario
         WHERE pf.cod_programa = :cod`,
       { cod },
@@ -263,7 +263,7 @@ router.patch('/:cod', exigirNivel('Administrador', 'Coordenador'), async (req, r
     conn = await getConnection();
 
     const check = await conn.execute(
-      `SELECT cod_programa FROM PROGRAMA_ALFABETIZACAO WHERE cod_programa = :cod`,
+      `SELECT cod_programa FROM PROGRAMA_ALFABETIZACAO@emprestimosdb WHERE cod_programa = :cod`,
       { cod },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -287,7 +287,7 @@ router.patch('/:cod', exigirNivel('Administrador', 'Coordenador'), async (req, r
     }
 
     await conn.execute(
-      `UPDATE PROGRAMA_ALFABETIZACAO SET ${setClauses.join(', ')} WHERE cod_programa = :cod`,
+      `UPDATE PROGRAMA_ALFABETIZACAO@emprestimosdb SET ${setClauses.join(', ')} WHERE cod_programa = :cod`,
       binds
     );
 
@@ -309,7 +309,7 @@ router.get('/:cod/participantes', autenticar, async (req, res) => {
     conn = await getConnection();
 
     const check = await conn.execute(
-      `SELECT cod_programa FROM PROGRAMA_ALFABETIZACAO WHERE cod_programa = :cod`,
+      `SELECT cod_programa FROM PROGRAMA_ALFABETIZACAO@emprestimosdb WHERE cod_programa = :cod`,
       { cod },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -321,9 +321,9 @@ router.get('/:cod/participantes', autenticar, async (req, res) => {
       `SELECT pp.num_cartao, l.nome_completo, pp.id_nivel_atual,
               np.nome_nivel, pp.estado_participacao,
               pp.data_inscricao, pp.data_conclusao
-         FROM PARTICIPACAO_PROGRAMA pp
+         FROM PARTICIPACAO_PROGRAMA@emprestimosdb pp
          JOIN LEITOR l ON l.num_cartao = pp.num_cartao
-         LEFT JOIN NIVEL_PROGRESSAO np ON np.id_nivel = pp.id_nivel_atual
+         LEFT JOIN NIVEL_PROGRESSAO@emprestimosdb np ON np.id_nivel = pp.id_nivel_atual
         WHERE pp.cod_programa = :cod
         ORDER BY l.nome_completo`,
       { cod },
@@ -357,7 +357,7 @@ router.post('/:cod/participantes', exigirNivel('Administrador', 'Coordenador', '
     conn = await getConnection();
 
     const progCheck = await conn.execute(
-      `SELECT cod_programa FROM PROGRAMA_ALFABETIZACAO WHERE cod_programa = :cod`,
+      `SELECT cod_programa FROM PROGRAMA_ALFABETIZACAO@emprestimosdb WHERE cod_programa = :cod`,
       { cod },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -375,7 +375,7 @@ router.post('/:cod/participantes', exigirNivel('Administrador', 'Coordenador', '
     }
 
     const dupCheck = await conn.execute(
-      `SELECT num_cartao FROM PARTICIPACAO_PROGRAMA WHERE num_cartao = :nc AND cod_programa = :cod`,
+      `SELECT num_cartao FROM PARTICIPACAO_PROGRAMA@emprestimosdb WHERE num_cartao = :nc AND cod_programa = :cod`,
       { nc: num_cartao, cod },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -384,7 +384,7 @@ router.post('/:cod/participantes', exigirNivel('Administrador', 'Coordenador', '
     }
 
     await conn.execute(
-      `INSERT INTO PARTICIPACAO_PROGRAMA (num_cartao, cod_programa, id_nivel_atual, data_inscricao, estado_participacao)
+      `INSERT INTO PARTICIPACAO_PROGRAMA@emprestimosdb (num_cartao, cod_programa, id_nivel_atual, data_inscricao, estado_participacao)
        VALUES (:nc, :cod, :nivel, SYSDATE, 'Activo')`,
       { nc: num_cartao, cod, nivel: id_nivel_inicial || null }
     );
@@ -414,7 +414,7 @@ router.patch('/:cod/participantes/:num_cartao', exigirNivel('Administrador', 'Co
     conn = await getConnection();
 
     const check = await conn.execute(
-      `SELECT num_cartao FROM PARTICIPACAO_PROGRAMA WHERE num_cartao = :nc AND cod_programa = :cod`,
+      `SELECT num_cartao FROM PARTICIPACAO_PROGRAMA@emprestimosdb WHERE num_cartao = :nc AND cod_programa = :cod`,
       { nc: num_cartao, cod },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -443,7 +443,7 @@ router.patch('/:cod/participantes/:num_cartao', exigirNivel('Administrador', 'Co
     }
 
     await conn.execute(
-      `UPDATE PARTICIPACAO_PROGRAMA
+      `UPDATE PARTICIPACAO_PROGRAMA@emprestimosdb
           SET ${setClauses.join(', ')}
         WHERE num_cartao = :nc AND cod_programa = :cod`,
       binds
