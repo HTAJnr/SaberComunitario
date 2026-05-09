@@ -7,7 +7,9 @@
       "Bash(rtk ls *)",
       "Bash(rtk git *)",
       "Bash(python3 *)",
-      "Bash(rtk read *)"
+      "Bash(rtk read *)",
+      "Bash(sed -i 's/@emprestimosdb//g; s/@materiaisdb//g; s/@eventosdb//g' emprestimos.js materiais.js eventos.js transferencias.js suspensoes.js leitores.js programas.js)",
+      "Bash(grep -c '@emprestimosdb\\\\|@materiaisdb\\\\|@eventosdb' emprestimos.js materiais.js eventos.js transferencias.js suspensoes.js leitores.js programas.js)"
     ]
   }
 }

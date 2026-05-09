@@ -19,6 +19,9 @@ CONNECT usr_NACIONALDB/"HTAJnr#020403"
 -- 3.5. Database Links
 @/root/TP/BibNacional_Database_Links.sql
 
+-- 3.6. Sinónimos (transparência de localização — depende dos database links)
+@/root/TP/BibNacional_Synonyms.sql
+
 -- 4. Estruturas base (tabelas + constraints)
 @/root/TP/BibNacional_Create.sql
 

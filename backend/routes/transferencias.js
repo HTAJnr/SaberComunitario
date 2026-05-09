@@ -53,8 +53,7 @@ router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =>
                   biblioteca_destino_nome, biblioteca_destino_localizacao,
                   funcionario_solicitante_nome, contacto,
                   funcionario_aprovador_nome, funcionario_aprovador_contacto
-             FROM vw_transferencias_detalhadas@materiaisdb
-            WHERE 1=1${whereClause}
+             FROM vw_transferencias_detalhadas            WHERE 1=1${whereClause}
             ORDER BY data_solicitacao DESC
          ) t WHERE ROWNUM <= :rn_max
        ) WHERE RN > :rn_min`,
@@ -93,7 +92,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
 
     // Resolver biblioteca de origem a partir do material
     const matResult = await conn.execute(
-      `SELECT COD_BIBLIOTECA FROM MATERIAL_BIBLIOGRAFICO@materiaisdb WHERE COD_MATERIAL = :id`,
+      `SELECT COD_BIBLIOTECA FROM MATERIAL_BIBLIOGRAFICO WHERE COD_MATERIAL = :id`,
       { id: cod_material },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -109,12 +108,12 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
     }
 
     const insResult = await conn.execute(
-      `INSERT INTO TRANSFERENCIA@materiaisdb (
+      `INSERT INTO TRANSFERENCIA (
          id_transferencia, data_solicitacao, estado_transferencia,
          motivo, cod_material, cod_biblioteca_origem,
          cod_biblioteca_destino, cod_funcionario_solicitante
        ) VALUES (
-         SEQ_TRANSFERENCIA.NEXTVAL@materiaisdb, SYSDATE, 'Pendente',
+         SEQ_TRANSFERENCIA.NEXTVAL, SYSDATE, 'Pendente',
          :motivo, :cod_mat, :cod_orig, :cod_dest, :cod_func
        ) RETURNING id_transferencia INTO :id_out`,
       {
@@ -158,7 +157,7 @@ router.patch('/:id/aprovar', exigirNivel('Administrador', 'Coordenador'), async 
     conn = await getConnection();
 
     const check = await conn.execute(
-      `SELECT estado_transferencia FROM TRANSFERENCIA@materiaisdb WHERE id_transferencia = :id`,
+      `SELECT estado_transferencia FROM TRANSFERENCIA WHERE id_transferencia = :id`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -174,8 +173,7 @@ router.patch('/:id/aprovar', exigirNivel('Administrador', 'Coordenador'), async 
     }
 
     await conn.execute(
-      `UPDATE TRANSFERENCIA@materiaisdb
-          SET estado_transferencia      = 'Aprovada',
+      `UPDATE TRANSFERENCIA          SET estado_transferencia      = 'Aprovada',
               data_aprovacao_destino    = SYSDATE,
               cod_funcionario_aprovador = :cod_func
         WHERE id_transferencia = :id`,
@@ -214,7 +212,7 @@ router.patch('/:id/rejeitar', exigirNivel('Administrador', 'Coordenador'), async
     conn = await getConnection();
 
     const check = await conn.execute(
-      `SELECT estado_transferencia FROM TRANSFERENCIA@materiaisdb WHERE id_transferencia = :id`,
+      `SELECT estado_transferencia FROM TRANSFERENCIA WHERE id_transferencia = :id`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -230,8 +228,7 @@ router.patch('/:id/rejeitar', exigirNivel('Administrador', 'Coordenador'), async
     }
 
     await conn.execute(
-      `UPDATE TRANSFERENCIA@materiaisdb
-          SET estado_transferencia      = 'Rejeitada',
+      `UPDATE TRANSFERENCIA          SET estado_transferencia      = 'Rejeitada',
               motivo                    = :motivo,
               cod_funcionario_aprovador = :cod_func
         WHERE id_transferencia = :id`,
@@ -260,8 +257,7 @@ router.patch('/:id/concluir', exigirNivel('Administrador', 'Coordenador'), async
 
     const check = await conn.execute(
       `SELECT estado_transferencia, cod_material, cod_biblioteca_destino
-         FROM TRANSFERENCIA@materiaisdb
-        WHERE id_transferencia = :id`,
+         FROM TRANSFERENCIA        WHERE id_transferencia = :id`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -280,16 +276,14 @@ router.patch('/:id/concluir', exigirNivel('Administrador', 'Coordenador'), async
 
     // Mover material para biblioteca de destino
     await conn.execute(
-      `UPDATE MATERIAL_BIBLIOGRAFICO@materiaisdb
-          SET cod_biblioteca = :cod_dest
+      `UPDATE MATERIAL_BIBLIOGRAFICO          SET cod_biblioteca = :cod_dest
         WHERE cod_material   = :cod_mat`,
       { cod_dest: COD_BIBLIOTECA_DESTINO, cod_mat: COD_MATERIAL }
     );
 
     // Fechar transferência
     await conn.execute(
-      `UPDATE TRANSFERENCIA@materiaisdb
-          SET estado_transferencia = 'Concluida',
+      `UPDATE TRANSFERENCIA          SET estado_transferencia = 'Concluida',
               data_conclusao       = SYSDATE
         WHERE id_transferencia = :id`,
       { id }

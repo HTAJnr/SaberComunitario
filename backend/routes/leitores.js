@@ -612,7 +612,7 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
     conn = await getConnection();
 
     const empCheck = await conn.execute(
-      `SELECT COUNT(*) AS N FROM EMPRESTIMO@emprestimosdb WHERE NUM_CARTAO = :id AND DATA_DEVOLUCAO IS NULL`,
+      `SELECT COUNT(*) AS N FROM EMPRESTIMO WHERE NUM_CARTAO = :id AND DATA_DEVOLUCAO IS NULL`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -621,7 +621,7 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
     }
 
     const multaCheck = await conn.execute(
-      `SELECT COUNT(*) AS N FROM EMPRESTIMO@emprestimosdb WHERE NUM_CARTAO = :id AND MULTA_VALOR > 0 AND MULTA_PAGA = 'N'`,
+      `SELECT COUNT(*) AS N FROM EMPRESTIMO WHERE NUM_CARTAO = :id AND MULTA_VALOR > 0 AND MULTA_PAGA = 'N'`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );

@@ -21,7 +21,7 @@ async function gerarCodMaterial(conn) {
   const year = new Date().getFullYear();
   const prefix = 'MAT' + year;
   const r = await conn.execute(
-    `SELECT COUNT(*) AS N FROM MATERIAL_BIBLIOGRAFICO@materiaisdb WHERE COD_MATERIAL LIKE :pat`,
+    `SELECT COUNT(*) AS N FROM MATERIAL_BIBLIOGRAFICO WHERE COD_MATERIAL LIKE :pat`,
     { pat: prefix + '%' },
     { outFormat: oracledb.OUT_FORMAT_OBJECT }
   );
@@ -48,8 +48,7 @@ router.get('/categorias', autenticar, async (req, res) => {
     conn = await getConnection();
     const result = await conn.execute(
       `SELECT ID_CATEGORIA, AREA_TEMATICA, FAIXA_ETARIA, NIVEL_LEITURA
-         FROM CATEGORIA@materiaisdb
-        ORDER BY AREA_TEMATICA`,
+         FROM CATEGORIA        ORDER BY AREA_TEMATICA`,
       [],
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -86,7 +85,7 @@ router.get('/', autenticar, async (req, res) => {
       where += ` AND DISPONIVEL_EMPRESTIMO = 'S'`;
     }
     if (cod_categoria) {
-      where += ` AND COD_MATERIAL IN (SELECT COD_MATERIAL FROM MATERIAL_BIBLIOGRAFICO@materiaisdb WHERE COD_CATEGORIA = :cod_cat)`;
+      where += ` AND COD_MATERIAL IN (SELECT COD_MATERIAL FROM MATERIAL_BIBLIOGRAFICO WHERE COD_CATEGORIA = :cod_cat)`;
       params.cod_cat = Number(cod_categoria);
     }
     if (search) {
@@ -119,7 +118,7 @@ router.get('/', autenticar, async (req, res) => {
                  LOCALIZACAO_ESTANTE,
                  EBOOK_FORMATO, EBOOK_URL, EBOOK_TAMANHO,
                  PERIODICO_EDICAO, PERIODICO_PERIODICIDADE, PERIODICO_ISSN
-            FROM vw_materiais_completos@materiaisdb ${where}
+            FROM vw_materiais_completos ${where}
            ORDER BY TITULO
         ) t WHERE ROWNUM <= :rowmax
       ) WHERE RN > :rowmin`;
@@ -127,7 +126,7 @@ router.get('/', autenticar, async (req, res) => {
     const result = await conn.execute(sql, params, { outFormat: oracledb.OUT_FORMAT_OBJECT });
 
     const totalResult = await conn.execute(
-      `SELECT COUNT(*) AS N FROM vw_materiais_completos@materiaisdb ${where}`,
+      `SELECT COUNT(*) AS N FROM vw_materiais_completos ${where}`,
       Object.fromEntries(Object.entries(params).filter(([k]) => !['rowmin', 'rowmax'].includes(k))),
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -170,11 +169,11 @@ router.get('/:id', autenticar, async (req, res) => {
               p.PERIODICIDADE   AS PERIODICO_PERIODICIDADE,
               p.DATA_PUBLICACAO AS PERIODICO_DATA_PUBLICACAO,
               p.ISSN            AS PERIODICO_ISSN
-         FROM MATERIAL_BIBLIOGRAFICO@materiaisdb m
-         LEFT JOIN CATEGORIA@materiaisdb cat    ON cat.ID_CATEGORIA = m.COD_CATEGORIA
-         LEFT JOIN LIVRO_FISICO@materiaisdb lf  ON lf.COD_MATERIAL  = m.COD_MATERIAL
-         LEFT JOIN EBOOK@materiaisdb e          ON e.COD_MATERIAL   = m.COD_MATERIAL
-         LEFT JOIN PERIODICO@materiaisdb p      ON p.COD_MATERIAL   = m.COD_MATERIAL
+         FROM MATERIAL_BIBLIOGRAFICO m
+         LEFT JOIN CATEGORIA cat    ON cat.ID_CATEGORIA = m.COD_CATEGORIA
+         LEFT JOIN LIVRO_FISICO lf  ON lf.COD_MATERIAL  = m.COD_MATERIAL
+         LEFT JOIN EBOOK e          ON e.COD_MATERIAL   = m.COD_MATERIAL
+         LEFT JOIN PERIODICO p      ON p.COD_MATERIAL   = m.COD_MATERIAL
         WHERE m.COD_MATERIAL = :id`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -192,8 +191,7 @@ router.get('/:id', autenticar, async (req, res) => {
          SELECT ID_EMPRESTIMO, NUM_CARTAO, COD_FUNCIONARIO,
                 DATA_RETIRADA, PRAZO_DEVOLUCAO, DATA_DEVOLUCAO,
                 MULTA_VALOR, MULTA_PAGA
-           FROM EMPRESTIMO@emprestimosdb
-          WHERE COD_MATERIAL = :id
+           FROM EMPRESTIMO          WHERE COD_MATERIAL = :id
           ORDER BY DATA_RETIRADA DESC
        ) WHERE ROWNUM <= 5`,
       { id },
@@ -204,8 +202,7 @@ router.get('/:id', autenticar, async (req, res) => {
     const tResult = await conn.execute(
       `SELECT ID_TRANSFERENCIA, ESTADO_TRANSFERENCIA, DATA_SOLICITACAO,
               DATA_CONCLUSAO, COD_BIBLIOTECA_ORIGEM, COD_BIBLIOTECA_DESTINO
-         FROM TRANSFERENCIA@materiaisdb
-        WHERE COD_MATERIAL = :id
+         FROM TRANSFERENCIA        WHERE COD_MATERIAL = :id
         ORDER BY DATA_SOLICITACAO DESC`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -308,7 +305,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     const codMaterial = await gerarCodMaterial(conn);
 
     await conn.execute(
-      `INSERT INTO MATERIAL_BIBLIOGRAFICO@materiaisdb (
+      `INSERT INTO MATERIAL_BIBLIOGRAFICO (
          COD_MATERIAL, TITULO, AUTOR, EDITORA, ANO_PUBLICACAO, ISBN, IDIOMA, NUM_PAGINAS,
          ESTADO_MATERIAL_CONSERVACAO, MOTIVO_INDISPONIBILIDADE, ORIGEM_MATERIAL,
          DATA_AQUISICAO, VALOR_AQUISICAO, LOCALIZACAO_ESTANTE,
@@ -342,12 +339,12 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
 
     if (tipo === 'Livro') {
       await conn.execute(
-        `INSERT INTO LIVRO_FISICO@materiaisdb (COD_MATERIAL) VALUES (:cod)`,
+        `INSERT INTO LIVRO_FISICO (COD_MATERIAL) VALUES (:cod)`,
         { cod: codMaterial }
       );
     } else if (tipo === 'Ebook') {
       await conn.execute(
-        `INSERT INTO EBOOK@materiaisdb (COD_MATERIAL, FORMATO, TAMANHO_ARQUIVO, URL_ACESSO)
+        `INSERT INTO EBOOK (COD_MATERIAL, FORMATO, TAMANHO_ARQUIVO, URL_ACESSO)
          VALUES (:cod, :fmt, :tam, :url)`,
         {
           cod: codMaterial,
@@ -358,7 +355,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
       );
     } else if (tipo === 'Periodico') {
       await conn.execute(
-        `INSERT INTO PERIODICO@materiaisdb (COD_MATERIAL, EDICAO, PERIODICIDADE, DATA_PUBLICACAO, ISSN)
+        `INSERT INTO PERIODICO (COD_MATERIAL, EDICAO, PERIODICIDADE, DATA_PUBLICACAO, ISSN)
          VALUES (:cod, :edicao, :per, :data_pub, :issn)`,
         {
           cod: codMaterial,
@@ -400,7 +397,7 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'
     conn = await getConnection();
 
     await conn.execute(
-      `UPDATE MATERIAL_BIBLIOGRAFICO@materiaisdb SET
+      `UPDATE MATERIAL_BIBLIOGRAFICO SET
          TITULO                      = NVL(:titulo, TITULO),
          AUTOR                       = NVL(:autor, AUTOR),
          EDITORA                     = NVL(:editora, EDITORA),
@@ -431,7 +428,7 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'
 
     if (tipo === 'Ebook') {
       await conn.execute(
-        `UPDATE EBOOK@materiaisdb SET
+        `UPDATE EBOOK SET
            FORMATO         = NVL(:fmt, FORMATO),
            TAMANHO_ARQUIVO = NVL(:tam, TAMANHO_ARQUIVO),
            URL_ACESSO      = NVL(:url, URL_ACESSO)
@@ -445,7 +442,7 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'
       );
     } else if (tipo === 'Periodico') {
       await conn.execute(
-        `UPDATE PERIODICO@materiaisdb SET
+        `UPDATE PERIODICO SET
            EDICAO          = NVL(:edicao, EDICAO),
            PERIODICIDADE   = NVL(:per, PERIODICIDADE),
            DATA_PUBLICACAO = NVL(:data_pub, DATA_PUBLICACAO),
@@ -479,8 +476,7 @@ router.delete('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, r
     const id = req.params.id;
 
     const empCheck = await conn.execute(
-      `SELECT COUNT(*) AS N FROM EMPRESTIMO@emprestimosdb
-        WHERE COD_MATERIAL = :id AND DATA_DEVOLUCAO IS NULL`,
+      `SELECT COUNT(*) AS N FROM EMPRESTIMO        WHERE COD_MATERIAL = :id AND DATA_DEVOLUCAO IS NULL`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -489,8 +485,7 @@ router.delete('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, r
     }
 
     const transCheck = await conn.execute(
-      `SELECT COUNT(*) AS N FROM TRANSFERENCIA@materiaisdb
-        WHERE COD_MATERIAL = :id
+      `SELECT COUNT(*) AS N FROM TRANSFERENCIA        WHERE COD_MATERIAL = :id
           AND ESTADO_TRANSFERENCIA IN ('Pendente', 'Aprovada')`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -500,7 +495,7 @@ router.delete('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, r
     }
 
     await conn.execute(
-      `DELETE FROM MATERIAL_BIBLIOGRAFICO@materiaisdb WHERE COD_MATERIAL = :id`,
+      `DELETE FROM MATERIAL_BIBLIOGRAFICO WHERE COD_MATERIAL = :id`,
       { id }
     );
     await conn.commit();

@@ -21,7 +21,7 @@ router.patch('/:id/reduzir', exigirNivel('Administrador', 'Coordenador'), async 
 
     const check = await conn.execute(
       `SELECT ID_SUSPENSAO, DATA_INICIO, DATA_FIM, ESTADO_SUSPENSAO, NUM_CARTAO
-         FROM SUSPENSAO@emprestimosdb WHERE ID_SUSPENSAO = :id`,
+         FROM SUSPENSAO WHERE ID_SUSPENSAO = :id`,
       { id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -38,8 +38,7 @@ router.patch('/:id/reduzir', exigirNivel('Administrador', 'Coordenador'), async 
 
     // nova_data_fim tem de ser antes da actual DATA_FIM (senão não é redução)
     await conn.execute(
-      `UPDATE SUSPENSAO@emprestimosdb
-          SET DATA_FIM      = TO_DATE(:nova_data_fim, 'YYYY-MM-DD'),
+      `UPDATE SUSPENSAO          SET DATA_FIM      = TO_DATE(:nova_data_fim, 'YYYY-MM-DD'),
               DIAS_SUSPENSAO = TO_DATE(:nova_data_fim, 'YYYY-MM-DD') - DATA_INICIO,
               OBSERVACOES   = :obs
         WHERE ID_SUSPENSAO = :id`,
@@ -73,7 +72,7 @@ router.patch('/:id/reduzir', exigirNivel('Administrador', 'Coordenador'), async 
       } catch (_) {}
     }
     console.error('\x1b[31m[SUSPENSOES PATCH /:id/reduzir]\x1b[0m');
-    console.error('     BD: SUSPENSAO@emprestimosdb');
+    console.error('     BD: SUSPENSAO');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: true, codigo: 'ERRO_INTERNO', mensagem: err.message, detalhes: {} });
   } finally {
