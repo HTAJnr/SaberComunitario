@@ -1,18 +1,18 @@
 -- ============================================================
--- BibNacional_Intro.sql — Dados de teste do nó BibliotecaNacionalDB
+-- BibNacional_Intro.sql — Dados de teste do nó BibliotecaNacionalDB  (v3)
 -- Executar DEPOIS de: Create + Sequences + Views + Functions + Procedures + Triggers + Indexes
 --
+-- v3: domínio de leitores adicionado a este nó; programas de alfabetização
+--     removidos (pertencem ao EmpréstimosProgramasDB — nó do Yannis).
+--
 -- Tabelas locais: FUNCAO_FUNCIONARIO, FUNCIONARIO, FUNCIONARIO_HABILIDADE,
---   HORARIO_FUNCIONARIO, DOADOR, DOACAO, ITEM_DOACAO, CERTIFICADO_DOACAO,
---   PROGRAMA_ALFABETIZACAO, NIVEL_PROGRESSAO, PROGRAMA_MATERIAL,
---   PROGRAMA_FUNCIONARIO, PARTICIPACAO_PROGRAMA
+--   HORARIO_FUNCIONARIO, LEITOR, ADULTO, ADULTO_INTERESSE, PROFESSOR,
+--   PROFESSOR_DISCIPLINA, CRIANCA, DOADOR, DOACAO, ITEM_DOACAO, CERTIFICADO_DOACAO
 --
 -- Referências cross-node (sem FK DDL — restrição lógica):
---   FUNCIONARIO.cod_biblioteca    → BIBLIOTECA@eventosdb
---   ITEM_DOACAO.cod_biblioteca    → BIBLIOTECA@eventosdb
---   PROGRAMA_ALFABETIZACAO.cod_biblioteca → BIBLIOTECA@eventosdb
---   PROGRAMA_MATERIAL.cod_material → MATERIAL_BIBLIOGRAFICO@materiaisdb
---   PARTICIPACAO_PROGRAMA.num_cartao → LEITOR@emprestimosdb
+--   FUNCIONARIO.cod_biblioteca → BIBLIOTECA@eventosdb
+--   ITEM_DOACAO.cod_biblioteca → BIBLIOTECA@eventosdb
+--   LEITOR.cod_biblioteca      → BIBLIOTECA@eventosdb
 --
 -- ACENTOS: execute com NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 -- Ficheiro guardado em UTF-8 (sem BOM).
@@ -226,7 +226,117 @@ INSERT INTO HORARIO_FUNCIONARIO (cod_funcionario, dia_semana, hora_entrada, hora
 VALUES ('FUC20250008', 'Sexta-feira',   '08:00', '17:00');
 
 -- ============================================================
--- 5. DOADORES  (id_doador = 0 reservado para Anónimo — RN10)
+-- 5. LEITORES  (domínio movido do EmpréstimosProgramasDB — v3)
+--    num_cartao: [3-letra biblioteca][ano][seq 4 dígitos]
+--    MPC = BIBMPC0001 | GZA = BIBGZA0001 | SOF = BIBSOF0001
+--    Ordem de inserção: LEITOR → ADULTO → ADULTO_INTERESSE
+--                       → PROFESSOR → PROFESSOR_DISCIPLINA → CRIANCA
+-- ============================================================
+
+-- 5a. LEITOR (base — todos os tipos)
+INSERT INTO LEITOR (num_cartao, nome_completo, data_nasc, genero, nivel_escolar,
+    localizacao_leitor, contacto, foto_path, distancia_biblioteca,
+    historico_pontualidade, cod_biblioteca, status_leitor)
+VALUES ('MPC20250001', 'Maria Chissano', TO_DATE('1975-03-20','YYYY-MM-DD'),
+    'Feminino', 'Secundario', 'Bairro Central, Maputo',
+    '+258 84 111 0001', NULL, 1.5, 'Pontual', 'BIBMPC0001', 'Activo');
+
+INSERT INTO LEITOR (num_cartao, nome_completo, data_nasc, genero, nivel_escolar,
+    localizacao_leitor, contacto, foto_path, distancia_biblioteca,
+    historico_pontualidade, cod_biblioteca, status_leitor)
+VALUES ('MPC20250002', 'Pedro Cumbe', TO_DATE('1978-07-15','YYYY-MM-DD'),
+    'Masculino', 'Superior', 'Av. 24 de Julho, Maputo',
+    '+258 82 222 0002', NULL, 0.8, 'Pontual', 'BIBMPC0001', 'Activo');
+-- Pedro é Professor — inserido em ADULTO + PROFESSOR a seguir
+
+INSERT INTO LEITOR (num_cartao, nome_completo, data_nasc, genero, nivel_escolar,
+    localizacao_leitor, contacto, foto_path, distancia_biblioteca,
+    historico_pontualidade, cod_biblioteca, status_leitor)
+VALUES ('MPC20250003', 'Joao Nhaca', TO_DATE('2012-01-10','YYYY-MM-DD'),
+    'Masculino', 'Primario', 'Bairro Sommerschield, Maputo',
+    NULL, NULL, 2.0, 'Pontual', 'BIBMPC0001', 'Activo');
+-- Joao é Criança — inserido em CRIANCA a seguir
+
+INSERT INTO LEITOR (num_cartao, nome_completo, data_nasc, genero, nivel_escolar,
+    localizacao_leitor, contacto, foto_path, distancia_biblioteca,
+    historico_pontualidade, cod_biblioteca, status_leitor)
+VALUES ('GZA20250001', 'Rosa Temane', TO_DATE('1965-11-05','YYYY-MM-DD'),
+    'Feminino', 'Primario', 'Rua 1 de Maio, Xai-Xai',
+    '+258 86 333 0001', NULL, 3.2, 'Irregular', 'BIBGZA0001', 'Activo');
+
+INSERT INTO LEITOR (num_cartao, nome_completo, data_nasc, genero, nivel_escolar,
+    localizacao_leitor, contacto, foto_path, distancia_biblioteca,
+    historico_pontualidade, cod_biblioteca, status_leitor)
+VALUES ('GZA20250002', 'Abel Chivambo', TO_DATE('1982-04-22','YYYY-MM-DD'),
+    'Masculino', 'Superior', 'Av. Eduardo Mondlane, Xai-Xai',
+    '+258 84 444 0002', NULL, 1.1, 'Pontual', 'BIBGZA0001', 'Activo');
+-- Abel é Professor
+
+INSERT INTO LEITOR (num_cartao, nome_completo, data_nasc, genero, nivel_escolar,
+    localizacao_leitor, contacto, foto_path, distancia_biblioteca,
+    historico_pontualidade, cod_biblioteca, status_leitor)
+VALUES ('SOF20250001', 'Angelina Mabunda', TO_DATE('2014-08-30','YYYY-MM-DD'),
+    'Feminino', 'Primario', 'Bairro da Munhava, Beira',
+    NULL, NULL, 0.5, 'Pontual', 'BIBSOF0001', 'Activo');
+-- Angelina é Criança
+
+INSERT INTO LEITOR (num_cartao, nome_completo, data_nasc, genero, nivel_escolar,
+    localizacao_leitor, contacto, foto_path, distancia_biblioteca,
+    historico_pontualidade, cod_biblioteca, status_leitor)
+VALUES ('SOF20250002', 'Antonio Fonseca', TO_DATE('1990-02-17','YYYY-MM-DD'),
+    'Masculino', 'Tecnico', 'Rua Correia de Brito, Beira',
+    '+258 82 555 0002', NULL, 1.8, 'Pontual', 'BIBSOF0001', 'Activo');
+
+-- 5b. ADULTO (todos os adultos — inclui os professores)
+INSERT INTO ADULTO (num_cartao, profissao, nivel_literacia)
+VALUES ('MPC20250001', 'Comerciante', 'Funcional');
+
+INSERT INTO ADULTO (num_cartao, profissao, nivel_literacia)
+VALUES ('MPC20250002', 'Professor do Ensino Secundario', 'Avancado');
+
+INSERT INTO ADULTO (num_cartao, profissao, nivel_literacia)
+VALUES ('GZA20250001', 'Agricultora', 'Basico');
+
+INSERT INTO ADULTO (num_cartao, profissao, nivel_literacia)
+VALUES ('GZA20250002', 'Professor do Ensino Primario', 'Avancado');
+
+INSERT INTO ADULTO (num_cartao, profissao, nivel_literacia)
+VALUES ('SOF20250002', 'Tecnico de Informatica', 'Avancado');
+
+-- 5c. ADULTO_INTERESSE
+INSERT INTO ADULTO_INTERESSE VALUES ('MPC20250001', 'Literatura Mocambicana');
+INSERT INTO ADULTO_INTERESSE VALUES ('MPC20250001', 'Historia');
+INSERT INTO ADULTO_INTERESSE VALUES ('GZA20250001', 'Agricultura');
+INSERT INTO ADULTO_INTERESSE VALUES ('GZA20250001', 'Saude');
+INSERT INTO ADULTO_INTERESSE VALUES ('SOF20250002', 'Informatica');
+INSERT INTO ADULTO_INTERESSE VALUES ('SOF20250002', 'Ciencias');
+
+-- 5d. PROFESSOR (FK para ADULTO — inserir depois dos adultos)
+INSERT INTO PROFESSOR (num_cartao, escola_instituto, nivel_ensino, num_alunos)
+VALUES ('MPC20250002', 'Escola Secundaria de Maputo', 'Secundario', 35);
+
+INSERT INTO PROFESSOR (num_cartao, escola_instituto, nivel_ensino, num_alunos)
+VALUES ('GZA20250002', 'EP1 de Xai-Xai', 'Primario', 42);
+
+-- 5e. PROFESSOR_DISCIPLINA
+INSERT INTO PROFESSOR_DISCIPLINA VALUES ('MPC20250002', 'Portugues');
+INSERT INTO PROFESSOR_DISCIPLINA VALUES ('MPC20250002', 'Historia');
+INSERT INTO PROFESSOR_DISCIPLINA VALUES ('GZA20250002', 'Matematica');
+INSERT INTO PROFESSOR_DISCIPLINA VALUES ('GZA20250002', 'Ciencias Naturais');
+
+-- 5f. CRIANCA (FK para LEITOR)
+INSERT INTO CRIANCA (num_cartao, nome_responsavel, telefone_responsavel,
+    escola_frequenta, classe)
+VALUES ('MPC20250003', 'Felicidade Nhaca', '+258 84 900 0003',
+    'EP1 Maputo Centro', '5a');
+
+INSERT INTO CRIANCA (num_cartao, nome_responsavel, telefone_responsavel,
+    escola_frequenta, classe)
+VALUES ('SOF20250001', 'Cristina Mabunda', '+258 82 800 0001',
+    'EP2 da Munhava', '3a');
+
+-- ============================================================
+-- 6. DOADORES  (id_doador = 0 reservado para Anónimo — RN10)
 -- ============================================================
 INSERT INTO DOADOR (id_doador, nome_doador, tipo_doador, contacto, observacoes)
 VALUES (0, 'Anonimo', 'Individual', NULL, 'Doador anonimo do sistema — nunca eliminar');
@@ -250,7 +360,7 @@ VALUES ('Editora Mocambicana SARL', 'Institucional',
 -- id_doador = 3
 
 -- ============================================================
--- 6. DOAÇÕES E ITENS
+-- 7. DOAÇÕES E ITENS
 -- ============================================================
 
 -- Doação 1 — Fundação (Institucional) → sem certificado automático
@@ -292,93 +402,6 @@ VALUES (0, TO_DATE('2025-01-15','YYYY-MM-DD'));
 INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
 VALUES (4, 'BIBGZA0001', 10, 25.00, 'Revistas diversas');
 -- id_itemDoado = 5  →  total 250 MT → sem certificado
-
--- ============================================================
--- 7. PROGRAMAS DE ALFABETIZAÇÃO  (formato: PROBIBXXX20XXYYYY)
--- ============================================================
-
-INSERT INTO PROGRAMA_ALFABETIZACAO (cod_programa, cod_biblioteca, nome_programa,
-    descricao, publico_alvo, duracao_semanas, metodologia,
-    resultados_esperados, estado_programa)
-VALUES ('PROBIBGZA20250001', 'BIBGZA0001',
-    'Ler para Crescer — Gaza',
-    'Programa de alfabetizacao funcional para adultos de Gaza',
-    'Iniciantes', 24, 'Metodo Paulo Freire adaptado ao contexto local',
-    'Alfabetizacao de 80% dos participantes em 6 meses', 'Activo');
-
-INSERT INTO NIVEL_PROGRESSAO (cod_programa, nome_nivel, descricao, ordem)
-VALUES ('PROBIBGZA20250001', 'Nivel 1 — Letras e Sons',
-    'Reconhecimento do alfabeto e sons basicos', 1);
--- id_nivel = 1
-
-INSERT INTO NIVEL_PROGRESSAO (cod_programa, nome_nivel, descricao, ordem)
-VALUES ('PROBIBGZA20250001', 'Nivel 2 — Silabas e Palavras',
-    'Formacao de silabas e vocabulario basico', 2);
--- id_nivel = 2
-
-INSERT INTO NIVEL_PROGRESSAO (cod_programa, nome_nivel, descricao, ordem)
-VALUES ('PROBIBGZA20250001', 'Nivel 3 — Frases e Textos',
-    'Leitura de frases curtas e textos simples', 3);
--- id_nivel = 3
-
-INSERT INTO PROGRAMA_FUNCIONARIO (cod_programa, cod_funcionario, papel)
-VALUES ('PROBIBGZA20250001', 'FUC20250005', 'Responsavel');
-INSERT INTO PROGRAMA_FUNCIONARIO (cod_programa, cod_funcionario, papel)
-VALUES ('PROBIBGZA20250001', 'FUC20250006', 'Instrutor');
-
--- cod_material referencia MATERIAL_BIBLIOGRAFICO@materiaisdb (sem FK local)
-INSERT INTO PROGRAMA_MATERIAL (cod_programa, cod_material, observacoes)
-VALUES ('PROBIBGZA20250001', 'MAT20240004', 'Material de apoio principal');
-INSERT INTO PROGRAMA_MATERIAL (cod_programa, cod_material, observacoes)
-VALUES ('PROBIBGZA20250001', 'MAT20250001', 'Textos praticos para exercicios de leitura');
-
--- num_cartao referencia LEITOR@emprestimosdb (sem FK local)
-INSERT INTO PARTICIPACAO_PROGRAMA (num_cartao, cod_programa, id_nivel_atual,
-    data_inscricao, estado_participacao)
-VALUES ('BCX20250002', 'PROBIBGZA20250001', 2,
-    TO_DATE('2025-02-01','YYYY-MM-DD'), 'Activo');
-INSERT INTO PARTICIPACAO_PROGRAMA (num_cartao, cod_programa, id_nivel_atual,
-    data_inscricao, estado_participacao)
-VALUES ('BCX20250001', 'PROBIBGZA20250001', 3,
-    TO_DATE('2025-02-01','YYYY-MM-DD'), 'Activo');
-
-INSERT INTO PROGRAMA_ALFABETIZACAO (cod_programa, cod_biblioteca, nome_programa,
-    descricao, publico_alvo, duracao_semanas, metodologia,
-    resultados_esperados, estado_programa)
-VALUES ('PROBIBSOF20250001', 'BIBSOF0001',
-    'Beira Digital — Informatica Basica',
-    'Formacao em informatica para adultos sem experiencia previa',
-    'Iniciantes', 12, 'Aulas praticas semanais em laboratorio',
-    'Participantes capazes de usar computador, internet e processador de texto', 'Activo');
-
-INSERT INTO NIVEL_PROGRESSAO (cod_programa, nome_nivel, descricao, ordem)
-VALUES ('PROBIBSOF20250001', 'Modulo 1 — Hardware e SO',
-    'Uso basico do computador e sistema operativo', 1);
--- id_nivel = 4
-
-INSERT INTO NIVEL_PROGRESSAO (cod_programa, nome_nivel, descricao, ordem)
-VALUES ('PROBIBSOF20250001', 'Modulo 2 — Internet',
-    'Navegacao e seguranca na internet', 2);
--- id_nivel = 5
-
-INSERT INTO PROGRAMA_FUNCIONARIO (cod_programa, cod_funcionario, papel)
-VALUES ('PROBIBSOF20250001', 'FUC20250008', 'Responsavel');
-INSERT INTO PROGRAMA_FUNCIONARIO (cod_programa, cod_funcionario, papel)
-VALUES ('PROBIBSOF20250001', 'FUC20251000', 'Instrutor');
-
-INSERT INTO PROGRAMA_MATERIAL (cod_programa, cod_material, observacoes)
-VALUES ('PROBIBSOF20250001', 'MAT20240005', 'Manual principal do programa');
-INSERT INTO PROGRAMA_MATERIAL (cod_programa, cod_material, observacoes)
-VALUES ('PROBIBSOF20250001', 'MAT20220001', 'Atlas digital — exercicio de navegacao');
-
-INSERT INTO PARTICIPACAO_PROGRAMA (num_cartao, cod_programa, id_nivel_atual,
-    data_inscricao, estado_participacao)
-VALUES ('BCB20250001', 'PROBIBSOF20250001', 5,
-    TO_DATE('2025-03-01','YYYY-MM-DD'), 'Activo');
-INSERT INTO PARTICIPACAO_PROGRAMA (num_cartao, cod_programa, id_nivel_atual,
-    data_inscricao, estado_participacao)
-VALUES ('BCB20250002', 'PROBIBSOF20250001', 4,
-    TO_DATE('2025-03-01','YYYY-MM-DD'), 'Activo');
 
 -- ============================================================
 -- FIM DO SCRIPT

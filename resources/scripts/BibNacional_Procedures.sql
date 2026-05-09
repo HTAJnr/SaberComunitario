@@ -490,6 +490,58 @@ EXCEPTION
 END;
 /
 
+-- PROCEDURE: prc_demo_2pc  (§2.6 — demonstração de Two-Phase Commit)
+-- Numa única transacção: insere uma doação localmente (BibliotecaNacionalDB)
+-- e actualiza o estado de conservação de um material no MateriaisDB remoto.
+-- O Oracle detecta que a transacção toca dois nós distintos e lança o
+-- protocolo 2PC automaticamente no COMMIT: fase PREPARE (todos concordam)
+-- seguida de fase COMMIT (confirmação global).
+-- Se um nó falhar entre as duas fases, o Oracle regista em DBA_2PC_PENDING
+-- e pode recuperar com COMMIT FORCE / ROLLBACK FORCE.
+-- ============================================================
+
+CREATE OR REPLACE PROCEDURE prc_demo_2pc (
+    p_id_doador      IN  NUMBER,    -- doador (0 = anónimo)
+    p_cod_biblioteca IN  VARCHAR2,  -- biblioteca que recebe o item de doação
+    p_valor          IN  NUMBER,    -- valor estimado do item (MT)
+    p_cod_material   IN  VARCHAR2,  -- código do material a actualizar em @materiaisdb
+    p_novo_estado    IN  VARCHAR2,  -- novo estado_material_conservacao
+    p_id_doacao      OUT NUMBER     -- id da doação gerada (confirmação)
+) AS
+BEGIN
+    -- 1. INSERT local: nova doação (BibliotecaNacionalDB)
+    INSERT INTO DOACAO (id_doador, data_doacao)
+    VALUES (p_id_doador, SYSDATE)
+    RETURNING id_doacao INTO p_id_doacao;
+
+    INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
+    VALUES (p_id_doacao, p_cod_biblioteca, 1, p_valor, 'Demo 2PC — transaccao distribuida');
+
+    -- 2. UPDATE remoto: campo no MateriaisDB (via @materiaisdb)
+    -- A partir deste ponto a transaccao é distribuída.
+    -- O Oracle coordena 2PC automaticamente no COMMIT abaixo.
+    UPDATE material_bibliografico@materiaisdb
+       SET estado_material_conservacao = p_novo_estado
+     WHERE cod_material = p_cod_material;
+
+    -- COMMIT — Oracle lança 2PC:
+    --   Fase 1 PREPARE: pede confirmação a BibliotecaNacionalDB e MateriaisDB
+    --   Fase 2 COMMIT:  ambos confirmam → escrita permanente nos dois nós
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('2PC concluido com sucesso.');
+    DBMS_OUTPUT.PUT_LINE('  Doacao local id : ' || p_id_doacao);
+    DBMS_OUTPUT.PUT_LINE('  Material ' || p_cod_material ||
+                         ' -> ' || p_novo_estado || ' em @materiaisdb');
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20300,
+            'Falha na transaccao distribuida (2PC): ' || SQLERRM);
+END;
+/
+
 CREATE OR REPLACE PROCEDURE prc_sincronizar_funcionarios AS
     v_linhas NUMBER := 0;
 BEGIN
