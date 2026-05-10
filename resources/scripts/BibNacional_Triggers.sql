@@ -169,3 +169,15 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Erro ao gerar certificado automatico: ' || SQLERRM);
 END;
 /
+
+-- TRIGGER: trg_protege_doador_anonimo
+-- Impede eliminação do doador anónimo (RN10) — integridade referencial
+CREATE OR REPLACE TRIGGER trg_protege_doador_anonimo
+BEFORE DELETE ON DOADOR
+FOR EACH ROW
+BEGIN
+    IF :OLD.id_doador = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'O doador Anonimo (ID 0) nao pode ser eliminado');
+    END IF;
+END;
+/

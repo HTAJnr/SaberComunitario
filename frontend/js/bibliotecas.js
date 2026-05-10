@@ -58,6 +58,14 @@ async function carregarBibliotecas() {
   if (isAdmin) {
     try {
       _bibRows = await get('/api/bibliotecas');
+      const sel = document.getElementById('filtro-bib-provincia');
+      if (sel && sel.options.length === 1) {
+        _PROVINCIAS.forEach(p => {
+          const o = document.createElement('option');
+          o.value = p; o.textContent = p;
+          sel.appendChild(o);
+        });
+      }
       _renderizarTabelaBibliotecas();
     } catch (err) {
       toast('Erro a carregar bibliotecas: ' + err.message, 'erro');
@@ -90,12 +98,19 @@ async function carregarBiblioteca() {
 function _renderizarTabelaBibliotecas() {
   const tbody = document.getElementById('tabela-bibliotecas');
   if (!tbody) return;
-  const q = (document.getElementById('filtro-bib-q')?.value || '').toLowerCase();
-  const rows = _bibRows.filter(r =>
-    !q || (r.NOME_BIBLIOTECA || '').toLowerCase().includes(q)
-       || (r.COD_BIBLIOTECA  || '').toLowerCase().includes(q)
-       || (r.PROVINCIA       || '').toLowerCase().includes(q)
-  );
+  const q        = (document.getElementById('filtro-bib-q')?.value || '').toLowerCase();
+  const regiao   = document.getElementById('filtro-bib-regiao')?.value || '';
+  const provincia = document.getElementById('filtro-bib-provincia')?.value || '';
+  const rows = _bibRows.filter(r => {
+    if (q && !(
+      (r.NOME_BIBLIOTECA || '').toLowerCase().includes(q) ||
+      (r.COD_BIBLIOTECA  || '').toLowerCase().includes(q) ||
+      (r.PROVINCIA       || '').toLowerCase().includes(q)
+    )) return false;
+    if (regiao   && regiaoDeProvinccia(r.PROVINCIA) !== regiao)    return false;
+    if (provincia && (r.PROVINCIA || '') !== provincia)             return false;
+    return true;
+  });
 
   if (!rows.length) {
     tbody.innerHTML = linhaVazia(8, q ? 'Sem resultados para a pesquisa.' : 'Sem bibliotecas registadas.');

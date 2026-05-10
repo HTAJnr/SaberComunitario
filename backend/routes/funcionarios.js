@@ -63,9 +63,11 @@ router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =>
   let sql = `SELECT f.COD_FUNCIONARIO,
                     f.NOME_FUNCIONARIO  AS NOME,
                     f.EMAIL,
+                    f.COD_BIBLIOTECA,
                     ff.NOME_FUNCAO      AS FUNCAO,
                     ff.NIVEL_ACESSO,
-                    b.NOME_BIBLIOTECA
+                    b.NOME_BIBLIOTECA,
+                    b.PROVINCIA
              FROM FUNCIONARIO f
              LEFT JOIN FUNCAO_FUNCIONARIO ff ON ff.ID_FUNCAO = f.ID_FUNCAO
              LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = f.COD_BIBLIOTECA
@@ -233,6 +235,7 @@ router.patch('/me/senha', autenticar, async (req, res) => {
 
 // GET /:id — inclui habilidades + horários
 router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
+  const user = req.session.funcionario;
   let conn;
   try {
     conn = await getConnection();
@@ -267,6 +270,10 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res)
     if (funcRes.rows.length === 0) return res.status(404).json({ erro: 'Funcionário não encontrado.' });
 
     const funcionario = funcRes.rows[0];
+    if (user.NIVEL_ACESSO === 'Coordenador' && funcionario.COD_BIBLIOTECA !== user.COD_BIBLIOTECA) {
+      return res.status(403).json({ erro: 'Coordenador só pode ver funcionários da sua própria biblioteca.' });
+    }
+
     funcionario.HABILIDADES = habilRes.rows.map(r => r.HABILIDADE);
     funcionario.HORARIO = horRes.rows;
     res.json(funcionario);
@@ -380,10 +387,21 @@ router.patch('/:id/senha', exigirNivel('Administrador', 'Coordenador'), async (r
   if (!nova_senha || nova_senha.length < 6) {
     return res.status(400).json({ erro: 'A senha deve ter pelo menos 6 caracteres.' });
   }
+  const user = req.session.funcionario;
   let conn;
   try {
-    const senhaHash = await bcrypt.hash(nova_senha, 10);
     conn = await getConnection();
+    if (user.NIVEL_ACESSO === 'Coordenador') {
+      const check = await conn.execute(
+        `SELECT COD_BIBLIOTECA FROM FUNCIONARIO WHERE COD_FUNCIONARIO = :id`,
+        { id: req.params.id },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      if (!check.rows.length || check.rows[0].COD_BIBLIOTECA !== user.COD_BIBLIOTECA) {
+        return res.status(403).json({ erro: 'Coordenador só pode alterar senha de funcionários da sua biblioteca.' });
+      }
+    }
+    const senhaHash = await bcrypt.hash(nova_senha, 10);
     const result = await conn.execute(
       `UPDATE FUNCIONARIO SET SENHA = :senha WHERE COD_FUNCIONARIO = :id`,
       { senha: senhaHash, id: req.params.id }
@@ -406,9 +424,31 @@ router.patch('/:id/senha', exigirNivel('Administrador', 'Coordenador'), async (r
 router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   const { nome_funcionario, contacto, genero, data_nasc, endereco, formacao, experiencia,
           id_funcao, cod_biblioteca, habilidades, horarios } = req.body;
+  const user = req.session.funcionario;
   let conn;
   try {
     conn = await getConnection();
+
+    if (user.NIVEL_ACESSO === 'Coordenador') {
+      const check = await conn.execute(
+        `SELECT COD_BIBLIOTECA FROM FUNCIONARIO WHERE COD_FUNCIONARIO = :id`,
+        { id: req.params.id },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      if (!check.rows.length || check.rows[0].COD_BIBLIOTECA !== user.COD_BIBLIOTECA) {
+        return res.status(403).json({ erro: 'Coordenador só pode editar funcionários da sua biblioteca.' });
+      }
+      if (id_funcao) {
+        const funcCheck = await conn.execute(
+          `SELECT NIVEL_ACESSO FROM FUNCAO_FUNCIONARIO WHERE ID_FUNCAO = :id`,
+          { id: id_funcao },
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        if (funcCheck.rows[0]?.NIVEL_ACESSO === 'Administrador') {
+          return res.status(403).json({ erro: 'Coordenador não pode atribuir função de Administrador.' });
+        }
+      }
+    }
     await conn.execute(
       `UPDATE FUNCIONARIO SET
          NOME_FUNCIONARIO = NVL(:nome, NOME_FUNCIONARIO),

@@ -52,46 +52,8 @@ CREATE OR REPLACE SYNONYM vw_eventos_proximos          FOR vw_eventos_proximos@e
 CREATE OR REPLACE SYNONYM vw_eventos_completos         FOR vw_eventos_completos@eventosdb;
 CREATE OR REPLACE SYNONYM insere_participacao_evento   FOR insere_participacao_evento@eventosdb;
 
--- Verificação
+-- Verificação apagar apos testes
 SELECT SYNONYM_NAME, TABLE_OWNER, DB_LINK
   FROM USER_SYNONYMS
  ORDER BY DB_LINK, SYNONYM_NAME;
 
--- ============================================================
--- SCRIPTS PARA OS OUTROS NÓS
--- Entregar a cada colega — eles têm de executar no schema do
--- SEU nó. Substituir <link_nacional> pelo nome do database link
--- que apontar para o BibliotecaNacionalDB no nó de cada um.
--- ============================================================
-
--- ── Yannis (EmpréstimosProgramasDB) ─────────────────────────
--- As tabelas de leitores e funcionários ficaram no BibliotecaNacionalDB.
--- Os teus triggers (RN01, RN02, RN03) acedem-nas via database link.
--- Executa no teu schema (usr_emprestimosdb), substituindo o alias:
-/*
-CREATE OR REPLACE SYNONYM leitor               FOR leitor@<link_nacional>;
-CREATE OR REPLACE SYNONYM adulto               FOR adulto@<link_nacional>;
-CREATE OR REPLACE SYNONYM adulto_interesse     FOR adulto_interesse@<link_nacional>;
-CREATE OR REPLACE SYNONYM professor            FOR professor@<link_nacional>;
-CREATE OR REPLACE SYNONYM professor_disciplina FOR professor_disciplina@<link_nacional>;
-CREATE OR REPLACE SYNONYM crianca              FOR crianca@<link_nacional>;
-CREATE OR REPLACE SYNONYM funcao_funcionario   FOR funcao_funcionario@<link_nacional>;
--- Se o teu backend acede ao MateriaisDB directamente:
-CREATE OR REPLACE SYNONYM material_bibliografico FOR material_bibliografico@materiaisdb;
-CREATE OR REPLACE SYNONYM categoria              FOR categoria@materiaisdb;
-*/
-
--- ── Yasin (MateriaisDB) ──────────────────────────────────────
--- O trigger RN06 verifica empréstimos activos no EmpréstimosProgramasDB.
--- Executa no teu schema (usr_materiaisdb):
-/*
-CREATE OR REPLACE SYNONYM emprestimo FOR emprestimo@emprestimosdb;
--- Se o teu backend acede a leitores (ex: validação de cartão):
-CREATE OR REPLACE SYNONYM leitor FOR leitor@<link_nacional>;
-*/
-
--- ── Gerson (EventosBibliotecasDB) ───────────────────────────
--- Se o teu backend valida leitores cross-node:
-/*
-CREATE OR REPLACE SYNONYM leitor FOR leitor@<link_nacional>;
-*/

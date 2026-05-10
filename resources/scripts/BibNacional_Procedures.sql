@@ -203,10 +203,11 @@ END;
 -- É uma transacção distribuída — demonstra 2PC automaticamente.
 --
 -- EXECUTE IMMEDIATE nas queries cross-node: ver nota no topo do ficheiro.
--- ============================================================
+-- ── VERSÃO MODIFICADA DE prc_apagar_leitor COM SAVEPOINTs ──
+
 CREATE OR REPLACE PROCEDURE prc_apagar_leitor (
-    p_num_cartao      IN VARCHAR2,   -- leitor a apagar
-    p_cod_funcionario IN VARCHAR2    -- quem pede a operação
+    p_num_cartao      IN VARCHAR2,
+    p_cod_funcionario IN VARCHAR2
 ) AS
     v_nivel       VARCHAR2(15);
     v_emprestimos NUMBER := 0;
@@ -230,7 +231,7 @@ BEGIN
             );
             RAISE_APPLICATION_ERROR(-20100, 'Funcionario nao encontrado ou inactivo.');
     END;
-
+ 
     IF v_nivel != 'Administrador' THEN
         prc_registar_auditoria(
             p_cod_funcionario => p_cod_funcionario,
@@ -241,15 +242,13 @@ BEGIN
         );
         RAISE_APPLICATION_ERROR(-20101, 'Acesso negado. Nivel Administrador necessario.');
     END IF;
-
-    -- 2. Verificar empréstimos activos no EmpréstimosDB
-    -- EXECUTE IMMEDIATE: resolve a referência @emprestimosdb em runtime,
-    -- evitando ORA-04052 na compilação quando o nó remoto não está acessível.
+ 
+    -- 2. Verificar empréstimos activos
     EXECUTE IMMEDIATE
         'SELECT COUNT(*) FROM emprestimo@emprestimosdb
           WHERE num_cartao = :1 AND data_devolucao IS NULL'
         INTO v_emprestimos USING p_num_cartao;
-
+ 
     IF v_emprestimos > 0 THEN
         prc_registar_auditoria(
             p_cod_funcionario => p_cod_funcionario,
@@ -262,29 +261,80 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20102,
             'Leitor tem emprestimos activos. Devolucao obrigatoria antes de apagar.');
     END IF;
-
-    -- 3. Limpeza cross-node (CASCADEs não funcionam entre nós)
-    -- EXECUTE IMMEDIATE por cada DELETE remoto — mesmo motivo do ponto 2.
-
-    -- EventosBibliotecasDB
-    EXECUTE IMMEDIATE
-        'DELETE FROM participacao_evento@eventosdb WHERE num_cartao = :1'
-        USING p_num_cartao;
-
-    EXECUTE IMMEDIATE
-        'DELETE FROM avaliacao_evento@eventosdb WHERE num_cartao = :1'
-        USING p_num_cartao;
-
-    -- EmpréstimosProgramasDB (PARTICIPACAO_PROGRAMA pertence ao nó do Yannis)
-    EXECUTE IMMEDIATE
-        'DELETE FROM participacao_programa@emprestimosdb WHERE num_cartao = :1'
-        USING p_num_cartao;
-
-    -- 4. DELETE principal — LEITOR é LOCAL neste nó (v3)
+ 
+    -- ── SAVEPOINT antes das operações cross-node ────────────
+    -- Se qualquer DELETE remoto falhar, fazemos ROLLBACK TO aqui,
+    -- registamos o erro com detalhe, e relançamos.
+    -- O ROLLBACK TO garante que nada foi alterado antes de RAISE.
+    -- (Em 2PC, o ROLLBACK final será total — o SAVEPOINT serve
+    --  para o bloco de logging estruturado por etapa.)
+    SAVEPOINT sp_antes_limpeza_cross_node;
+ 
+    -- 3a. Limpeza no EventosBibliotecasDB
+    BEGIN
+        EXECUTE IMMEDIATE
+            'DELETE FROM participacao_evento@eventosdb WHERE num_cartao = :1'
+            USING p_num_cartao;
+    EXCEPTION
+        WHEN OTHERS THEN
+            prc_registar_auditoria(
+                p_cod_funcionario => p_cod_funcionario,
+                p_operacao        => 'APAGAR_LEITOR',
+                p_objeto_afetado  => p_num_cartao,
+                p_resultado       => 'FALHA',
+                p_motivo_falha    => 'Falha em participacao_evento@eventosdb: ' || SQLERRM,
+                p_nos_afetados    => 'EventosBibliotecasDB'
+            );
+            ROLLBACK TO SAVEPOINT sp_antes_limpeza_cross_node;
+            RAISE;
+    END;
+ 
+    SAVEPOINT sp_apos_eventos_participacao;
+ 
+    -- 3b. Limpeza de avaliações no EventosBibliotecasDB
+    BEGIN
+        EXECUTE IMMEDIATE
+            'DELETE FROM avaliacao_evento@eventosdb WHERE num_cartao = :1'
+            USING p_num_cartao;
+    EXCEPTION
+        WHEN OTHERS THEN
+            prc_registar_auditoria(
+                p_cod_funcionario => p_cod_funcionario,
+                p_operacao        => 'APAGAR_LEITOR',
+                p_objeto_afetado  => p_num_cartao,
+                p_resultado       => 'FALHA',
+                p_motivo_falha    => 'Falha em avaliacao_evento@eventosdb: ' || SQLERRM,
+                p_nos_afetados    => 'EventosBibliotecasDB'
+            );
+            ROLLBACK TO SAVEPOINT sp_apos_eventos_participacao;
+            RAISE;
+    END;
+ 
+    SAVEPOINT sp_apos_eventos_avaliacoes;
+ 
+    -- 3c. Limpeza no EmpréstimosProgramasDB
+    BEGIN
+        EXECUTE IMMEDIATE
+            'DELETE FROM participacao_programa@emprestimosdb WHERE num_cartao = :1'
+            USING p_num_cartao;
+    EXCEPTION
+        WHEN OTHERS THEN
+            prc_registar_auditoria(
+                p_cod_funcionario => p_cod_funcionario,
+                p_operacao        => 'APAGAR_LEITOR',
+                p_objeto_afetado  => p_num_cartao,
+                p_resultado       => 'FALHA',
+                p_motivo_falha    => 'Falha em participacao_programa@emprestimosdb: ' || SQLERRM,
+                p_nos_afetados    => 'EmprestimosDB'
+            );
+            ROLLBACK TO SAVEPOINT sp_apos_eventos_avaliacoes;
+            RAISE;
+    END;
+ 
+    -- 4. DELETE principal — LEITOR é local neste nó (v3)
     DELETE FROM LEITOR WHERE num_cartao = p_num_cartao;
-
+ 
     -- 5. Auditoria de sucesso + COMMIT
-    -- Oracle detecta que a transacção tocou múltiplos nós e lança 2PC automaticamente.
     prc_registar_auditoria(
         p_cod_funcionario => p_cod_funcionario,
         p_operacao        => 'APAGAR_LEITOR',
@@ -292,13 +342,13 @@ BEGIN
         p_resultado       => 'SUCESSO',
         p_nos_afetados    => 'BibliotecaNacionalDB (local), EmprestimosDB, EventosBibliotecasDB'
     );
-
-    COMMIT; -- Oracle usa 2PC automaticamente se tocou nós remotos
-
+ 
+    COMMIT; -- Oracle usa 2PC automaticamente (toca múltiplos nós)
+ 
 EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
-        RAISE; -- propaga o erro original (já foi auditado acima)
+        RAISE;
 END;
 /
 

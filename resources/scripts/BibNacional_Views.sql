@@ -279,6 +279,82 @@ WHERE f.data_demissao IS NULL;
 /
 
 
+-- ── FRAGMENTO 1: Activos — atributos operacionais ──────────
+-- O que outros nós precisam para verificar: quem é, onde trabalha,
+-- que função tem, que nível de acesso tem.
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE VIEW vw_frag_func_activos_operacional AS
+SELECT
+    cod_funcionario,
+    nome_funcionario,
+    cod_biblioteca,
+    id_funcao,
+    nivel_acesso
+FROM (
+    SELECT
+        f.cod_funcionario,
+        f.nome_funcionario,
+        f.cod_biblioteca,
+        f.id_funcao,
+        fn.nivel_acesso
+    FROM FUNCIONARIO f
+    JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
+    WHERE f.data_demissao IS NULL        -- Horizontal: só activos
+);
+/
+ 
+-- ── FRAGMENTO 2: Activos — atributos confidenciais ─────────
+-- Dados pessoais e de segurança. Nunca saem deste nó.
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE VIEW vw_frag_func_activos_confidencial AS
+SELECT
+    cod_funcionario,   -- chave — necessária para reconstrução
+    data_nasc,
+    endereco,
+    senha,
+    formacao,
+    experiencia
+FROM FUNCIONARIO
+WHERE data_demissao IS NULL;             -- Horizontal: só activos
+/
+ 
+-- ── FRAGMENTO 3: Inactivos — atributos operacionais ────────
+-- Funcionários com data_demissao preenchida.
+-- Mantidos para integridade referencial histórica (empréstimos, auditorias).
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE VIEW vw_frag_func_inactivos_operacional AS
+SELECT
+    cod_funcionario,
+    nome_funcionario,
+    cod_biblioteca,
+    id_funcao,
+    nivel_acesso
+FROM (
+    SELECT
+        f.cod_funcionario,
+        f.nome_funcionario,
+        f.cod_biblioteca,
+        f.id_funcao,
+        fn.nivel_acesso
+    FROM FUNCIONARIO f
+    JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
+    WHERE f.data_demissao IS NOT NULL    -- Horizontal: só inactivos
+);
+/
+ 
+-- ── FRAGMENTO 4: Inactivos — atributos confidenciais ───────
+CREATE OR REPLACE VIEW vw_frag_func_inactivos_confidencial AS
+SELECT
+    cod_funcionario,
+    data_nasc,
+    endereco,
+    senha,
+    formacao,
+    experiencia
+FROM FUNCIONARIO
+WHERE data_demissao IS NOT NULL;         -- Horizontal: só inactivos
+/
+
 -- ============================================================
 -- GRANTS SOBRE VISTAS — executar após BibNacional_Views.sql
 -- ============================================================
@@ -289,3 +365,25 @@ WHERE f.data_demissao IS NULL;
 -- criam database links que conectam como app_NACIONALDB a este nó.
 
 GRANT SELECT ON usr_NACIONALDB.vw_leitor_publico TO app_NACIONALDB;
+
+-- ============================================================
+-- VW_AUDITORIA — interface padronizada de auditoria manual
+-- Permite ao backend usar sempre a mesma query ("SELECT * FROM VW_AUDITORIA")
+-- independentemente do nó onde está a correr.
+-- Cada nó cria esta view no seu schema apontando para a sua própria
+-- tabela de auditoria. O campo no_origem identifica o nó na interface.
+-- ============================================================
+CREATE OR REPLACE VIEW VW_AUDITORIA AS
+SELECT
+    id_auditoria,
+    data_operacao,
+    operacao,
+    cod_funcionario,
+    objeto_afetado,
+    resultado,
+    motivo_falha,
+    nos_afetados,
+    observacoes,
+    'NACIONAL' AS no_origem
+FROM AUDITORIA_OPERACOES;
+/

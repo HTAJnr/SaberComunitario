@@ -25,6 +25,10 @@
       <option value="Irregular">Irregular</option>
       <option value="Mau">Mau</option>
     </select>
+    <!-- Filtro por biblioteca — Admin apenas (mostrado via JS) -->
+    <select id="filtro-leitor-bib" onchange="carregarLeitores()" class="input-field" style="width:180px;display:none">
+      <option value="">Todas as bibliotecas</option>
+    </select>
     <button onclick="abrirWizardLeitor()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
       <i class="fa-solid fa-plus" style="margin-right:5px"></i>Cadastrar Leitor
     </button>

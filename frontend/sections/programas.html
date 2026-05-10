@@ -7,6 +7,10 @@
       <input id="filtro-prog-q" type="text" placeholder="Pesquisar por nome…"
              oninput="_renderizarTabelaProgramas()" class="input-field"/>
     </div>
+    <!-- Filtro por biblioteca — Admin apenas (mostrado via JS) -->
+    <select id="filtro-prog-bib" onchange="carregarProgramas()" class="input-field" style="width:180px;display:none">
+      <option value="">Todas as bibliotecas</option>
+    </select>
     <div id="btn-novo-prog-wrap">
       <button onclick="abrirModalProg(null)" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
         <i class="fa-solid fa-plus" style="margin-right:5px"></i>Novo Programa

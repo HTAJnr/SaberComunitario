@@ -51,8 +51,29 @@ function _badgeEstadoPart(estado) {
 // ── 08-A Lista ─────────────────────────────────
 
 async function carregarProgramas() {
+  const isAdmin = utilizadorActual?.NIVEL_ACESSO === 'Administrador';
+  const selBib  = document.getElementById('filtro-prog-bib');
+
+  if (isAdmin && selBib) {
+    selBib.style.display = '';
+    if (selBib.options.length === 1) {
+      try {
+        const bibs = await get('/api/funcionarios/bibliotecas');
+        bibs.forEach(b => {
+          const o = document.createElement('option');
+          o.value = b.COD_BIBLIOTECA; o.textContent = b.NOME;
+          selBib.appendChild(o);
+        });
+      } catch (_) {}
+    }
+  }
+
+  const biblioteca = isAdmin ? (selBib?.value || '') : '';
+  const params = new URLSearchParams();
+  if (biblioteca) params.set('biblioteca', biblioteca);
+
   try {
-    const rows = await get('/api/programas');
+    const rows = await get(`/api/programas${params.toString() ? '?' + params : ''}`);
     _progRows = Array.isArray(rows) ? rows : [];
     _renderizarTabelaProgramas();
   } catch (err) {
