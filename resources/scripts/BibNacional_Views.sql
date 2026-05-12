@@ -308,7 +308,7 @@ FROM (
 -- ────────────────────────────────────────────────────────────
 CREATE OR REPLACE VIEW vw_func_activos_confidencial AS
 SELECT
-    cod_funcionario,   -- chave — necessária para reconstrução
+    cod_funcionario,
     data_nasc,
     endereco,
     senha,
