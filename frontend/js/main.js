@@ -204,7 +204,7 @@ function mostrarLogin() {
   if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Entrar'; }
 }
 
-function mostrarApp() {
+async function mostrarApp() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
 
