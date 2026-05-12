@@ -283,7 +283,7 @@ WHERE f.data_demissao IS NULL;
 -- O que outros nós precisam para verificar: quem é, onde trabalha,
 -- que função tem, que nível de acesso tem.
 -- ────────────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW vw_frag_func_activos_operacional AS
+CREATE OR REPLACE VIEW vw_func_activos_operacional AS
 SELECT
     cod_funcionario,
     nome_funcionario,
@@ -306,7 +306,7 @@ FROM (
 -- ── FRAGMENTO 2: Activos — atributos confidenciais ─────────
 -- Dados pessoais e de segurança. Nunca saem deste nó.
 -- ────────────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW vw_frag_func_activos_confidencial AS
+CREATE OR REPLACE VIEW vw_func_activos_confidencial AS
 SELECT
     cod_funcionario,   -- chave — necessária para reconstrução
     data_nasc,
@@ -322,7 +322,7 @@ WHERE data_demissao IS NULL;             -- Horizontal: só activos
 -- Funcionários com data_demissao preenchida.
 -- Mantidos para integridade referencial histórica (empréstimos, auditorias).
 -- ────────────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW vw_frag_func_inactivos_operacional AS
+CREATE OR REPLACE VIEW vw_func_inactivos_operacional AS
 SELECT
     cod_funcionario,
     nome_funcionario,
@@ -343,7 +343,7 @@ FROM (
 /
  
 -- ── FRAGMENTO 4: Inactivos — atributos confidenciais ───────
-CREATE OR REPLACE VIEW vw_frag_func_inactivos_confidencial AS
+CREATE OR REPLACE VIEW vw_func_inactivos_confidencial AS
 SELECT
     cod_funcionario,
     data_nasc,

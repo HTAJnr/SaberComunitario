@@ -51,9 +51,3 @@ CREATE OR REPLACE SYNONYM seq_avaliacao                FOR seq_avaliacao@eventos
 CREATE OR REPLACE SYNONYM vw_eventos_proximos          FOR vw_eventos_proximos@eventosdb;
 CREATE OR REPLACE SYNONYM vw_eventos_completos         FOR vw_eventos_completos@eventosdb;
 CREATE OR REPLACE SYNONYM insere_participacao_evento   FOR insere_participacao_evento@eventosdb;
-
--- Verificação apagar apos testes
-SELECT SYNONYM_NAME, TABLE_OWNER, DB_LINK
-  FROM USER_SYNONYMS
- ORDER BY DB_LINK, SYNONYM_NAME;
-
