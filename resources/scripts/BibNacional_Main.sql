@@ -43,5 +43,10 @@ CONNECT usr_NACIONALDB/"HTAJnr#020403"
 -- 10. Índices
 @/root/TP/BibNacional_Indexes.sql
 
--- 11. Dados iniciais
+-- 11. Grants e permissões (após todos os objectos criados)
+-- Executar ainda como usr_NACIONALDB — GRANT em objectos do próprio schema é permitido.
+-- A atribuição de roles a utilizadores (GRANT role TO user) está em Roles.sql (SYSDBA).
+@/root/TP/BibNacional_Grants.sql
+
+-- 12. Dados iniciais
 @/root/TP/BibNacional_Intro.sql

@@ -22,5 +22,7 @@ GRANT CREATE TABLE, CREATE VIEW, CREATE SEQUENCE,
       CREATE TRIGGER, CREATE PROCEDURE, CREATE SYNONYM, 
       CREATE DATABASE LINK TO usr_NACIONALDB;
 
--- Role de leitura ao utilizador de aplicação
-GRANT role_NACIONALDB_read TO app_NACIONALDB;
+-- Roles ao utilizador de aplicação
+-- SYSDBA é obrigatório aqui — usr_NACIONALDB não tem ADMIN OPTION nestes roles.
+GRANT role_NACIONALDB_read  TO app_NACIONALDB;
+GRANT role_NACIONALDB_write TO app_NACIONALDB;

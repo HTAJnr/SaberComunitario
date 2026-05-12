@@ -355,16 +355,6 @@ FROM FUNCIONARIO
 WHERE data_demissao IS NOT NULL;
 /
 
--- ============================================================
--- GRANTS SOBRE VISTAS — executar após BibNacional_Views.sql
--- ============================================================
--- IMPORTANTE: roles Oracle não propagam através de database links.
--- Acesso cross-node via @bibliotecanacionaldb exige GRANT directo
--- ao utilizador de conexão (app_NACIONALDB).
--- Os outros nós (EmpréstimosProgramasDB, MateriaisDB, EventosBibliotecasDB)
--- criam database links que conectam como app_NACIONALDB a este nó.
-
-GRANT SELECT ON usr_NACIONALDB.vw_leitor_publico TO app_NACIONALDB;
 
 -- ============================================================
 -- VW_AUDITORIA — interface padronizada de auditoria manual
