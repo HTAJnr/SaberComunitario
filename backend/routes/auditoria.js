@@ -3,26 +3,26 @@ const router  = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { exigirNivel } = require('../middleware/permissoes');
 
-// GET /api/auditoria — listar registos de auditoria com filtros e paginação
-router.get('/', exigirNivel('Administrador'), async (req, res) => {
+// GET /api/auditoria — lê VW_AUDITORIA (view padronizada criada por cada nó no seu schema)
+// Transparência de localização: o Oracle resolve VW_AUDITORIA para o schema do DB_USER activo.
+router.get('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
-    const { cod_funcionario, operacao, data_inicio, data_fim } = req.query;
+    const { operacao, resultado, data_inicio, data_fim } = req.query;
     const page   = Math.max(1, parseInt(req.query.page) || 1);
     const limit  = 20;
     const offset = (page - 1) * limit;
 
-    // Construir WHERE dinâmico — valores via bind, nunca interpolados
     const conditions = ['1=1'];
     const binds      = {};
 
-    if (cod_funcionario) {
-      conditions.push('cod_funcionario = :cod_func');
-      binds.cod_func = cod_funcionario;
-    }
     if (operacao) {
       conditions.push('operacao = :operacao');
       binds.operacao = operacao;
+    }
+    if (resultado) {
+      conditions.push('resultado = :resultado');
+      binds.resultado = resultado;
     }
     if (data_inicio) {
       conditions.push('data_operacao >= TO_DATE(:data_inicio, \'YYYY-MM-DD\')');
@@ -43,14 +43,11 @@ router.get('/', exigirNivel('Administrador'), async (req, res) => {
     const result = await conn.execute(
       `SELECT * FROM (
          SELECT t.*, ROWNUM AS RN FROM (
-           SELECT a.id_auditoria, a.data_operacao, a.cod_funcionario,
-                  f.nome_funcionario,
-                  a.operacao, a.objeto_afetado, a.resultado,
-                  a.motivo_falha, a.nos_afetados, a.observacoes
-             FROM AUDITORIA_OPERACOES a
-             LEFT JOIN FUNCIONARIO f ON f.cod_funcionario = a.cod_funcionario
+           SELECT id_auditoria, data_operacao, operacao, resultado,
+                  motivo_falha, nos_afetados, observacoes, no_origem
+             FROM VW_AUDITORIA
             WHERE ${where}
-            ORDER BY a.data_operacao DESC
+            ORDER BY data_operacao DESC
          ) t WHERE ROWNUM <= :rn_max
        ) WHERE RN > :rn_min`,
       binds,
@@ -58,7 +55,7 @@ router.get('/', exigirNivel('Administrador'), async (req, res) => {
     );
 
     const totalResult = await conn.execute(
-      `SELECT COUNT(*) AS N FROM AUDITORIA_OPERACOES WHERE ${where}`,
+      `SELECT COUNT(*) AS N FROM VW_AUDITORIA WHERE ${where}`,
       Object.fromEntries(Object.entries(binds).filter(([k]) => !['rn_max', 'rn_min'].includes(k))),
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -70,7 +67,7 @@ router.get('/', exigirNivel('Administrador'), async (req, res) => {
     });
   } catch (err) {
     console.error('\x1b[31m[AUDITORIA GET /]\x1b[0m');
-    console.error('     BD: AUDITORIA_OPERACOES');
+    console.error('     BD: VW_AUDITORIA');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {
@@ -78,37 +75,31 @@ router.get('/', exigirNivel('Administrador'), async (req, res) => {
   }
 });
 
-// GET /api/auditoria/opcoes — listas para popular dropdowns de filtro na UI
-router.get('/opcoes', exigirNivel('Administrador'), async (req, res) => {
+// GET /api/auditoria/opcoes — valores distintos para os dropdowns de filtro
+router.get('/opcoes', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
 
     const opR = await conn.execute(
-      `SELECT DISTINCT operacao FROM AUDITORIA_OPERACOES ORDER BY operacao`,
+      `SELECT DISTINCT operacao FROM VW_AUDITORIA ORDER BY operacao`,
       [],
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
-    const funcR = await conn.execute(
-      `SELECT DISTINCT a.cod_funcionario, f.nome_funcionario
-         FROM AUDITORIA_OPERACOES a
-         LEFT JOIN FUNCIONARIO f ON f.cod_funcionario = a.cod_funcionario
-        ORDER BY f.nome_funcionario`,
+    const resR = await conn.execute(
+      `SELECT DISTINCT resultado FROM VW_AUDITORIA ORDER BY resultado`,
       [],
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
     res.json({
-      operacoes:    opR.rows.map(r => r.OPERACAO),
-      funcionarios: funcR.rows.map(r => ({
-        cod_funcionario:  r.COD_FUNCIONARIO,
-        nome_funcionario: r.NOME_FUNCIONARIO
-      }))
+      operacoes:  opR.rows.map(r => r.OPERACAO),
+      resultados: resR.rows.map(r => r.RESULTADO),
     });
   } catch (err) {
     console.error('\x1b[31m[AUDITORIA GET /opcoes]\x1b[0m');
-    console.error('     BD: AUDITORIA_OPERACOES + FUNCIONARIO');
+    console.error('     BD: VW_AUDITORIA');
     console.error('     Detalhe:', err.message);
     res.status(500).json({ erro: err.message });
   } finally {

@@ -1,0 +1,80 @@
+<section id="section-auditoria" class="section hidden">
+
+  <!-- Barra de filtros -->
+  <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">Data início</div>
+      <input id="aud-filtro-inicio" type="date" class="input-field" style="width:150px"
+             onchange="_audAplicarFiltros()"/>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">Data fim</div>
+      <input id="aud-filtro-fim" type="date" class="input-field" style="width:150px"
+             onchange="_audAplicarFiltros()"/>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">Operação</div>
+      <select id="aud-filtro-op" class="input-field" style="width:200px" onchange="_audAplicarFiltros()">
+        <option value="">Todas as operações</option>
+      </select>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">Resultado</div>
+      <select id="aud-filtro-res" class="input-field" style="width:140px" onchange="_audAplicarFiltros()">
+        <option value="">Todos</option>
+        <option value="SUCESSO">SUCESSO</option>
+        <option value="FALHA">FALHA</option>
+      </select>
+    </div>
+    <button onclick="_audLimparFiltros()" class="btn-ghost" style="white-space:nowrap">
+      <i class="fa-solid fa-xmark" style="margin-right:4px"></i>Limpar
+    </button>
+    <!-- Pill do nó activo -->
+    <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      <span id="aud-no-pill" style="font-size:11px;padding:3px 10px;border-radius:20px;
+            background:var(--surface-raised);border:0.5px solid var(--border);
+            color:var(--text-secondary);white-space:nowrap"></span>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div class="panel">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Operação</th>
+          <th>Resultado</th>
+          <th>Nó Origem</th>
+          <th>Nós Afetados</th>
+          <th>Motivo de Falha</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tabela-auditoria"></tbody>
+    </table>
+  </div>
+
+  <!-- Paginação -->
+  <div id="aud-paginacao" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;font-size:12px;color:var(--text-muted)"></div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu-aud" class="ctx-menu" style="display:none"></div>
+
+  <!-- Drawer overlay -->
+  <div id="drawer-aud-overlay" onclick="fecharDrawerAud()"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:89"></div>
+
+  <!-- Drawer — Detalhe do registo -->
+  <div id="drawer-aud" class="drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Detalhe do Registo</span>
+      <button onclick="fecharDrawerAud()"
+              style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--text-muted);padding:4px">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="drawer-aud-conteudo"></div>
+  </div>
+
+</section>

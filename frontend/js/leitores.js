@@ -93,9 +93,7 @@ function abrirCtxMenuLeitor(evt, numCartao, nome, statusActual) {
     <div class="ctx-menu-item" onclick="fecharCtxMenuLeitor();abrirModalSuspensoes('${numCartao}')">
       <i class="fa-solid fa-ban" style="width:14px"></i> Ver suspensões
     </div>` : ''}
-    ${podeEliminar ? `<div class="ctx-menu-item ctx-menu-danger" onclick="fecharCtxMenuLeitor();confirmarEliminarLeitor('${numCartao}','${nome.replace(/'/g,"\\'")}')">
-      <i class="fa-solid fa-trash" style="width:14px"></i> Eliminar
-    </div>` : ''}
+    ${podeEliminar ? _ctxItemNo('BibliotecaNacionalDB', 'fa-trash', 'Eliminar', `fecharCtxMenuLeitor();confirmarEliminarLeitor('${numCartao}','${nome.replace(/'/g,"\\'")}')`, 'ctx-menu-danger') : ''}
   `;
 
   const btn = evt.currentTarget;

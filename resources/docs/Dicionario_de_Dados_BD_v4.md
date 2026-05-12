@@ -1,5 +1,11 @@
 # Sistema de Gestão de Bibliotecas Comunitárias
-**Versão 3.0**
+**Versão 4.0**
+
+> **v4 — Alterações face à v3:**
+> - `AUDITORIA_EMPRESTIMOS` adicionada ao nó EmpréstimosProgramasDB (Yannis)
+> - `AUDITORIA_MATERIAIS` adicionada ao nó MateriaisDB (Yasin)
+> - `AUDITORIA_EVENTOS` adicionada ao nó EventosBibliotecasDB (Gerson)
+> - Todas as tabelas de auditoria seguem o mesmo padrão de `AUDITORIA_OPERACOES` do BibliotecaNacionalDB: `PRAGMA AUTONOMOUS_TRANSACTION`, CHECK em `resultado`, sequência dedicada.
 
 ---
 
@@ -445,16 +451,108 @@ Tabelas com a palavra "código" no enunciado usam VARCHAR2 como PK com formato f
 | Atributo          | Tipo     | Tamanho | Notas                                                                      |
 | ----------------- | -------- | ------- | -------------------------------------------------------------------------- |
 | `id_auditoria`    | NUMBER   | —       | PK. Gerado por SEQ_AUDITORIA                                               |
-| `data_operacao`   | DATE     | —       | DEFAULT SYSDATE. Momento exacto da operação                                |
-| `cod_funcionario` | VARCHAR2 | 12      | FK lógica → FUNCIONARIO. Quem executou a operação                          |
-| `operacao`        | VARCHAR2 | 50      | Ex: `'APAGAR_LEITOR'`, `'REMOVER_FUNCIONARIO'`, `'MODIFICAR_NIVEL_ACESSO'` |
-| `objeto_afetado`  | VARCHAR2 | 100     | Identificador do registo alvo (ex: `num_cartao`, `cod_funcionario`)        |
-| `resultado`       | VARCHAR2 | 10      | `'SUCESSO'` ou `'FALHA'`                                                   |
+| `data_operacao`   | DATE     | —       | NOT NULL. DEFAULT SYSDATE. Momento exacto da operação                      |
+| `cod_funcionario` | VARCHAR2 | 12      | NOT NULL. FK lógica → FUNCIONARIO. Quem executou a operação                |
+| `operacao`        | VARCHAR2 | 50      | NOT NULL. Ex: `'APAGAR_LEITOR'`, `'REMOVER_FUNCIONARIO'`, `'MODIFICAR_NIVEL_ACESSO'` |
+| `objeto_afetado`  | VARCHAR2 | 100     | NOT NULL. Identificador do registo alvo (ex: `num_cartao`, `cod_funcionario`) |
+| `resultado`       | VARCHAR2 | 10      | NOT NULL. CHECK (`'SUCESSO'`, `'FALHA'`)                                   |
 | `motivo_falha`    | VARCHAR2 | 300     | Nullable. Preenchido apenas em caso de FALHA                               |
 | `nos_afetados`    | VARCHAR2 | 200     | Nullable. Ex: `'EmprestimosDB, EventosBibliotecasDB'`                      |
 | `observacoes`     | VARCHAR2 | 300     | Nullable. Contexto adicional da operação                                   |
 
+**Constraints:**
+- `AUDITORIA_PK` — PRIMARY KEY (`id_auditoria`)
+- `chk_resultado_audit` — CHECK (`resultado` IN (`'SUCESSO'`, `'FALHA'`))
+
+**Índices** *(tablespace tbs_NACIONALDB_idx):*
+- `iaud_func` — `cod_funcionario`
+- `iaud_data` — `data_operacao`
+
 > Usa `PRAGMA AUTONOMOUS_TRANSACTION` na procedure de inserção — o registo é confirmado independentemente do resultado da transacção principal. Sem isto, um ROLLBACK da operação principal apagaria também o log, tornando a auditoria inútil para rastrear falhas.
+
+---
+
+### AUDITORIA_EMPRESTIMOS *(nó EmpréstimosProgramasDB — Yannis)*
+| Atributo        | Tipo     | Tamanho | Notas                                                                                                          |
+| --------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| `id_auditoria`  | NUMBER   | —       | PK. Gerado por SEQ_AUDITORIA_EMP                                                                               |
+| `data_operacao` | DATE     | —       | NOT NULL. DEFAULT SYSDATE. Momento exacto da operação                                                          |
+| `operacao`      | VARCHAR2 | 50      | NOT NULL. Ex: `'CRIAR_EMPRESTIMO'`, `'DEVOLUCAO'`, `'SUSPENSAO'`, `'BLOQUEIO'`                                 |
+| `num_cartao`    | VARCHAR2 | 12      | Nullable. Leitor envolvido na operação                                                                         |
+| `cod_material`  | VARCHAR2 | 12      | Nullable. Material envolvido na operação                                                                       |
+| `id_emprestimo` | NUMBER   | —       | Nullable. Empréstimo envolvido na operação                                                                     |
+| `resultado`     | VARCHAR2 | 10      | NOT NULL. CHECK (`'SUCESSO'`, `'FALHA'`)                                                                       |
+| `motivo_falha`  | VARCHAR2 | 300     | Nullable. Preenchido apenas em caso de FALHA                                                                   |
+| `nos_afetados`  | VARCHAR2 | 200     | Nullable. Ex: `'BibliotecaNacionalDB, MateriaisDB'`                                                            |
+| `observacoes`   | VARCHAR2 | 300     | Nullable. Contexto adicional da operação                                                                       |
+
+**Constraints:**
+- `AUDITORIA_EMP_PK` — PRIMARY KEY (`id_auditoria`)
+- `chk_resultado_emp` — CHECK (`resultado` IN (`'SUCESSO'`, `'FALHA'`))
+
+**Índices** *(tablespace tbs_EMPRESTIMOSDB_idx):*
+- `iaud_emp_cartao` — `num_cartao`
+- `iaud_emp_data` — `data_operacao`
+- `iaud_emp_res` — `resultado`
+
+> Usa `PRAGMA AUTONOMOUS_TRANSACTION`. Chamada pelos triggers RN01 (rejeições de empréstimo) e RN03 (suspensões, bloqueios e devoluções). Campos `num_cartao`, `cod_material` e `id_emprestimo` são nullable porque algumas operações não envolvem todos estes objectos.
+
+---
+
+### AUDITORIA_MATERIAIS *(nó MateriaisDB — Yasin)*
+| Atributo           | Tipo     | Tamanho | Notas                                                                                                     |
+| ------------------ | -------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `id_auditoria`     | NUMBER   | —       | PK. Gerado por SEQ_AUDITORIA_MAT                                                                          |
+| `data_operacao`    | DATE     | —       | NOT NULL. DEFAULT SYSDATE. Momento exacto da operação                                                     |
+| `operacao`         | VARCHAR2 | 50      | NOT NULL. Ex: `'ATUALIZAR_ESTADO'`, `'CRIAR_TRANSFERENCIA'`, `'MUDAR_ESTADO_TRANSF'`, `'CRIAR_MATERIAL'`  |
+| `cod_material`     | VARCHAR2 | 12      | Nullable. Material envolvido na operação                                                                  |
+| `id_transferencia` | NUMBER   | —       | Nullable. Transferência envolvida na operação                                                             |
+| `estado_anterior`  | VARCHAR2 | 13      | Nullable. Estado do material ou transferência antes da operação                                           |
+| `estado_novo`      | VARCHAR2 | 13      | Nullable. Estado após a operação                                                                          |
+| `resultado`        | VARCHAR2 | 10      | NOT NULL. CHECK (`'SUCESSO'`, `'FALHA'`)                                                                  |
+| `motivo_falha`     | VARCHAR2 | 300     | Nullable. Preenchido apenas em caso de FALHA                                                              |
+| `nos_afetados`     | VARCHAR2 | 200     | Nullable. Ex: `'EmprestimosDB'` (consultado para verificar empréstimos activos na RN06)                   |
+| `observacoes`      | VARCHAR2 | 300     | Nullable. Contexto adicional da operação                                                                  |
+
+**Constraints:**
+- `AUDITORIA_MAT_PK` — PRIMARY KEY (`id_auditoria`)
+- `chk_resultado_mat` — CHECK (`resultado` IN (`'SUCESSO'`, `'FALHA'`))
+
+**Índices** *(tablespace tbs_MATERIAISDB_idx):*
+- `iaud_mat_material` — `cod_material`
+- `iaud_mat_transf` — `id_transferencia`
+- `iaud_mat_data` — `data_operacao`
+- `iaud_mat_res` — `resultado`
+
+> Usa `PRAGMA AUTONOMOUS_TRANSACTION`. Os campos `estado_anterior` e `estado_novo` (VARCHAR2(13) — mesmo tamanho de `estado_material_conservacao` e `estado_transferencia`) são específicos deste nó: as operações críticas do MateriaisDB são transições de estado, e registar de onde para onde mudou é o dado de auditoria mais relevante. Chamada pelos triggers RN06 e de fluxo de estados de `TRANSFERENCIA`, e pela procedure de actualização de estado de material.
+
+---
+
+### AUDITORIA_EVENTOS *(nó EventosBibliotecasDB — Gerson)*
+| Atributo         | Tipo     | Tamanho | Notas                                                                                                               |
+| ---------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `id_auditoria`   | NUMBER   | —       | PK. Gerado por SEQ_AUDITORIA_EVT                                                                                    |
+| `data_operacao`  | DATE     | —       | NOT NULL. DEFAULT SYSDATE. Momento exacto da operação                                                               |
+| `operacao`       | VARCHAR2 | 50      | NOT NULL. Ex: `'CRIAR_EVENTO'`, `'APAGAR_EVENTO'`, `'INSERIR_HORARIO_EV'`, `'INSCRICAO_EVENTO'`, `'AVALIACAO_EVENTO'` |
+| `id_evento`      | NUMBER   | —       | Nullable. Evento envolvido na operação                                                                              |
+| `cod_biblioteca` | VARCHAR2 | 10      | Nullable. Biblioteca envolvida na operação                                                                          |
+| `num_cartao`     | VARCHAR2 | 12      | Nullable. Leitor envolvido (inscrições, avaliações, e DELETEs remotos via `prc_apagar_leitor` do BibliotecaNacionalDB) |
+| `resultado`      | VARCHAR2 | 10      | NOT NULL. CHECK (`'SUCESSO'`, `'FALHA'`)                                                                            |
+| `motivo_falha`   | VARCHAR2 | 300     | Nullable. Preenchido apenas em caso de FALHA                                                                        |
+| `nos_afetados`   | VARCHAR2 | 200     | Nullable. Ex: `'BibliotecaNacionalDB'`                                                                              |
+| `observacoes`    | VARCHAR2 | 300     | Nullable. Contexto adicional da operação                                                                            |
+
+**Constraints:**
+- `AUDITORIA_EVT_PK` — PRIMARY KEY (`id_auditoria`)
+- `chk_resultado_evt` — CHECK (`resultado` IN (`'SUCESSO'`, `'FALHA'`))
+
+**Índices** *(tablespace tbs_EVENTOSDB_idx):*
+- `iaud_evt_evento` — `id_evento`
+- `iaud_evt_bib` — `cod_biblioteca`
+- `iaud_evt_data` — `data_operacao`
+- `iaud_evt_res` — `resultado`
+
+> Usa `PRAGMA AUTONOMOUS_TRANSACTION`. Chamada pelo trigger RN07 (rejeições de horário de evento), pelo trigger de protecção de DELETE em `EVENTO`, e pela procedure `insere_participacao_evento`. O campo `num_cartao` captura também os DELETEs remotos feitos pelo BibliotecaNacionalDB em `PARTICIPACAO_EVENTO` e `AVALIACAO_EVENTO` via `prc_apagar_leitor` — rastreabilidade cross-node automática.
 
 ---
 
