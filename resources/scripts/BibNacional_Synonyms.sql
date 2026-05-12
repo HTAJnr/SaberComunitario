@@ -45,7 +45,7 @@ CREATE OR REPLACE SYNONYM avaliacao_evento             FOR avaliacao_evento@even
 CREATE OR REPLACE SYNONYM horario_evento               FOR horario_evento@eventosdb;
 CREATE OR REPLACE SYNONYM horario_biblioteca           FOR horario_biblioteca@eventosdb;
 CREATE OR REPLACE SYNONYM evento_recurso               FOR evento_recurso@eventosdb;
-CREATE OR REPLACE SYNONYM biblioteca                   FOR biblioteca@eventosdb;
+CREATE OR REPLACE SYNONYM biblioteca                   FOR biblioteca_snap;
 CREATE OR REPLACE SYNONYM seq_evento                   FOR seq_evento@eventosdb;
 CREATE OR REPLACE SYNONYM seq_avaliacao                FOR seq_avaliacao@eventosdb;
 CREATE OR REPLACE SYNONYM vw_eventos_proximos          FOR vw_eventos_proximos@eventosdb;
