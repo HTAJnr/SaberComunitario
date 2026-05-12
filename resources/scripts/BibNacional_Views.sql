@@ -315,7 +315,7 @@ SELECT
     formacao,
     experiencia
 FROM FUNCIONARIO
-WHERE data_demissao IS NULL;             -- Horizontal: só activos
+WHERE data_demissao IS NULL;
 /
  
 -- ── FRAGMENTO 3: Inactivos — atributos operacionais ────────
@@ -352,7 +352,7 @@ SELECT
     formacao,
     experiencia
 FROM FUNCIONARIO
-WHERE data_demissao IS NOT NULL;         -- Horizontal: só inactivos
+WHERE data_demissao IS NOT NULL;
 /
 
 -- ============================================================
