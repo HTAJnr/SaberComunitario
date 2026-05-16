@@ -13,7 +13,8 @@
       "Bash(rtk grep -c '@emprestimosdb\\\\|@materiaisdb\\\\|@eventosdb' emprestimos.js materiais.js eventos.js transferencias.js suspensoes.js leitores.js programas.js)",
       "Bash(rtk --version)",
       "Bash(node server.js)",
-      "Bash(rtk curl *)"
+      "Bash(rtk curl *)",
+      "Bash(DISPLAY=:0 SSH_ASKPASS=/tmp/ssh_pass.sh SSH_ASKPASS_REQUIRE=force ssh *)"
     ]
   }
 }

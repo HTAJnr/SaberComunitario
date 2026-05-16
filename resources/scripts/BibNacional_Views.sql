@@ -242,6 +242,7 @@ JOIN biblioteca@eventosdb b ON m.cod_biblioteca = b.cod_biblioteca;
 
 -- Vista global 3: programação de eventos com participação
 -- Nós consultados: EventosBibliotecasDB (EVENTO, PARTICIPACAO_EVENTO via @eventosdb)
+-- Nota: EVENTO não tem cod_biblioteca directamente — liga via HORARIO_EV_BIB
 CREATE OR REPLACE VIEW vw_global_eventos_participacao AS
 SELECT
     e.id_evento,
@@ -250,13 +251,12 @@ SELECT
     e.status_evento,
     e.publico_alvo,
     e.capacidade,
-    e.cod_biblioteca,
     COUNT(pe.num_cartao) AS total_inscritos
 FROM evento@eventosdb e
 LEFT JOIN participacao_evento@eventosdb pe ON e.id_evento = pe.id_evento
 GROUP BY
     e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
-    e.publico_alvo, e.capacidade, e.cod_biblioteca;
+    e.publico_alvo, e.capacidade;
 /
 
 -- ============================================================
@@ -363,6 +363,70 @@ WHERE data_demissao IS NOT NULL;
 -- Cada nó cria esta view no seu schema apontando para a sua própria
 -- tabela de auditoria. O campo no_origem identifica o nó na interface.
 -- ============================================================
+-- ============================================================
+-- REDE REMOTA (ZeroTier) — APAGAR esta secção quando voltares a rede local
+-- Recria as vistas globais a apontar para os links Z.
+-- Correr apenas quando os colegas estiverem em rede remota.
+-- ============================================================
+
+-- Vista global 1 remota: leitores com estado de empréstimo (via @zemprestimosdb)
+CREATE OR REPLACE VIEW vw_global_leitores_emprestimos AS
+SELECT
+    l.num_cartao,
+    l.nome_completo,
+    l.cod_biblioteca,
+    l.status_leitor,
+    l.historico_pontualidade,
+    e.id_emprestimo,
+    e.cod_material,
+    e.data_retirada,
+    e.prazo_devolucao,
+    CASE WHEN e.id_emprestimo IS NOT NULL THEN 'S' ELSE 'N' END AS tem_emprestimo_activo
+FROM LEITOR l
+LEFT JOIN emprestimo@zemprestimosdb e
+    ON l.num_cartao = e.num_cartao
+   AND e.data_devolucao IS NULL;
+/
+
+-- Vista global 2 remota: catálogo completo (via @zmateriaisdb + @zeventosdb)
+CREATE OR REPLACE VIEW vw_global_catalogo AS
+SELECT
+    m.cod_material,
+    m.titulo,
+    m.autor,
+    m.editora,
+    m.ano_publicacao,
+    m.estado_material_conservacao,
+    m.cod_biblioteca,
+    b.nome_biblioteca,
+    b.provincia,
+    CASE
+        WHEN m.estado_material_conservacao = 'Indisponivel' THEN 'N'
+        ELSE 'S'
+    END AS potencialmente_disponivel
+FROM material_bibliografico@zmateriaisdb m
+JOIN biblioteca@zeventosdb b ON m.cod_biblioteca = b.cod_biblioteca;
+/
+
+-- Vista global 3 remota: eventos com participação (via @zeventosdb)
+-- Nota: EVENTO não tem cod_biblioteca directamente — liga via HORARIO_EV_BIB
+CREATE OR REPLACE VIEW vw_global_eventos_participacao AS
+SELECT
+    e.id_evento,
+    e.titulo_evento,
+    e.data_evento,
+    e.status_evento,
+    e.publico_alvo,
+    e.capacidade,
+    COUNT(pe.num_cartao) AS total_inscritos
+FROM evento@zeventosdb e
+LEFT JOIN participacao_evento@zeventosdb pe ON e.id_evento = pe.id_evento
+GROUP BY
+    e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
+    e.publico_alvo, e.capacidade;
+/
+
+-- ── VW_AUDITORIA (sempre local — não tem versão remota) ─────
 CREATE OR REPLACE VIEW VW_AUDITORIA AS
 SELECT
     id_auditoria,
