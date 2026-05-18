@@ -364,11 +364,10 @@ WHERE data_demissao IS NOT NULL;
 -- tabela de auditoria. O campo no_origem identifica o nó na interface.
 -- ============================================================
 -- ============================================================
--- REDE REMOTA (ZeroTier) — APAGAR esta secção quando voltares a rede local
--- Recria as vistas globais a apontar para os links Z.
--- Correr apenas quando os colegas estiverem em rede remota.
+-- REDE REMOTA (ZeroTier) — Descomentar apenas quando os colegas
+-- estiverem em rede remota. Em rede local manter comentado.
 -- ============================================================
-
+/*
 -- Vista global 1 remota: leitores com estado de empréstimo (via @zemprestimosdb)
 CREATE OR REPLACE VIEW vw_global_leitores_emprestimos AS
 SELECT
@@ -409,7 +408,6 @@ JOIN biblioteca@zeventosdb b ON m.cod_biblioteca = b.cod_biblioteca;
 /
 
 -- Vista global 3 remota: eventos com participação (via @zeventosdb)
--- Nota: EVENTO não tem cod_biblioteca directamente — liga via HORARIO_EV_BIB
 CREATE OR REPLACE VIEW vw_global_eventos_participacao AS
 SELECT
     e.id_evento,
@@ -425,6 +423,7 @@ GROUP BY
     e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
     e.publico_alvo, e.capacidade;
 /
+*/
 
 -- ── VW_AUDITORIA (sempre local — não tem versão remota) ─────
 CREATE OR REPLACE VIEW VW_AUDITORIA AS

@@ -57,7 +57,7 @@ CREATE OR REPLACE PUBLIC SYNONYM insere_participacao_evento   FOR insere_partici
 -- Sobrepõe os sinónimos locais com as versões Z (ZeroTier).
 -- Correr apenas quando os colegas estiverem em rede remota.
 -- ============================================================
-
+/*
 -- ── EmpréstimosDB remoto (Yannis — @zemprestimosdb)
 CREATE OR REPLACE PUBLIC SYNONYM emprestimo                 FOR emprestimo@zemprestimosdb;
 CREATE OR REPLACE PUBLIC SYNONYM suspensao                  FOR suspensao@zemprestimosdb;
@@ -96,3 +96,4 @@ CREATE OR REPLACE PUBLIC SYNONYM vw_eventos_proximos          FOR vw_eventos_pro
 CREATE OR REPLACE PUBLIC SYNONYM vw_eventos_completos         FOR vw_eventos_completos@zeventosdb;
 CREATE OR REPLACE PUBLIC SYNONYM insere_participacao_evento   FOR insere_participacao_evento@zeventosdb;
 -- biblioteca_snap já é local — ver BibNacional_Snapshots.sql para a versão remota
+*/

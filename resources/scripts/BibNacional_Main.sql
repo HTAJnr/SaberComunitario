@@ -1,7 +1,7 @@
 -- ============================================================
 -- BibNacional_Main.sql — Script de instalação completo
 -- Executar como SYSDBA:
---   sqlplus sys/bd2.isctem as sysdba @/root/TP/BibNacional_Main.sql
+--    
 -- ============================================================
 
 -- 1. Tablespaces

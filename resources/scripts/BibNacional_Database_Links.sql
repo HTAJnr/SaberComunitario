@@ -18,32 +18,37 @@ DROP DATABASE LINK zeventosdb;
 
 -- ============================================================
 -- SECÇÃO 2: CRIAÇÃO — REDE LOCAL
+-- Cada link conecta como app_nacionaldb — o visitor user criado
+-- por cada colega no Oracle deles com a mesma password do app_ deles.
+-- Assim não é necessário trocar passwords: cada um cria app_nacionaldb
+-- com a password que já usa no próprio app_.
 -- ============================================================
 
 CREATE DATABASE LINK materiaisdb
-  CONNECT TO app_materiaisdb IDENTIFIED BY "YM20240260"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "YM20240260"
   USING 'MATERIAISDB';
 
 CREATE DATABASE LINK emprestimosdb
-  CONNECT TO app_emprestimosdb IDENTIFIED BY "YC20220156"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "YC20220156"
   USING 'EMPRESTIMOSDB';
 
 CREATE DATABASE LINK eventosdb
-  CONNECT TO app_eventosdb IDENTIFIED BY "appev1234"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "appev1234"
   USING 'EVENTOSDB';
 
 -- ============================================================
 -- SECÇÃO 3: CRIAÇÃO — ZEROTIER (Para rede remota) Apagar antes de enviar o trabalho
 -- ============================================================
-
+/*
 CREATE DATABASE LINK zmateriaisdb
-  CONNECT TO app_materiaisdb IDENTIFIED BY "YM20240260"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "YM20240260"
   USING 'ZMATERIAISDB';
 
 CREATE DATABASE LINK zemprestimosdb
-  CONNECT TO app_emprestimosdb IDENTIFIED BY "YC20220156"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "YC20220156"
   USING 'ZEMPRESTIMOSDB';
 
 CREATE DATABASE LINK zeventosdb
-  CONNECT TO app_eventosdb IDENTIFIED BY "appev1234"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "appev1234"
   USING 'ZEVENTOSDB';
+*/

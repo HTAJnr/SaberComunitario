@@ -102,72 +102,47 @@ GRANT SELECT ON SEQ_AUDITORIA    TO role_NACIONALDB_write;
 
 
 -- ============================================================
--- SECÇÃO 3: GRANTS DIRECTOS A app_NACIONALDB
--- Obrigatórios para acesso cross-node via database link.
--- Roles não funcionam através de dblinks — ORA-01031 se não tiver
--- grant directo. Qualquer nó que fizer SELECT/DELETE via
--- @bibliotecanacionaldb autentica como app_NACIONALDB e precisa
--- destes grants directos, independentemente das roles.
+-- SECÇÃO 3: GRANTS DIRECTOS AOS VISITOR USERS
+-- Roles não funcionam através de dblinks — ORA-01031 sem grant directo.
+-- Os visitor users são criados em BibNacional_Users.sql com a mesma
+-- password do app_ de cada nó, para não ser necessário trocar passwords.
+-- Cada visitor user recebe apenas o mínimo que o nó visitante precisa.
 -- ============================================================
 
--- Vista pública de leitores — consumida por Yannis, Yasin e Gerson
--- via sinónimo leitor@<link_nacional> nos nós deles
-GRANT SELECT ON vw_leitor_publico       TO app_NACIONALDB;
+-- ── Yannis (app_emprestimosdb) ──────────────────────────────
+-- RN01: verifica status_leitor antes de criar empréstimo
+GRANT SELECT ON vw_leitor_publico               TO app_emprestimosdb;
+GRANT SELECT ON LEITOR                          TO app_emprestimosdb;
+GRANT UPDATE ON LEITOR                          TO app_emprestimosdb;
+-- Verificação de nível de acesso cross-node
+GRANT SELECT ON FUNCIONARIO                     TO app_emprestimosdb;
+GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_emprestimosdb;
+GRANT SELECT ON vw_func_activos_operacional     TO app_emprestimosdb;
+GRANT SELECT ON vw_replica_funcionarios         TO app_emprestimosdb;
 
--- Vista de réplica de funcionários — consumida pelo Yannis
--- para sincronização da tabela repl_funcionarios no EmpréstimosDB
-GRANT SELECT ON vw_replica_funcionarios TO app_NACIONALDB;
+-- ── Yasin (app_materiaisdb) ─────────────────────────────────
+-- Verificações de leitores (ex: RN09 e-books requer leitor adulto)
+GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
+GRANT SELECT ON LEITOR                          TO app_materiaisdb;
 
--- Vista operacional de funcionários activos — consumida por outros nós
--- para verificação de nível de acesso em tempo real
-GRANT SELECT ON vw_func_activos_operacional TO app_NACIONALDB;
+-- ── Gerson (app_eventosdb) ──────────────────────────────────
+-- Verificação de leitores antes de inscrever em eventos
+GRANT SELECT ON vw_leitor_publico               TO app_eventosdb;
+GRANT SELECT ON LEITOR                          TO app_eventosdb;
 
--- Tabelas de leitores — acesso directo necessário para o Yannis
--- (trigger RN01 verifica status_leitor antes de criar empréstimo)
-GRANT SELECT ON LEITOR                  TO app_NACIONALDB;
-GRANT UPDATE ON LEITOR                  TO app_NACIONALDB;
-
--- Tabelas de funcionários — acesso directo para verificações cross-node
-GRANT SELECT ON FUNCIONARIO             TO app_NACIONALDB;
-GRANT SELECT ON FUNCAO_FUNCIONARIO      TO app_NACIONALDB;
-
--- DELETE em PARTICIPACAO_EVENTO e AVALIACAO_EVENTO estão no nó do Gerson
--- (EventosBibliotecasDB) — não aqui. O que está aqui e o Gerson precisa
--- de apagar são os dados de leitores. Confirma com o Gerson os grants
--- no nó dele para app_NACIONALDB.
-
--- Procedures — execução pelo backend e por outros nós
-GRANT EXECUTE ON registrar_doacao_completa  TO app_NACIONALDB;
-GRANT EXECUTE ON reemitir_certificado       TO app_NACIONALDB;
-GRANT EXECUTE ON proc_gerir_acesso_bd       TO app_NACIONALDB;
-GRANT EXECUTE ON prc_registar_auditoria     TO app_NACIONALDB;
-GRANT EXECUTE ON prc_apagar_leitor          TO app_NACIONALDB;
-GRANT EXECUTE ON prc_remover_funcionario    TO app_NACIONALDB;
-GRANT EXECUTE ON prc_sincronizar_funcionarios TO app_NACIONALDB;
-GRANT EXECUTE ON prc_modificar_nivel_acesso TO app_NACIONALDB;
-GRANT EXECUTE ON prc_demo_2pc              TO app_NACIONALDB;
-GRANT EXECUTE ON prc_emitir_honorifico     TO app_NACIONALDB;
-
--- Função
-GRANT EXECUTE ON total_doacoes_doador       TO app_NACIONALDB;
-
-
--- ============================================================
--- SECÇÃO 4: GRANTS PARA ACESSO CROSS-NODE DOS OUTROS NÓS
--- Quando Yannis/Yasin/Gerson criam sinónimos que apontam para
--- objectos deste nó via dblink, o Oracle verifica os privilégios
--- do utilizador de conexão do link (app_NACIONALDB, app_emprestimosdb,
--- etc.). Estes grants cobrem o que cada nó precisa.
--- ============================================================
-
--- Para o Yannis (EmprestimosDB) consultar leitores ao processar empréstimos
-GRANT SELECT ON vw_leitor_publico           TO app_NACIONALDB;
--- (já feito acima — repetido aqui para clareza documental)
-
--- Para a prc_sincronizar_funcionarios funcionar:
--- o app_emprestimosdb no nó do Yannis precisa de SELECT na vista de réplica
--- via o database link que o Yannis criou para cá.
--- Se o database link do Yannis conecta como app_NACIONALDB, já está coberto.
--- Se conecta com utilizador diferente, coordena com o Yannis.
+-- ── Backend local (app_NACIONALDB) ──────────────────────────
+-- O Node.js usa este user para DML e execução de procedures.
+-- Procedures só são chamadas pelo backend local — não por outros nós.
+GRANT EXECUTE ON registrar_doacao_completa      TO app_NACIONALDB;
+GRANT EXECUTE ON reemitir_certificado           TO app_NACIONALDB;
+GRANT EXECUTE ON proc_gerir_acesso_bd           TO app_NACIONALDB;
+GRANT EXECUTE ON prc_registar_auditoria         TO app_NACIONALDB;
+GRANT EXECUTE ON prc_apagar_leitor              TO app_NACIONALDB;
+GRANT EXECUTE ON prc_remover_funcionario        TO app_NACIONALDB;
+GRANT EXECUTE ON prc_sincronizar_funcionarios   TO app_NACIONALDB;
+GRANT EXECUTE ON prc_modificar_nivel_acesso     TO app_NACIONALDB;
+GRANT EXECUTE ON prc_demo_2pc                   TO app_NACIONALDB;
+GRANT EXECUTE ON prc_emitir_honorifico          TO app_NACIONALDB;
+GRANT EXECUTE ON total_doacoes_doador           TO app_NACIONALDB;
 
 

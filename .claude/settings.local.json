@@ -14,7 +14,9 @@
       "Bash(rtk --version)",
       "Bash(node server.js)",
       "Bash(rtk curl *)",
-      "Bash(DISPLAY=:0 SSH_ASKPASS=/tmp/ssh_pass.sh SSH_ASKPASS_REQUIRE=force ssh *)"
+      "Bash(DISPLAY=:0 SSH_ASKPASS=/tmp/ssh_pass.sh SSH_ASKPASS_REQUIRE=force ssh *)",
+      "Bash(cat)",
+      "Bash(chmod +x /tmp/ssh_pass.sh)"
     ]
   }
 }

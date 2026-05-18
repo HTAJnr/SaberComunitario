@@ -31,10 +31,10 @@ SELECT * FROM biblioteca@eventosdb;
 SELECT COUNT(*) AS BIBLIOTECAS_IMPORTADAS FROM biblioteca_snap;
 
 -- ============================================================
--- REDE REMOTA (ZeroTier) — APAGAR esta secção quando voltares a rede local
--- Recria a MV a apontar para @zeventosdb em vez de @eventosdb.
--- Correr apenas quando o Gerson estiver em rede remota.
+-- REDE REMOTA (ZeroTier) — Descomentar apenas quando o Gerson
+-- estiver em rede remota. Em rede local manter comentado.
 -- ============================================================
+/*
 DROP MATERIALIZED VIEW biblioteca_snap;
 
 CREATE MATERIALIZED VIEW biblioteca_snap
@@ -43,3 +43,4 @@ CREATE MATERIALIZED VIEW biblioteca_snap
   AS SELECT * FROM usr_eventosdb.biblioteca@zeventosdb;
 
 SELECT COUNT(*) AS BIBLIOTECAS_IMPORTADAS_REMOTO FROM biblioteca_snap;
+*/
