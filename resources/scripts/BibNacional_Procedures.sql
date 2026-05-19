@@ -713,5 +713,35 @@ EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
         RAISE;
-END;
+END prc_emitir_honorifico;
+/
+
+-- ============================================================
+-- PROCEDURE: prc_atualizar_doacao_segura
+-- Demonstra prevenção de deadlock por ordem consistente de locks.
+-- Bloqueia DOADOR (pai) antes de DOACAO (filho) — sempre nesta ordem.
+-- Se todas as transacções seguirem a mesma ordem, o ciclo nunca se forma.
+-- Tarefa A2 — Guia BD2 Temas 9.16–9.19
+-- ============================================================
+CREATE OR REPLACE PROCEDURE prc_atualizar_doacao_segura(
+    p_id_doador  IN DOADOR.id_doador%TYPE,
+    p_id_doacao  IN DOACAO.id_doacao%TYPE
+) AS
+    v_dummy  NUMBER;
+BEGIN
+    SELECT id_doador INTO v_dummy
+      FROM DOADOR
+     WHERE id_doador = p_id_doador
+       FOR UPDATE;
+
+    UPDATE DOACAO
+       SET data_doacao = SYSDATE
+     WHERE id_doacao = p_id_doacao;
+
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE;
+END prc_atualizar_doacao_segura;
 /

@@ -193,7 +193,62 @@ FROM LEITOR;
 /
 
 -- ============================================================
--- SECÇÃO 4: VISTAS GLOBAIS — TRANSPARÊNCIA DE LOCALIZAÇÃO (Fase 2.5)
+-- SECÇÃO 4: FRAGMENTAÇÃO HORIZONTAL DE LEITOR (Tarefa A3 — Guia BD2 Tema 8.10)
+--
+-- A fragmentação HORIZONTAL divide a relação por LINHAS (tuplas).
+-- Operador de álgebra relacional: σ (selecção).
+-- Critério: STATUS_LEITOR — separa o I/O dos casos comuns dos casos raros.
+--
+-- As 3 regras (Guia BD2 Tema 8):
+--   Completude     — cada tupla aparece em pelo menos um fragmento.
+--   Reconstrução   — UNION ALL dos fragmentos reconstrói a tabela completa.
+--   Disjuntividade — cada tupla aparece em APENAS UM fragmento.
+--     (Contraste com fragmentação vertical: na vertical, a chave primária
+--      aparece em todos os fragmentos porque é necessária para Reconstrução.
+--      Na horizontal, "um dado" é uma tupla inteira, não um atributo.)
+-- ============================================================
+
+-- Fragmento H1 — Leitores Activos
+-- Acedidos em cada operação do dia-a-dia (empréstimos, eventos, programas).
+-- Dados "quentes" — maior frequência de acesso.
+CREATE OR REPLACE VIEW vw_frag_leitor_activos AS
+SELECT * FROM LEITOR WHERE STATUS_LEITOR = 'Activo';
+/
+
+-- Fragmento H2 — Leitores Suspensos
+-- Acesso temporariamente restringido — verificados quando tentam emprestar.
+CREATE OR REPLACE VIEW vw_frag_leitor_suspensos AS
+SELECT * FROM LEITOR WHERE STATUS_LEITOR = 'Suspenso';
+/
+
+-- Fragmento H3 — Leitores Inactivos / Bloqueados
+-- Dados históricos — raramente consultados, só em relatórios.
+CREATE OR REPLACE VIEW vw_frag_leitor_inactivos AS
+SELECT * FROM LEITOR WHERE STATUS_LEITOR NOT IN ('Activo', 'Suspenso');
+/
+
+-- ── Validação das 3 regras ────────────────────────────────────
+
+-- Regra 1 — Completude: UNION ALL deve igualar a tabela base
+SELECT 'Total em LEITOR'    AS fonte, COUNT(*) AS total FROM LEITOR
+UNION ALL
+SELECT 'Total nos fragmentos',
+       (SELECT COUNT(*) FROM vw_frag_leitor_activos)
+       + (SELECT COUNT(*) FROM vw_frag_leitor_suspensos)
+       + (SELECT COUNT(*) FROM vw_frag_leitor_inactivos)
+  FROM DUAL;
+
+-- Regra 3 — Disjuntividade: nenhum leitor em dois fragmentos (deve ser 0)
+SELECT 'Activos nos suspensos (deve ser 0)'   AS teste, COUNT(*) AS resultado
+  FROM vw_frag_leitor_activos a
+ WHERE a.num_cartao IN (SELECT num_cartao FROM vw_frag_leitor_suspensos)
+UNION ALL
+SELECT 'Activos nos inactivos (deve ser 0)', COUNT(*)
+  FROM vw_frag_leitor_activos a
+ WHERE a.num_cartao IN (SELECT num_cartao FROM vw_frag_leitor_inactivos);
+
+-- ============================================================
+-- SECÇÃO 5: VISTAS GLOBAIS — TRANSPARÊNCIA DE LOCALIZAÇÃO (Fase 2.5)
 -- Agregam dados de múltiplos nós via database links.
 -- O utilizador faz SELECT como se os dados estivessem todos num só lugar.
 -- ============================================================

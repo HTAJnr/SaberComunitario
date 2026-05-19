@@ -45,6 +45,10 @@ GRANT SELECT ON vw_leitor_privado               TO role_NACIONALDB_read;
 GRANT SELECT ON vw_global_leitores_emprestimos  TO role_NACIONALDB_read;
 GRANT SELECT ON vw_global_catalogo              TO role_NACIONALDB_read;
 GRANT SELECT ON vw_global_eventos_participacao  TO role_NACIONALDB_read;
+-- Fragmentação horizontal de LEITOR (Tarefa A3)
+GRANT SELECT ON vw_frag_leitor_activos          TO role_NACIONALDB_read;
+GRANT SELECT ON vw_frag_leitor_suspensos        TO role_NACIONALDB_read;
+GRANT SELECT ON vw_frag_leitor_inactivos        TO role_NACIONALDB_read;
 GRANT SELECT ON vw_replica_funcionarios         TO role_NACIONALDB_read;
 GRANT SELECT ON vw_func_activos_operacional     TO role_NACIONALDB_read;
 GRANT SELECT ON vw_func_activos_confidencial    TO role_NACIONALDB_read;
@@ -142,7 +146,6 @@ GRANT EXECUTE ON prc_remover_funcionario        TO app_NACIONALDB;
 GRANT EXECUTE ON prc_sincronizar_funcionarios   TO app_NACIONALDB;
 GRANT EXECUTE ON prc_modificar_nivel_acesso     TO app_NACIONALDB;
 GRANT EXECUTE ON prc_demo_2pc                   TO app_NACIONALDB;
-GRANT EXECUTE ON prc_emitir_honorifico          TO app_NACIONALDB;
-GRANT EXECUTE ON total_doacoes_doador           TO app_NACIONALDB;
-
-
+GRANT EXECUTE ON prc_emitir_honorifico              TO app_NACIONALDB;
+GRANT EXECUTE ON total_doacoes_doador               TO app_NACIONALDB;
+GRANT EXECUTE ON prc_atualizar_doacao_segura        TO app_NACIONALDB;

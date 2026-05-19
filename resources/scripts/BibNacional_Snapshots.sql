@@ -31,6 +31,45 @@ SELECT * FROM biblioteca@eventosdb;
 SELECT COUNT(*) AS BIBLIOTECAS_IMPORTADAS FROM biblioteca_snap;
 
 -- ============================================================
+-- TAREFA A1 — Mecanismo SNAPSHOT (Guia BD2 Tema 8.19)
+--
+-- Em Oracle 9i o nome "Snapshot" foi substituído por "Materialized View".
+-- O mecanismo é IDÊNTICO — CREATE MATERIALIZED VIEW = Snapshot do guia.
+-- A biblioteca_snap ACIMA é exactamente o Snapshot que o guia descreve.
+--
+-- COMPARAÇÃO DE MODOS DE REFRESH:
+--   REFRESH COMPLETE: recalcula toda a MV a partir do zero.
+--     Não exige snapshot log no nó remoto. Mais lento, mais robusto.
+--   REFRESH FAST: propaga apenas as alterações (delta).
+--     Exige MVIEW LOG criado no nó remoto — impossível em Oracle 10g XE
+--     sem controlo sobre o schema do Gerson. Por isso COMPLETE é correcto.
+--
+-- PORQUÊ BUILD DEFERRED e não BUILD IMMEDIATE?
+--   BUILD IMMEDIATE tenta ler biblioteca@eventosdb NO MOMENTO da criação.
+--   Se o nó do Gerson estiver offline, o script falha antes de criar
+--   qualquer objectos. BUILD DEFERRED cria a estrutura em vazio e
+--   deixa o refresh para quando o nó estiver disponível.
+-- ============================================================
+
+-- ── VARIANTE COM REFRESH AUTOMÁTICO — Demonstração conceptual ──
+-- (Manter comentado em produção — o nó do Gerson pode estar offline)
+-- Num ambiente com disponibilidade garantida, este seria o padrão:
+/*
+CREATE MATERIALIZED VIEW biblioteca_snap_auto
+  BUILD IMMEDIATE
+  REFRESH COMPLETE
+  START WITH SYSDATE
+  NEXT SYSDATE + 1/24   -- refrescar a cada hora
+  AS SELECT * FROM biblioteca@eventosdb;
+*/
+
+-- ── Verificar MVs existentes no schema ───────────────────────
+-- (Output para incluir no relatório)
+SELECT MVIEW_NAME, REFRESH_MODE, REFRESH_METHOD, BUILD_MODE, LAST_REFRESH_DATE
+  FROM USER_MVIEWS
+ ORDER BY MVIEW_NAME;
+
+-- ============================================================
 -- REDE REMOTA (ZeroTier) — Descomentar apenas quando o Gerson
 -- estiver em rede remota. Em rede local manter comentado.
 -- ============================================================
