@@ -19,7 +19,38 @@
       "Bash(chmod +x /tmp/ssh_pass.sh)",
       "Bash(Get-ChildItem -Path \"E:\\\\Diversos\\\\HTA\\\\H_Essentials\\\\Obsidian\\\\Segundo Cerebro\\\\20-AREAS\\\\21-Academics\\\\ISCTEM\\\\Active\\\\BD II\\\\TP\\\\Fase_Distribuida\" -Recurse -File)",
       "Bash(Select-Object FullName)",
-      "Bash(Sort-Object FullName)"
+      "Bash(Sort-Object FullName)",
+      "Bash(rtk npx *)",
+      "Bash(rtk gh *)",
+      "Bash(npm info *)",
+      "Bash(Get-ChildItem -Path \"E:\\\\Diversos\\\\HTA\\\\H_Essentials\\\\Obsidian\\\\Segundo Cerebro\\\\20-AREAS\\\\21-Academics\\\\ISCTEM\\\\Active\\\\BD II\\\\TP\\\\Fase_Distribuida\" -Recurse -Force)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-ChildItem -Path \"E:\\\\Diversos\\\\HTA\\\\H_Essentials\\\\Obsidian\\\\Segundo Cerebro\\\\20-AREAS\\\\21-Academics\\\\ISCTEM\\\\Active\\\\BD II\\\\TP\\\\Fase_Distribuida\" -Recurse -Force | ForEach-Object { $_.FullName } | Sort-Object)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"E:\\\\Diversos\\\\HTA\\\\ISCTEM\\\\3rdYear\\\\Base de Dados II\\\\TP\\\\TP_BD2_WEB\\\\.claude\\\\hooks\\\\enforce-git-push-authority.cjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"E:\\\\Diversos\\\\HTA\\\\ISCTEM\\\\3rdYear\\\\Base de Dados II\\\\TP\\\\TP_BD2_WEB\\\\.claude\\\\hooks\\\\synapse-engine.cjs\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

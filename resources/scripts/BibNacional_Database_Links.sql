@@ -7,10 +7,11 @@
 -- ============================================================
 -- SECÇÃO 1: DROP DOS LINKS EXISTENTES
 -- ============================================================
-
+/*
 DROP DATABASE LINK materiaisdb;
 DROP DATABASE LINK emprestimosdb;
 DROP DATABASE LINK eventosdb;
+*/
 
 DROP DATABASE LINK zmateriaisdb;
 DROP DATABASE LINK zemprestimosdb;
@@ -23,32 +24,31 @@ DROP DATABASE LINK zeventosdb;
 -- Assim não é necessário trocar passwords: cada um cria app_nacionaldb
 -- com a password que já usa no próprio app_.
 -- ============================================================
-
+/*
 CREATE DATABASE LINK materiaisdb
-  CONNECT TO app_nacionaldb IDENTIFIED BY "YM20240260"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
   USING 'MATERIAISDB';
 
 CREATE DATABASE LINK emprestimosdb
-  CONNECT TO app_nacionaldb IDENTIFIED BY "YC20220156"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
   USING 'EMPRESTIMOSDB';
 
 CREATE DATABASE LINK eventosdb
-  CONNECT TO app_nacionaldb IDENTIFIED BY "appev1234"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
   USING 'EVENTOSDB';
-
+*/
 -- ============================================================
 -- SECÇÃO 3: CRIAÇÃO — ZEROTIER (Para rede remota) Apagar antes de enviar o trabalho
 -- ============================================================
-/*
+
 CREATE DATABASE LINK zmateriaisdb
-  CONNECT TO app_nacionaldb IDENTIFIED BY "YM20240260"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
   USING 'ZMATERIAISDB';
 
 CREATE DATABASE LINK zemprestimosdb
-  CONNECT TO app_nacionaldb IDENTIFIED BY "YC20220156"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
   USING 'ZEMPRESTIMOSDB';
 
 CREATE DATABASE LINK zeventosdb
-  CONNECT TO app_nacionaldb IDENTIFIED BY "appev1234"
+  CONNECT TO app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
   USING 'ZEVENTOSDB';
-*/

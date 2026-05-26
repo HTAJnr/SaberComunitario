@@ -3,5 +3,6 @@
     "allow": [
       "mcp__chrome-devtools__take_screenshot"
     ]
-  }
+  },
+  "language": "portuguese"
 }

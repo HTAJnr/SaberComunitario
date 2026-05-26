@@ -90,6 +90,8 @@ GRANT INSERT, UPDATE, DELETE ON ITEM_DOACAO            TO role_NACIONALDB_write;
 GRANT INSERT, UPDATE, DELETE ON CERTIFICADO_DOACAO     TO role_NACIONALDB_write;
 -- AUDITORIA: só INSERT — ninguém apaga registos de auditoria
 GRANT INSERT ON AUDITORIA_OPERACOES                    TO role_NACIONALDB_write;
+-- Gestão de permissões (módulo Admin): atribui/altera funções de funcionários
+GRANT INSERT, UPDATE, DELETE ON FUNCAO_FUNCIONARIO     TO role_NACIONALDB_write;
 
 -- Sequências — NEXTVAL (escrita)
 GRANT SELECT ON SEQ_FUNCAO       TO role_NACIONALDB_write;
@@ -116,23 +118,51 @@ GRANT SELECT ON SEQ_AUDITORIA    TO role_NACIONALDB_write;
 -- ── Yannis (app_emprestimosdb) ──────────────────────────────
 -- RN01: verifica status_leitor antes de criar empréstimo
 GRANT SELECT ON vw_leitor_publico               TO app_emprestimosdb;
-GRANT SELECT ON LEITOR                          TO app_emprestimosdb;
+GRANT SELECT ON LEITOR                           TO app_emprestimosdb;
 GRANT UPDATE ON LEITOR                          TO app_emprestimosdb;
+
 -- Verificação de nível de acesso cross-node
 GRANT SELECT ON FUNCIONARIO                     TO app_emprestimosdb;
-GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_emprestimosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_emprestimosdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_emprestimosdb;
+
+-- Programas: procedure valida funcionário antes de inserir em PROGRAMA_FUNCIONARIO
+GRANT SELECT ON FUNCAO_FUNCIONARIO  TO app_emprestimosdb;
+
+-- RN04.1: trigger verifica se leitor é criança
+GRANT SELECT ON ADULTO      TO app_emprestimosdb;
+GRANT SELECT ON PROFESSOR   TO app_emprestimosdb;
+GRANT SELECT ON CRIANCA     TO app_emprestimosdb;
 
 -- ── Yasin (app_materiaisdb) ─────────────────────────────────
 -- Verificações de leitores (ex: RN09 e-books requer leitor adulto)
 GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
 GRANT SELECT ON LEITOR                          TO app_materiaisdb;
 
+-- RN09: verificar tipo de leitor (adulto) antes de e-book
+GRANT SELECT ON ADULTO      TO app_materiaisdb;
+
 -- ── Gerson (app_eventosdb) ──────────────────────────────────
 -- Verificação de leitores antes de inscrever em eventos
 GRANT SELECT ON vw_leitor_publico               TO app_eventosdb;
 GRANT SELECT ON LEITOR                          TO app_eventosdb;
+
+-- Verificação de tipo de leitor antes de inscrever em evento
+GRANT SELECT ON ADULTO      TO app_eventosdb;
+GRANT SELECT ON CRIANCA     TO app_eventosdb;
+GRANT SELECT ON PROFESSOR   TO app_eventosdb;
+
+-- Funcionario
+GRANT SELECT ON FUNCIONARIO                     TO app_eventosdb;
+GRANT SELECT ON vw_func_activos_operacional     TO app_eventosdb;
+
+-- prc_registar_auditoria: chamada cross-node quando operações falham (todos os nós visitantes)
+GRANT EXECUTE ON prc_registar_auditoria  TO app_emprestimosdb;
+GRANT EXECUTE ON prc_registar_auditoria  TO app_materiaisdb;
+GRANT EXECUTE ON prc_registar_auditoria  TO app_eventosdb;
+
+
+
 
 -- ── Backend local (app_NACIONALDB) ──────────────────────────
 -- O Node.js usa este user para DML e execução de procedures.

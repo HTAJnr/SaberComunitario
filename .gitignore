@@ -3,3 +3,42 @@ backend/.env
 *.log
 .DS_Store
 Thumbs.db
+
+# Environment & Secrets (AIOX)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Dependencies (AIOX)
+node_modules
+
+# Build & Logs (AIOX)
+dist/
+build/
+logs/
+
+# IDE & OS (AIOX)
+.idea/
+*.swp
+
+# AIOX Local (AIOX)
+.claude/settings.local.json
+
+# AIOX — pastas do framework (não rastrear no projecto)
+.aiox-core/
+.aiox/
+.antigravity/
+.kimi/
+.codex/
+.gemini/
+.cursor/
+
+# Claude Code — agentes, hooks e comandos locais (não rastrear)
+.claude/CLAUDE.md
+.claude/agents/
+.claude/commands/
+.claude/hooks/
+.claude/rules/
+.claude/skills/
