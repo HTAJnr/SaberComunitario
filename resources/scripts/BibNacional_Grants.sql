@@ -116,51 +116,66 @@ GRANT SELECT ON SEQ_AUDITORIA    TO role_NACIONALDB_write;
 -- ============================================================
 
 -- ── Yannis (app_emprestimosdb) ──────────────────────────────
--- RN01: verifica status_leitor antes de criar empréstimo
+
+-- RN01: trigger verifica status_leitor antes de criar empréstimo
+GRANT SELECT ON LEITOR                          TO app_emprestimosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_emprestimosdb;
-GRANT SELECT ON LEITOR                           TO app_emprestimosdb;
+
+-- RN03: trigger de devolução actualiza status_leitor e historico_pontualidade
+-- (suspensão e bloqueio — transacção distribuída via 2PC)
 GRANT UPDATE ON LEITOR                          TO app_emprestimosdb;
+
+-- RN01/RN04.1: verificar tipo de leitor antes de criar empréstimo
+GRANT SELECT ON ADULTO                          TO app_emprestimosdb;
+GRANT SELECT ON PROFESSOR                       TO app_emprestimosdb;
+GRANT SELECT ON CRIANCA                         TO app_emprestimosdb;
+
+-- RN02: function de cálculo de prazo consulta distancia e historico_pontualidade
+-- (já coberto pelo SELECT ON LEITOR acima)
+
+-- Programas: procedure valida funcionário antes de inserir em PROGRAMA_FUNCIONARIO
+GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_emprestimosdb;
 
 -- Verificação de nível de acesso cross-node
 GRANT SELECT ON FUNCIONARIO                     TO app_emprestimosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_emprestimosdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_emprestimosdb;
 
--- Programas: procedure valida funcionário antes de inserir em PROGRAMA_FUNCIONARIO
-GRANT SELECT ON FUNCAO_FUNCIONARIO  TO app_emprestimosdb;
-
--- RN04.1: trigger verifica se leitor é criança
-GRANT SELECT ON ADULTO      TO app_emprestimosdb;
-GRANT SELECT ON PROFESSOR   TO app_emprestimosdb;
-GRANT SELECT ON CRIANCA     TO app_emprestimosdb;
-
 -- ── Yasin (app_materiaisdb) ─────────────────────────────────
--- Verificações de leitores (ex: RN09 e-books requer leitor adulto)
-GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
-GRANT SELECT ON LEITOR                          TO app_materiaisdb;
 
--- RN09: verificar tipo de leitor (adulto) antes de e-book
-GRANT SELECT ON ADULTO      TO app_materiaisdb;
+-- Verificações de leitores (RN09: e-books exigem leitor adulto)
+GRANT SELECT ON LEITOR                          TO app_materiaisdb;
+GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
+
+-- RN09: verificar se leitor é adulto antes de acesso a e-book
+GRANT SELECT ON ADULTO                          TO app_materiaisdb;
+
+-- Replicação de funcionários (snapshot repl_funcionarios no nó do Yasin)
+GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;
 
 -- ── Gerson (app_eventosdb) ──────────────────────────────────
+
 -- Verificação de leitores antes de inscrever em eventos
-GRANT SELECT ON vw_leitor_publico               TO app_eventosdb;
 GRANT SELECT ON LEITOR                          TO app_eventosdb;
+GRANT SELECT ON vw_leitor_publico               TO app_eventosdb;
 
 -- Verificação de tipo de leitor antes de inscrever em evento
-GRANT SELECT ON ADULTO      TO app_eventosdb;
-GRANT SELECT ON CRIANCA     TO app_eventosdb;
-GRANT SELECT ON PROFESSOR   TO app_eventosdb;
+GRANT SELECT ON ADULTO                          TO app_eventosdb;
+GRANT SELECT ON CRIANCA                         TO app_eventosdb;
+GRANT SELECT ON PROFESSOR                       TO app_eventosdb;
 
--- Funcionario
+-- Verificação de funcionários (responsável de evento, responsável de biblioteca)
+-- Gerson_No_EventosBibliotecasDB_v2 confirma: acede a FUNCIONARIO via dblink
+-- para validar cod_funcionario_responsavel antes de INSERT em BIBLIOTECA_RESPONSAVEL
 GRANT SELECT ON FUNCIONARIO                     TO app_eventosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_eventosdb;
+GRANT SELECT ON vw_replica_funcionarios         TO app_eventosdb;
 
--- prc_registar_auditoria: chamada cross-node quando operações falham (todos os nós visitantes)
-GRANT EXECUTE ON prc_registar_auditoria  TO app_emprestimosdb;
-GRANT EXECUTE ON prc_registar_auditoria  TO app_materiaisdb;
-GRANT EXECUTE ON prc_registar_auditoria  TO app_eventosdb;
-
+-- ADICIONADO: validação de função do funcionário responsável de evento/biblioteca
+-- Gerson_No_EventosBibliotecasDB_v2: "a procedure de inserção verifica via database
+-- link se o funcionário existe antes de inserir" — isso passa por FUNCAO_FUNCIONARIO
+-- para confirmar nível de acesso/função, exactamente como o Yannis faz para programas
+GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_eventosdb;
 
 -- ── Backend local (app_NACIONALDB) ──────────────────────────
 -- O Node.js usa este user para DML e execução de procedures.
