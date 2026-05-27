@@ -53,3 +53,7 @@ CONNECT usr_NACIONALDB/"HTAJnr#020403"
 
 -- 12. Dados iniciais
 @/root/TP/BibNacional_Intro.sql
+
+-- 13. Auditoria Oracle nativa (requer SYSDBA — volta a ligar como sys)
+CONNECT sys/"bd2.isctem" as sysdba
+@/root/TP/BibNacional_Audit.sql

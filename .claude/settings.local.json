@@ -25,7 +25,10 @@
       "Bash(npm info *)",
       "Bash(Get-ChildItem -Path \"E:\\\\Diversos\\\\HTA\\\\H_Essentials\\\\Obsidian\\\\Segundo Cerebro\\\\20-AREAS\\\\21-Academics\\\\ISCTEM\\\\Active\\\\BD II\\\\TP\\\\Fase_Distribuida\" -Recurse -Force)",
       "PowerShell(Get-ChildItem *)",
-      "PowerShell(Get-ChildItem -Path \"E:\\\\Diversos\\\\HTA\\\\H_Essentials\\\\Obsidian\\\\Segundo Cerebro\\\\20-AREAS\\\\21-Academics\\\\ISCTEM\\\\Active\\\\BD II\\\\TP\\\\Fase_Distribuida\" -Recurse -Force | ForEach-Object { $_.FullName } | Sort-Object)"
+      "PowerShell(Get-ChildItem -Path \"E:\\\\Diversos\\\\HTA\\\\H_Essentials\\\\Obsidian\\\\Segundo Cerebro\\\\20-AREAS\\\\21-Academics\\\\ISCTEM\\\\Active\\\\BD II\\\\TP\\\\Fase_Distribuida\" -Recurse -Force | ForEach-Object { $_.FullName } | Sort-Object)",
+      "Bash(Remove-Item \"E:\\\\Diversos\\\\HTA\\\\ISCTEM\\\\3rdYear\\\\Base de Dados II\\\\TP\\\\TP_BD2_WEB\\\\resources\\\\scripts\\\\BibNacional_Deadlock_Demo.sql\" -Force)",
+      "Bash(Remove-Item \"E:\\\\Diversos\\\\HTA\\\\ISCTEM\\\\3rdYear\\\\Base de Dados II\\\\TP\\\\TP_BD2_WEB\\\\resources\\\\scripts\\\\BibNacional_Testes_Completos.sql\" -Force)",
+      "Bash(Write-Output \"Removidos com sucesso.\")"
     ]
   },
   "hooks": {

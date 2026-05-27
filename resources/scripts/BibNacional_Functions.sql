@@ -1,3 +1,9 @@
+-- ============================================================
+-- BibNacional_Functions.sql
+-- Apenas local — sem referências cross-node.
+-- Nenhuma alteração necessária para sinónimos.
+-- ============================================================
+
 -- FUNCAO: total_doacoes_doador
 -- Valor total doado por um doador, opcionalmente filtrado por ano
 CREATE OR REPLACE FUNCTION total_doacoes_doador(

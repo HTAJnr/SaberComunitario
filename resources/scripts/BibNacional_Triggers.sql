@@ -1,4 +1,12 @@
 -- ============================================================
+-- BibNacional_Triggers.sql
+-- Versão com sinónimos públicos — sem @links directos.
+-- O trigger impede_exclusao_coordenador usa EXECUTE IMMEDIATE
+-- com o sinónimo "biblioteca_responsavel" em vez de
+-- "biblioteca_responsavel@eventosdb" / "@zeventosdb".
+-- ============================================================
+
+-- ============================================================
 -- SECÇÃO 1: AUTO-INCREMENTOS
 -- ============================================================
 
@@ -35,7 +43,7 @@ BEGIN
 END;
 /
 
--- 4. DOADOR — id_doador = 0 é reservado (inserido explicitamente para Anónimo)
+-- 4. DOADOR
 CREATE OR REPLACE TRIGGER trg_doador_id
 BEFORE INSERT ON DOADOR FOR EACH ROW
 BEGIN
@@ -80,21 +88,21 @@ END;
 -- ============================================================
 
 -- TRIGGER: impede_exclusao_coordenador
--- Impede remoção de coordenador responsável por biblioteca ou com transferências activas.
--- (prc_remover_funcionario usa soft-delete para funcionários com histórico — este trigger
--- protege o DELETE físico directo que pode ser tentado fora da procedure.)
+-- Usa sinónimo "biblioteca_responsavel" (definido em BibNacional_Synonyms.sql)
+-- em vez de "biblioteca_responsavel@eventosdb" / "@zeventosdb".
+-- Para alternar entre rede local e ZeroTier, basta recriar o sinónimo
+-- — este trigger não precisa de ser tocado.
 CREATE OR REPLACE TRIGGER impede_exclusao_coordenador
 BEFORE DELETE ON FUNCIONARIO
 FOR EACH ROW
 DECLARE
     v_count NUMBER;
 BEGIN
-    -- Não pode apagar responsável activo de biblioteca.
-    -- BIBLIOTECA_RESPONSAVEL reside no EventosBibliotecasDB (nó do Gerson).
-    -- EXECUTE IMMEDIATE: resolve @eventosdb em runtime — evita ORA-00942
-    -- na compilação quando a tabela remota não está acessível localmente.
+    -- Sinónimo "biblioteca_responsavel" resolve para o nó correcto em runtime.
+    -- EXECUTE IMMEDIATE mantém-se para evitar ORA-00942 na compilação
+    -- (objecto remoto validado em runtime, não em compile time).
     EXECUTE IMMEDIATE
-        'SELECT COUNT(*) FROM biblioteca_responsavel@eventosdb
+        'SELECT COUNT(*) FROM biblioteca_responsavel
           WHERE cod_funcionario = :1 AND data_fim IS NULL'
         INTO v_count USING :OLD.cod_funcionario;
 
@@ -103,8 +111,6 @@ BEGIN
             'Coordenador nao pode ser removido enquanto for responsavel de biblioteca');
     END IF;
 EXCEPTION
-    -- Se o nó EventosBibliotecasDB estiver offline, permite a operação
-    -- com aviso — não bloqueia o funcionamento local por indisponibilidade remota.
     WHEN OTHERS THEN
         IF SQLCODE = -12560 OR SQLCODE = -02019 THEN
             DBMS_OUTPUT.PUT_LINE(
@@ -117,23 +123,21 @@ END;
 
 -- TRIGGER: gera_certificado_automatico
 -- Emite certificado automático para doações Individual >= 1000 MT (RN08).
--- Dispara após cada ITEM_DOACAO inserido; verifica total acumulado e se já existe certificado.
+-- Usa :NEW.valor_estimado * :NEW.quantidade para evitar ORA-04091 (mutating table).
+-- Apenas local — sem referências cross-node.
 CREATE OR REPLACE TRIGGER gera_certificado_automatico
 AFTER INSERT ON ITEM_DOACAO
 FOR EACH ROW
 DECLARE
-    v_valor_total NUMBER := 0;
+    v_valor_item  NUMBER;
     v_tipo_doador VARCHAR2(20);
     v_ja_existe   NUMBER;
     v_seq         NUMBER;
     v_numero_cert VARCHAR2(30);
 BEGIN
-    SELECT NVL(SUM(valor_estimado * quantidade), 0)
-      INTO v_valor_total
-      FROM ITEM_DOACAO
-     WHERE id_doacao = :NEW.id_doacao;
+    v_valor_item := :NEW.valor_estimado * :NEW.quantidade;
 
-    IF v_valor_total < 1000 THEN
+    IF v_valor_item < 1000 THEN
         RETURN;
     END IF;
 
@@ -166,12 +170,12 @@ BEGIN
 EXCEPTION
     WHEN NO_DATA_FOUND THEN NULL;
     WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Erro ao gerar certificado automatico: ' || SQLERRM);
+        RAISE;
 END;
 /
 
 -- TRIGGER: trg_protege_doador_anonimo
--- Impede eliminação do doador anónimo (RN10) — integridade referencial
+-- Impede eliminação do doador anónimo (RN10).
 CREATE OR REPLACE TRIGGER trg_protege_doador_anonimo
 BEFORE DELETE ON DOADOR
 FOR EACH ROW

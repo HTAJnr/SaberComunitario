@@ -1,6 +1,6 @@
 -- ============================================================
 -- BibNacional_Procedures.sql
--- Versão corrigida: referências cross-node via EXECUTE IMMEDIATE
+-- Versão com sinónimos públicos — sem @links directos.
 --
 -- PORQUÊ EXECUTE IMMEDIATE NAS QUERIES CROSS-NODE:
 -- O Oracle PL/SQL valida objectos referenciados em tempo de compilação.
@@ -12,6 +12,14 @@
 -- resolvida em tempo de execução — quando o link já está activo.
 -- Resultado: a procedure compila sempre; o erro só ocorre se o nó
 -- remoto estiver down no momento da chamada, que é o comportamento correcto.
+--
+-- SINÓNIMOS vs @LINKS:
+-- As strings de EXECUTE IMMEDIATE referenciam os sinónimos públicos
+-- (ex: "emprestimo" em vez de "emprestimo@emprestimosdb").
+-- O Oracle resolve o sinónimo em runtime, que por sua vez aponta para
+-- o @link correcto definido em BibNacional_Synonyms.sql.
+-- Para alternar entre rede local e ZeroTier, basta recriar os sinónimos
+-- — este ficheiro não precisa de ser tocado.
 -- ============================================================
 
 
@@ -45,7 +53,6 @@ BEGIN
     END LOOP;
     CLOSE p_itens;
 
-    -- Verifica se o trigger gera_certificado_automatico emitiu certificado
     BEGIN
         SELECT num_certificado INTO p_num_certificado
           FROM CERTIFICADO_DOACAO
@@ -65,8 +72,6 @@ END;
 
 -- ============================================================
 -- PROCEDURE: reemitir_certificado
--- Reemite certificado de uma doação existente como tipo 'Reemissao'.
--- Guarda referência ao número original em original_numero.
 -- ============================================================
 CREATE OR REPLACE PROCEDURE reemitir_certificado (
     p_id_doacao   IN  NUMBER,
@@ -106,8 +111,6 @@ END;
 
 -- ============================================================
 -- PROCEDURE: proc_gerir_acesso_bd
--- Concede ou revoga role Oracle ao funcionário com base no nivel_acesso.
--- Usa DDL dinâmico porque GRANT/REVOKE não são permitidos em PL/SQL estático.
 -- ============================================================
 CREATE OR REPLACE PROCEDURE proc_gerir_acesso_bd (
     p_cod_funcionario IN VARCHAR2,
@@ -140,15 +143,8 @@ END;
 
 -- ============================================================
 -- PROCEDURE: prc_registar_auditoria
--- Regista uma operação na tabela AUDITORIA_OPERACOES.
---
--- PRAGMA AUTONOMOUS_TRANSACTION: garante que o INSERT na tabela de
--- auditoria é confirmado (COMMIT) independentemente do que aconteça
--- na transacção principal. Se a transacção principal fizer ROLLBACK
--- (ex: operação falhou), o registo de auditoria NÃO é revertido —
--- fica na tabela como prova da tentativa. Sem este pragma, o log
--- desapareceria junto com o ROLLBACK da operação principal, tornando
--- a auditoria inútil para rastrear falhas e tentativas.
+-- PRAGMA AUTONOMOUS_TRANSACTION — o INSERT persiste mesmo que a
+-- transacção principal faça ROLLBACK.
 -- ============================================================
 CREATE OR REPLACE PROCEDURE prc_registar_auditoria (
     p_cod_funcionario IN VARCHAR2,
@@ -186,11 +182,10 @@ BEGIN
         p_observacoes
     );
 
-    COMMIT; -- AUTONOMOUS: confirma só este INSERT, não afecta a transacção principal
+    COMMIT;
 EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
-        -- Não propaga o erro — a auditoria nunca deve bloquear a operação principal
         DBMS_OUTPUT.PUT_LINE('Aviso: falha ao registar auditoria: ' || SQLERRM);
 END;
 /
@@ -198,13 +193,9 @@ END;
 
 -- ============================================================
 -- PROCEDURE 1: prc_apagar_leitor
--- Só Administrador pode apagar. Limpa dependências cross-node
--- manualmente antes do DELETE (CASCADEs não funcionam entre nós).
--- É uma transacção distribuída — demonstra 2PC automaticamente.
---
--- EXECUTE IMMEDIATE nas queries cross-node: ver nota no topo do ficheiro.
--- ── VERSÃO MODIFICADA DE prc_apagar_leitor COM SAVEPOINTs ──
-
+-- Cross-node via sinónimos: emprestimo, participacao_evento,
+-- avaliacao_evento, participacao_programa.
+-- ============================================================
 CREATE OR REPLACE PROCEDURE prc_apagar_leitor (
     p_num_cartao      IN VARCHAR2,
     p_cod_funcionario IN VARCHAR2
@@ -231,7 +222,7 @@ BEGIN
             );
             RAISE_APPLICATION_ERROR(-20100, 'Funcionario nao encontrado ou inactivo.');
     END;
- 
+
     IF v_nivel != 'Administrador' THEN
         prc_registar_auditoria(
             p_cod_funcionario => p_cod_funcionario,
@@ -242,13 +233,13 @@ BEGIN
         );
         RAISE_APPLICATION_ERROR(-20101, 'Acesso negado. Nivel Administrador necessario.');
     END IF;
- 
-    -- 2. Verificar empréstimos activos
+
+    -- 2. Verificar empréstimos activos (sinónimo: emprestimo)
     EXECUTE IMMEDIATE
-        'SELECT COUNT(*) FROM emprestimo@emprestimosdb
+        'SELECT COUNT(*) FROM emprestimo
           WHERE num_cartao = :1 AND data_devolucao IS NULL'
         INTO v_emprestimos USING p_num_cartao;
- 
+
     IF v_emprestimos > 0 THEN
         prc_registar_auditoria(
             p_cod_funcionario => p_cod_funcionario,
@@ -261,19 +252,13 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20102,
             'Leitor tem emprestimos activos. Devolucao obrigatoria antes de apagar.');
     END IF;
- 
-    -- ── SAVEPOINT antes das operações cross-node ────────────
-    -- Se qualquer DELETE remoto falhar, fazemos ROLLBACK TO aqui,
-    -- registamos o erro com detalhe, e relançamos.
-    -- O ROLLBACK TO garante que nada foi alterado antes de RAISE.
-    -- (Em 2PC, o ROLLBACK final será total — o SAVEPOINT serve
-    --  para o bloco de logging estruturado por etapa.)
+
     SAVEPOINT sp_antes_limpeza_cross_node;
- 
-    -- 3a. Limpeza no EventosBibliotecasDB
+
+    -- 3a. Limpeza de participações em eventos (sinónimo: participacao_evento)
     BEGIN
         EXECUTE IMMEDIATE
-            'DELETE FROM participacao_evento@eventosdb WHERE num_cartao = :1'
+            'DELETE FROM participacao_evento WHERE num_cartao = :1'
             USING p_num_cartao;
     EXCEPTION
         WHEN OTHERS THEN
@@ -282,19 +267,19 @@ BEGIN
                 p_operacao        => 'APAGAR_LEITOR',
                 p_objeto_afetado  => p_num_cartao,
                 p_resultado       => 'FALHA',
-                p_motivo_falha    => 'Falha em participacao_evento@eventosdb: ' || SQLERRM,
+                p_motivo_falha    => 'Falha em participacao_evento: ' || SQLERRM,
                 p_nos_afetados    => 'EventosBibliotecasDB'
             );
             ROLLBACK TO SAVEPOINT sp_antes_limpeza_cross_node;
             RAISE;
     END;
- 
+
     SAVEPOINT sp_apos_eventos_participacao;
- 
-    -- 3b. Limpeza de avaliações no EventosBibliotecasDB
+
+    -- 3b. Limpeza de avaliações de eventos (sinónimo: avaliacao_evento)
     BEGIN
         EXECUTE IMMEDIATE
-            'DELETE FROM avaliacao_evento@eventosdb WHERE num_cartao = :1'
+            'DELETE FROM avaliacao_evento WHERE num_cartao = :1'
             USING p_num_cartao;
     EXCEPTION
         WHEN OTHERS THEN
@@ -303,19 +288,19 @@ BEGIN
                 p_operacao        => 'APAGAR_LEITOR',
                 p_objeto_afetado  => p_num_cartao,
                 p_resultado       => 'FALHA',
-                p_motivo_falha    => 'Falha em avaliacao_evento@eventosdb: ' || SQLERRM,
+                p_motivo_falha    => 'Falha em avaliacao_evento: ' || SQLERRM,
                 p_nos_afetados    => 'EventosBibliotecasDB'
             );
             ROLLBACK TO SAVEPOINT sp_apos_eventos_participacao;
             RAISE;
     END;
- 
+
     SAVEPOINT sp_apos_eventos_avaliacoes;
- 
-    -- 3c. Limpeza no EmpréstimosProgramasDB
+
+    -- 3c. Limpeza de participações em programas (sinónimo: participacao_programa)
     BEGIN
         EXECUTE IMMEDIATE
-            'DELETE FROM participacao_programa@emprestimosdb WHERE num_cartao = :1'
+            'DELETE FROM participacao_programa WHERE num_cartao = :1'
             USING p_num_cartao;
     EXCEPTION
         WHEN OTHERS THEN
@@ -324,16 +309,16 @@ BEGIN
                 p_operacao        => 'APAGAR_LEITOR',
                 p_objeto_afetado  => p_num_cartao,
                 p_resultado       => 'FALHA',
-                p_motivo_falha    => 'Falha em participacao_programa@emprestimosdb: ' || SQLERRM,
+                p_motivo_falha    => 'Falha em participacao_programa: ' || SQLERRM,
                 p_nos_afetados    => 'EmprestimosDB'
             );
             ROLLBACK TO SAVEPOINT sp_apos_eventos_avaliacoes;
             RAISE;
     END;
- 
-    -- 4. DELETE principal — LEITOR é local neste nó (v3)
+
+    -- 4. DELETE principal — LEITOR é local
     DELETE FROM LEITOR WHERE num_cartao = p_num_cartao;
- 
+
     -- 5. Auditoria de sucesso + COMMIT
     prc_registar_auditoria(
         p_cod_funcionario => p_cod_funcionario,
@@ -342,9 +327,9 @@ BEGIN
         p_resultado       => 'SUCESSO',
         p_nos_afetados    => 'BibliotecaNacionalDB (local), EmprestimosDB, EventosBibliotecasDB'
     );
- 
-    COMMIT; -- Oracle usa 2PC automaticamente (toca múltiplos nós)
- 
+
+    COMMIT;
+
 EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
@@ -355,15 +340,11 @@ END;
 
 -- ============================================================
 -- PROCEDURE 2: prc_remover_funcionario
--- Só Administrador pode remover.
--- Se tiver histórico de empréstimos → data_demissao (soft delete).
--- Se não tiver → DELETE físico.
---
--- EXECUTE IMMEDIATE nas queries cross-node: ver nota no topo do ficheiro.
+-- Cross-node via sinónimos: emprestimo, programa_funcionario.
 -- ============================================================
 CREATE OR REPLACE PROCEDURE prc_remover_funcionario (
-    p_cod_funcionario_alvo IN VARCHAR2,   -- funcionário a remover
-    p_cod_funcionario_op   IN VARCHAR2    -- quem pede a operação
+    p_cod_funcionario_alvo IN VARCHAR2,
+    p_cod_funcionario_op   IN VARCHAR2
 ) AS
     v_nivel        VARCHAR2(15);
     v_emprestimos  NUMBER := 0;
@@ -399,15 +380,14 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20111, 'Acesso negado. Nivel Administrador necessario.');
     END IF;
 
-    -- 2. Verificar histórico de empréstimos no EmpréstimosDB
-    -- EXECUTE IMMEDIATE: resolve @emprestimosdb em runtime (ver nota no topo).
+    -- 2. Verificar histórico de empréstimos (sinónimo: emprestimo)
     EXECUTE IMMEDIATE
-        'SELECT COUNT(*) FROM emprestimo@emprestimosdb
+        'SELECT COUNT(*) FROM emprestimo
           WHERE cod_funcionario = :1'
         INTO v_emprestimos USING p_cod_funcionario_alvo;
 
     IF v_emprestimos > 0 THEN
-        -- Tem histórico — soft delete (preserva integridade referencial cross-node)
+        -- Soft delete
         UPDATE FUNCIONARIO
            SET data_demissao = SYSDATE
          WHERE cod_funcionario = p_cod_funcionario_alvo;
@@ -422,13 +402,13 @@ BEGIN
                                  || v_emprestimos || ' emprestimo(s) no historico.'
         );
     ELSE
-        -- Sem histórico — DELETE físico seguro
+        -- DELETE físico
         DELETE FROM FUNCIONARIO_HABILIDADE WHERE cod_funcionario = p_cod_funcionario_alvo;
         DELETE FROM HORARIO_FUNCIONARIO    WHERE cod_funcionario = p_cod_funcionario_alvo;
 
-        -- PROGRAMA_FUNCIONARIO pertence ao EmpréstimosProgramasDB (nó do Yannis)
+        -- programa_funcionario pertence ao EmpréstimosDB (sinónimo: programa_funcionario)
         EXECUTE IMMEDIATE
-            'DELETE FROM programa_funcionario@emprestimosdb WHERE cod_funcionario = :1'
+            'DELETE FROM programa_funcionario WHERE cod_funcionario = :1'
             USING p_cod_funcionario_alvo;
 
         DELETE FROM FUNCIONARIO WHERE cod_funcionario = p_cod_funcionario_alvo;
@@ -455,30 +435,21 @@ END;
 
 -- ============================================================
 -- PROCEDURE 3: prc_sincronizar_funcionarios
--- Replica o estado actual dos funcionários activos para a tabela
--- repl_funcionarios no EmpréstimosDB (sincronização periódica completa).
--- Estratégia: DELETE + INSERT — garante consistência total da réplica.
---
--- EXECUTE IMMEDIATE em ambas as operações cross-node: ver nota no topo.
--- O Oracle tenta resolver objectos remotos em tempo de compilação mesmo
--- em INSERTs estáticos — EXECUTE IMMEDIATE força resolução em runtime.
+-- Cross-node via sinónimo: repl_funcionarios (EmpréstimosDB).
 -- ============================================================
 CREATE OR REPLACE PROCEDURE prc_sincronizar_funcionarios AS
     v_linhas NUMBER := 0;
 BEGIN
-    -- Limpa a réplica anterior no nó remoto
-    EXECUTE IMMEDIATE 'DELETE FROM repl_funcionarios@emprestimosdb';
+    -- Limpa a réplica anterior no nó remoto (sinónimo: repl_funcionarios)
+    EXECUTE IMMEDIATE 'DELETE FROM repl_funcionarios';
 
-    -- Insere o estado actual de todos os funcionários activos.
-    -- INSERT via EXECUTE IMMEDIATE com cursor explícito — evita ORA-04052
-    -- na compilação quando o nó remoto não está acessível.
     FOR r IN (
         SELECT cod_funcionario, nome_funcionario, cod_biblioteca,
                id_funcao, nivel_acesso, nome_funcao
           FROM vw_replica_funcionarios
     ) LOOP
         EXECUTE IMMEDIATE
-            'INSERT INTO repl_funcionarios@emprestimosdb
+            'INSERT INTO repl_funcionarios
              (cod_funcionario, nome_funcionario, cod_biblioteca,
               id_funcao, nivel_acesso, nome_funcao)
              VALUES (:1, :2, :3, :4, :5, :6)'
@@ -488,7 +459,7 @@ BEGIN
         v_linhas := v_linhas + 1;
     END LOOP;
 
-    COMMIT; -- Oracle usa 2PC automaticamente (local + EmprestimosDB)
+    COMMIT;
 
     DBMS_OUTPUT.PUT_LINE('Sincronizacao concluida: ' || v_linhas || ' funcionario(s) replicado(s).');
 
@@ -502,16 +473,12 @@ END;
 
 -- ============================================================
 -- PROCEDURE 4: prc_modificar_nivel_acesso
--- Só Administrador pode modificar.
--- Após UPDATE local, sincroniza imediatamente a réplica no EmpréstimosDB.
--- Não espera pelo ciclo periódico — mudança de acesso é crítica para segurança.
---
--- EXECUTE IMMEDIATE no UPDATE cross-node: ver nota no topo do ficheiro.
+-- Cross-node via sinónimo: repl_funcionarios (EmpréstimosDB).
 -- ============================================================
 CREATE OR REPLACE PROCEDURE prc_modificar_nivel_acesso (
-    p_cod_funcionario_alvo IN VARCHAR2,   -- funcionário a modificar
-    p_novo_id_funcao       IN NUMBER,     -- novo id_funcao
-    p_cod_funcionario_op   IN VARCHAR2    -- quem pede a operação
+    p_cod_funcionario_alvo IN VARCHAR2,
+    p_novo_id_funcao       IN NUMBER,
+    p_cod_funcionario_op   IN VARCHAR2
 ) AS
     v_nivel      VARCHAR2(15);
     v_novo_nivel VARCHAR2(15);
@@ -557,22 +524,19 @@ BEGIN
             'Funcionario alvo nao encontrado: ' || p_cod_funcionario_alvo);
     END IF;
 
-    -- Obter o novo nível para auditoria e sincronização
     SELECT nivel_acesso INTO v_novo_nivel
       FROM FUNCAO_FUNCIONARIO
      WHERE id_funcao = p_novo_id_funcao;
 
-    -- 3. Sincronização imediata da réplica no EmpréstimosDB
-    -- EXECUTE IMMEDIATE: resolve @emprestimosdb em runtime (ver nota no topo).
-    -- UPDATE cirúrgico — só o registo alterado, sem replicar tudo.
+    -- 3. Sincronização imediata da réplica (sinónimo: repl_funcionarios)
     EXECUTE IMMEDIATE
-        'UPDATE repl_funcionarios@emprestimosdb
+        'UPDATE repl_funcionarios
             SET id_funcao    = :1,
                 nivel_acesso = :2
           WHERE cod_funcionario = :3'
         USING p_novo_id_funcao, v_novo_nivel, p_cod_funcionario_alvo;
 
-    -- 4. Auditoria de sucesso
+    -- 4. Auditoria
     prc_registar_auditoria(
         p_cod_funcionario => p_cod_funcionario_op,
         p_operacao        => 'MODIFICAR_NIVEL_ACESSO',
@@ -582,7 +546,7 @@ BEGIN
         p_observacoes     => 'Novo nivel: ' || v_novo_nivel
     );
 
-    COMMIT; -- Oracle usa 2PC automaticamente (local + EmprestimosDB)
+    COMMIT;
 
 EXCEPTION
     WHEN OTHERS THEN
@@ -593,31 +557,19 @@ END;
 
 
 -- ============================================================
--- PROCEDURE 5: prc_demo_2pc  (§2.6 — demonstração de Two-Phase Commit)
--- Numa única transacção: insere uma doação localmente (BibliotecaNacionalDB)
--- e actualiza o estado de conservação de um material no MateriaisDB remoto.
---
--- O Oracle detecta que a transacção toca dois nós distintos e lança o
--- protocolo 2PC automaticamente no COMMIT:
---   Fase 1 PREPARE — cada nó confirma que está pronto para persistir
---   Fase 2 COMMIT  — coordenador confirma globalmente; ambos escrevem
---
--- Se um nó falhar entre as duas fases, o Oracle regista em DBA_2PC_PENDING
--- e pode recuperar manualmente com COMMIT FORCE / ROLLBACK FORCE.
---
--- EXECUTE IMMEDIATE no UPDATE cross-node: ver nota no topo do ficheiro.
+-- PROCEDURE 5: prc_demo_2pc
+-- Cross-node via sinónimo: material_bibliografico (MateriaisDB).
 -- ============================================================
 CREATE OR REPLACE PROCEDURE prc_demo_2pc (
-    p_id_doador      IN  NUMBER,    -- doador (0 = anónimo)
-    p_cod_biblioteca IN  VARCHAR2,  -- biblioteca que recebe o item de doação
-    p_valor          IN  NUMBER,    -- valor estimado do item (MT)
-    p_cod_material   IN  VARCHAR2,  -- código do material a actualizar em @materiaisdb
-    p_novo_estado    IN  VARCHAR2,  -- novo estado_material_conservacao
-    p_id_doacao      OUT NUMBER     -- id da doação gerada (confirmação)
+    p_id_doador      IN  NUMBER,
+    p_cod_biblioteca IN  VARCHAR2,
+    p_valor          IN  NUMBER,
+    p_cod_material   IN  VARCHAR2,
+    p_novo_estado    IN  VARCHAR2,
+    p_id_doacao      OUT NUMBER
 ) AS
 BEGIN
-    -- 1. INSERT local: nova doação (BibliotecaNacionalDB)
-    -- A partir daqui a transacção está aberta localmente.
+    -- 1. INSERT local
     INSERT INTO DOACAO (id_doador, data_doacao)
     VALUES (p_id_doador, SYSDATE)
     RETURNING id_doacao INTO p_id_doacao;
@@ -625,25 +577,20 @@ BEGIN
     INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
     VALUES (p_id_doacao, p_cod_biblioteca, 1, p_valor, 'Demo 2PC — transaccao distribuida');
 
-    -- 2. UPDATE remoto: estado de conservação no MateriaisDB
-    -- EXECUTE IMMEDIATE: resolve @materiaisdb em runtime (ver nota no topo).
-    -- A partir deste ponto a transacção é distribuída — toca dois nós.
-    -- O Oracle coordena 2PC automaticamente no COMMIT abaixo.
+    -- 2. UPDATE remoto (sinónimo: material_bibliografico → MateriaisDB)
     EXECUTE IMMEDIATE
-        'UPDATE material_bibliografico@materiaisdb
+        'UPDATE material_bibliografico
             SET estado_material_conservacao = :1
           WHERE cod_material = :2'
         USING p_novo_estado, p_cod_material;
 
-    -- COMMIT — Oracle lança 2PC:
-    --   Fase 1 PREPARE: pede confirmação a BibliotecaNacionalDB e MateriaisDB
-    --   Fase 2 COMMIT:  ambos confirmam → escrita permanente nos dois nós
+    -- COMMIT — Oracle lança 2PC automaticamente
     COMMIT;
 
     DBMS_OUTPUT.PUT_LINE('2PC concluido com sucesso.');
     DBMS_OUTPUT.PUT_LINE('  Doacao local id : ' || p_id_doacao);
     DBMS_OUTPUT.PUT_LINE('  Material ' || p_cod_material ||
-                         ' -> ' || p_novo_estado || ' em @materiaisdb');
+                         ' -> ' || p_novo_estado || ' em material_bibliografico');
 
 EXCEPTION
     WHEN OTHERS THEN
@@ -656,8 +603,6 @@ END;
 
 -- ============================================================
 -- PROCEDURE: prc_emitir_honorifico  (RN08)
--- Só Coordenador ou Administrador pode emitir certificado honorífico.
--- Emissão manual — não é automática como os certificados Individual >= 1000 MT.
 -- ============================================================
 CREATE OR REPLACE PROCEDURE prc_emitir_honorifico (
     p_id_doacao       IN  NUMBER,
@@ -668,7 +613,6 @@ CREATE OR REPLACE PROCEDURE prc_emitir_honorifico (
     v_nivel  VARCHAR2(15);
     v_seq    NUMBER;
 BEGIN
-    -- 1. Verificar nível de acesso
     BEGIN
         SELECT fn.nivel_acesso
           INTO v_nivel
@@ -687,7 +631,6 @@ BEGIN
             || v_nivel);
     END IF;
 
-    -- 2. Gerar número sequencial e inserir certificado honorífico
     SELECT SEQ_CERTIFICADO.NEXTVAL INTO v_seq FROM DUAL;
     p_num_certificado := 'CERT-' || TO_CHAR(SYSDATE, 'YYYY') || '-' || LPAD(v_seq, 4, '0');
 
@@ -716,12 +659,10 @@ EXCEPTION
 END prc_emitir_honorifico;
 /
 
+
 -- ============================================================
 -- PROCEDURE: prc_atualizar_doacao_segura
 -- Demonstra prevenção de deadlock por ordem consistente de locks.
--- Bloqueia DOADOR (pai) antes de DOACAO (filho) — sempre nesta ordem.
--- Se todas as transacções seguirem a mesma ordem, o ciclo nunca se forma.
--- Tarefa A2 — Guia BD2 Temas 9.16–9.19
 -- ============================================================
 CREATE OR REPLACE PROCEDURE prc_atualizar_doacao_segura(
     p_id_doador  IN DOADOR.id_doador%TYPE,

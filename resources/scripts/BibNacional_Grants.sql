@@ -162,8 +162,6 @@ GRANT EXECUTE ON prc_registar_auditoria  TO app_materiaisdb;
 GRANT EXECUTE ON prc_registar_auditoria  TO app_eventosdb;
 
 
-
-
 -- ── Backend local (app_NACIONALDB) ──────────────────────────
 -- O Node.js usa este user para DML e execução de procedures.
 -- Procedures só são chamadas pelo backend local — não por outros nós.

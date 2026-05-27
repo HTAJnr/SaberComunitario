@@ -1,5 +1,26 @@
+-- ============================================================
+-- BibNacional_Views.sql
+--
+-- ARQUITECTURA DE REFERÊNCIAS CROSS-NODE:
+--
+-- Views globais (vw_global_*): usam @link EXPLÍCITO.
+-- Motivo: views são compiladas estaticamente — o Oracle resolve
+-- os objectos em tempo de criação (DDL). Sinónimos públicos com
+-- o mesmo nome que tabelas remotas criam ORA-01775 (loop) porque
+-- o nó remoto também tem um sinónimo com esse nome. @link explícito
+-- quebra o loop e identifica inequivocamente o nó de destino.
+--
+-- Para alternar entre rede local e ZeroTier nestas views,
+-- corre o bloco da secção que precisas (local ou ZeroTier)
+-- e comenta o outro — são os únicos 3 objectos que precisam
+-- de ser recriados numa mudança de rede.
+-- ============================================================
+
+-- ============================================================
+-- SECÇÃO 1: DOAÇÕES E CERTIFICADOS (100% local)
+-- ============================================================
+
 -- OBJETIVO: Rastreabilidade completa de doações e certificados
--- USADO EM: Relatórios de transparência, emissão de certificados
 CREATE OR REPLACE VIEW vw_doacoes_detalhadas AS
 SELECT
     d.id_doacao,
@@ -23,7 +44,6 @@ GROUP BY
 /
 
 -- OBJETIVO: Reconhecer principais benfeitores por valor total
--- USADO EM: Certificados honoríficos, relatórios anuais
 CREATE OR REPLACE VIEW vw_doadores_ranking AS
 SELECT
     r.id_doador,
@@ -45,7 +65,6 @@ GROUP BY r.id_doador, r.nome_doador, r.tipo_doador;
 /
 
 -- OBJETIVO: Histórico de certificados para consulta e reemissão
--- USADO EM: Verificação, reemissões
 CREATE OR REPLACE VIEW vw_certificados_emitidos AS
 SELECT
     c.num_certificado,
@@ -66,8 +85,10 @@ GROUP BY
     r.nome_doador, r.contacto, d.data_doacao, c.observacoes, c.original_numero;
 /
 
--- OBJETIVO: Equipa operacional activa com nível de acesso
--- USADO EM: Gestão de acessos, autenticação, auditoria
+-- ============================================================
+-- SECÇÃO 2: FUNCIONÁRIOS (100% local)
+-- ============================================================
+
 CREATE OR REPLACE VIEW vw_funcionarios_ativos AS
 SELECT
     f.cod_funcionario,
@@ -84,8 +105,6 @@ JOIN FUNCAO_FUNCIONARIO ff ON f.id_funcao = ff.id_funcao
 WHERE f.data_demissao IS NULL;
 /
 
--- OBJETIVO: Mapear funcionários activos aos seus roles Oracle
--- USADO EM: Auditoria de acessos, gestão de permissões
 CREATE OR REPLACE VIEW vw_acesso_funcionario AS
 SELECT
     f.cod_funcionario,
@@ -99,8 +118,6 @@ JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
 WHERE f.data_demissao IS NULL;
 /
 
--- OBJETIVO: Grade horária semanal de cada funcionário
--- USADO EM: Gestão de escalas, verificação de disponibilidade
 CREATE OR REPLACE VIEW vw_horarios_funcionario_semana AS
 SELECT
     f.cod_funcionario,
@@ -115,9 +132,7 @@ WHERE f.data_demissao IS NULL;
 /
 
 -- ============================================================
--- SECÇÃO 2: LEITORES — VISTA UNIFICADA (local com join cross-node para BIBLIOTECA)
--- OBJETIVO: Dados completos de leitores com tipo e biblioteca
--- USADO EM: Gestão de leitores, filtros, backend
+-- SECÇÃO 3: LEITORES — FRAGMENTAÇÃO VERTICAL (100% local)
 -- ============================================================
 
 CREATE OR REPLACE VIEW vw_leitores_completos AS
@@ -148,176 +163,42 @@ SELECT
     cr.escola_frequenta,
     cr.classe
 FROM LEITOR l
-LEFT JOIN ADULTO a   ON l.num_cartao = a.num_cartao
+LEFT JOIN ADULTO a    ON l.num_cartao = a.num_cartao
 LEFT JOIN PROFESSOR pr ON l.num_cartao = pr.num_cartao
-LEFT JOIN CRIANCA cr  ON l.num_cartao = cr.num_cartao;
+LEFT JOIN CRIANCA cr   ON l.num_cartao = cr.num_cartao;
 /
 
--- ============================================================
--- SECÇÃO 3: FRAGMENTAÇÃO VERTICAL DE LEITOR (Fase 1.3)
---
--- Critério de divisão: operacional vs. pessoal.
--- Fragmento público: o que outros nós precisam para verificações.
--- Fragmento privado: dados pessoais que ficam exclusivamente aqui.
---
--- As 3 regras (Guia BD2 Tema 8):
---   Completude   — cada atributo aparece em pelo menos um fragmento.
---   Reconstrução — JOIN pelo num_cartao reconstrói a tabela completa.
---   Disjuntividade — cada atributo num único fragmento, excepto num_cartao
---                    (chave primária, necessária em ambos para a Reconstrução).
--- ============================================================
-
--- Fragmento 1 — dados públicos (expostos a outros nós via database link)
 CREATE OR REPLACE VIEW vw_leitor_publico AS
-SELECT
-    num_cartao,
-    nome_completo,
-    cod_biblioteca,
-    status_leitor,
-    historico_pontualidade,
-    distancia_biblioteca
+SELECT num_cartao, nome_completo, cod_biblioteca,
+       status_leitor, historico_pontualidade, distancia_biblioteca
 FROM LEITOR;
 /
 
--- Fragmento 2 — dados privados (exclusivos deste nó)
 CREATE OR REPLACE VIEW vw_leitor_privado AS
-SELECT
-    num_cartao,
-    data_nasc,
-    genero,
-    nivel_escolar,
-    localizacao_leitor,
-    contacto,
-    foto_path
+SELECT num_cartao, data_nasc, genero, nivel_escolar,
+       localizacao_leitor, contacto, foto_path
 FROM LEITOR;
 /
 
 -- ============================================================
--- SECÇÃO 4: FRAGMENTAÇÃO HORIZONTAL DE LEITOR (Tarefa A3 — Guia BD2 Tema 8.10)
---
--- A fragmentação HORIZONTAL divide a relação por LINHAS (tuplas).
--- Operador de álgebra relacional: σ (selecção).
--- Critério: STATUS_LEITOR — separa o I/O dos casos comuns dos casos raros.
---
--- As 3 regras (Guia BD2 Tema 8):
---   Completude     — cada tupla aparece em pelo menos um fragmento.
---   Reconstrução   — UNION ALL dos fragmentos reconstrói a tabela completa.
---   Disjuntividade — cada tupla aparece em APENAS UM fragmento.
---     (Contraste com fragmentação vertical: na vertical, a chave primária
---      aparece em todos os fragmentos porque é necessária para Reconstrução.
---      Na horizontal, "um dado" é uma tupla inteira, não um atributo.)
+-- SECÇÃO 4: FRAGMENTAÇÃO HORIZONTAL DE LEITOR (100% local)
 -- ============================================================
 
--- Fragmento H1 — Leitores Activos
--- Acedidos em cada operação do dia-a-dia (empréstimos, eventos, programas).
--- Dados "quentes" — maior frequência de acesso.
 CREATE OR REPLACE VIEW vw_frag_leitor_activos AS
 SELECT * FROM LEITOR WHERE STATUS_LEITOR = 'Activo';
 /
 
--- Fragmento H2 — Leitores Suspensos
--- Acesso temporariamente restringido — verificados quando tentam emprestar.
 CREATE OR REPLACE VIEW vw_frag_leitor_suspensos AS
 SELECT * FROM LEITOR WHERE STATUS_LEITOR = 'Suspenso';
 /
 
--- Fragmento H3 — Leitores Inactivos / Bloqueados
--- Dados históricos — raramente consultados, só em relatórios.
 CREATE OR REPLACE VIEW vw_frag_leitor_inactivos AS
 SELECT * FROM LEITOR WHERE STATUS_LEITOR NOT IN ('Activo', 'Suspenso');
 /
 
--- ── Validação das 3 regras ────────────────────────────────────
-
--- Regra 1 — Completude: UNION ALL deve igualar a tabela base
-SELECT 'Total em LEITOR'    AS fonte, COUNT(*) AS total FROM LEITOR
-UNION ALL
-SELECT 'Total nos fragmentos',
-       (SELECT COUNT(*) FROM vw_frag_leitor_activos)
-       + (SELECT COUNT(*) FROM vw_frag_leitor_suspensos)
-       + (SELECT COUNT(*) FROM vw_frag_leitor_inactivos)
-  FROM DUAL;
-
--- Regra 3 — Disjuntividade: nenhum leitor em dois fragmentos (deve ser 0)
-SELECT 'Activos nos suspensos (deve ser 0)'   AS teste, COUNT(*) AS resultado
-  FROM vw_frag_leitor_activos a
- WHERE a.num_cartao IN (SELECT num_cartao FROM vw_frag_leitor_suspensos)
-UNION ALL
-SELECT 'Activos nos inactivos (deve ser 0)', COUNT(*)
-  FROM vw_frag_leitor_activos a
- WHERE a.num_cartao IN (SELECT num_cartao FROM vw_frag_leitor_inactivos);
 
 -- ============================================================
--- SECÇÃO 5: VISTAS GLOBAIS — TRANSPARÊNCIA DE LOCALIZAÇÃO (Fase 2.5)
--- Agregam dados de múltiplos nós via database links.
--- O utilizador faz SELECT como se os dados estivessem todos num só lugar.
--- ============================================================
-
--- Vista global 1: leitores com estado de empréstimo actual
--- Nós consultados: local (LEITOR) + EmprestimosDB (EMPRESTIMO via @emprestimosdb)
-CREATE OR REPLACE VIEW vw_global_leitores_emprestimos AS
-SELECT
-    l.num_cartao,
-    l.nome_completo,
-    l.cod_biblioteca,
-    l.status_leitor,
-    l.historico_pontualidade,
-    e.id_emprestimo,
-    e.cod_material,
-    e.data_retirada,
-    e.prazo_devolucao,
-    CASE WHEN e.id_emprestimo IS NOT NULL THEN 'S' ELSE 'N' END AS tem_emprestimo_activo
-FROM LEITOR l
-LEFT JOIN emprestimo@emprestimosdb e
-    ON l.num_cartao = e.num_cartao
-   AND e.data_devolucao IS NULL;
-/
-
--- Vista global 2: catálogo completo com disponibilidade e localização
--- Nós consultados: MateriaisDB (MATERIAL_BIBLIOGRAFICO via @materiaisdb)
---                + EventosBibliotecasDB (BIBLIOTECA via @eventosdb)
-CREATE OR REPLACE VIEW vw_global_catalogo AS
-SELECT
-    m.cod_material,
-    m.titulo,
-    m.autor,
-    m.editora,
-    m.ano_publicacao,
-    m.estado_material_conservacao,
-    m.cod_biblioteca,
-    b.nome_biblioteca,
-    b.provincia,
-    CASE
-        WHEN m.estado_material_conservacao = 'Indisponivel' THEN 'N'
-        ELSE 'S'
-    END AS potencialmente_disponivel
-FROM material_bibliografico@materiaisdb m
-JOIN biblioteca@eventosdb b ON m.cod_biblioteca = b.cod_biblioteca;
-/
-
--- Vista global 3: programação de eventos com participação
--- Nós consultados: EventosBibliotecasDB (EVENTO, PARTICIPACAO_EVENTO via @eventosdb)
--- Nota: EVENTO não tem cod_biblioteca directamente — liga via HORARIO_EV_BIB
-CREATE OR REPLACE VIEW vw_global_eventos_participacao AS
-SELECT
-    e.id_evento,
-    e.titulo_evento,
-    e.data_evento,
-    e.status_evento,
-    e.publico_alvo,
-    e.capacidade,
-    COUNT(pe.num_cartao) AS total_inscritos
-FROM evento@eventosdb e
-LEFT JOIN participacao_evento@eventosdb pe ON e.id_evento = pe.id_evento
-GROUP BY
-    e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
-    e.publico_alvo, e.capacidade;
-/
-
--- ============================================================
--- SECÇÃO 1: VISTA FONTE DE REPLICAÇÃO
--- Expõe apenas os dados operacionalmente necessários noutros nós.
--- Dados pessoais (senha, endereco, data_nasc) ficam exclusivamente aqui.
+-- SECÇÃO 5: REPLICAÇÃO DE FUNCIONÁRIOS (100% local)
 -- ============================================================
 
 CREATE OR REPLACE VIEW vw_replica_funcionarios AS
@@ -333,165 +214,130 @@ JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
 WHERE f.data_demissao IS NULL;
 /
 
-
--- ── FRAGMENTO 1: Activos — atributos operacionais ──────────
--- O que outros nós precisam para verificar: quem é, onde trabalha,
--- que função tem, que nível de acesso tem.
--- ────────────────────────────────────────────────────────────
 CREATE OR REPLACE VIEW vw_func_activos_operacional AS
-SELECT
-    cod_funcionario,
-    nome_funcionario,
-    cod_biblioteca,
-    id_funcao,
-    nivel_acesso
+SELECT cod_funcionario, nome_funcionario, cod_biblioteca, id_funcao, nivel_acesso
 FROM (
-    SELECT
-        f.cod_funcionario,
-        f.nome_funcionario,
-        f.cod_biblioteca,
-        f.id_funcao,
-        fn.nivel_acesso
+    SELECT f.cod_funcionario, f.nome_funcionario, f.cod_biblioteca,
+           f.id_funcao, fn.nivel_acesso
     FROM FUNCIONARIO f
     JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
-    WHERE f.data_demissao IS NULL        -- Horizontal: só activos
+    WHERE f.data_demissao IS NULL
 );
 /
- 
--- ── FRAGMENTO 2: Activos — atributos confidenciais ─────────
--- Dados pessoais e de segurança. Nunca saem deste nó.
--- ────────────────────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_func_activos_confidencial AS
-SELECT
-    cod_funcionario,
-    data_nasc,
-    endereco,
-    senha,
-    formacao,
-    experiencia
+SELECT cod_funcionario, data_nasc, endereco, senha, formacao, experiencia
 FROM FUNCIONARIO
 WHERE data_demissao IS NULL;
 /
- 
--- ── FRAGMENTO 3: Inactivos — atributos operacionais ────────
--- Funcionários com data_demissao preenchida.
--- Mantidos para integridade referencial histórica (empréstimos, auditorias).
--- ────────────────────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_func_inactivos_operacional AS
-SELECT
-    cod_funcionario,
-    nome_funcionario,
-    cod_biblioteca,
-    id_funcao,
-    nivel_acesso
+SELECT cod_funcionario, nome_funcionario, cod_biblioteca, id_funcao, nivel_acesso
 FROM (
-    SELECT
-        f.cod_funcionario,
-        f.nome_funcionario,
-        f.cod_biblioteca,
-        f.id_funcao,
-        fn.nivel_acesso
+    SELECT f.cod_funcionario, f.nome_funcionario, f.cod_biblioteca,
+           f.id_funcao, fn.nivel_acesso
     FROM FUNCIONARIO f
     JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
-    WHERE f.data_demissao IS NOT NULL    -- Horizontal: só inactivos
+    WHERE f.data_demissao IS NOT NULL
 );
 /
- 
--- ── FRAGMENTO 4: Inactivos — atributos confidenciais ───────
+
 CREATE OR REPLACE VIEW vw_func_inactivos_confidencial AS
-SELECT
-    cod_funcionario,
-    data_nasc,
-    endereco,
-    senha,
-    formacao,
-    experiencia
+SELECT cod_funcionario, data_nasc, endereco, senha, formacao, experiencia
 FROM FUNCIONARIO
 WHERE data_demissao IS NOT NULL;
 /
 
+-- ============================================================
+-- SECÇÃO 6: VISTAS GLOBAIS CROSS-NODE
+--
+-- Usam @link EXPLÍCITO — não podem usar sinónimos públicos.
+-- Motivo: ORA-01775 (looping chain) quando sinónimo local tem o
+-- mesmo nome que a tabela remota — o nó remoto resolve o sinónimo
+-- de volta para si próprio criando um loop infinito.
+--
+-- ── INSTRUÇÃO DE USO ────────────────────────────────────────
+-- Rede LOCAL  → corre o bloco "REDE LOCAL"  e comenta "ZEROTIER"
+-- ZeroTier    → corre o bloco "ZEROTIER"    e comenta "REDE LOCAL"
+-- Só estes 3 objectos precisam de ser recriados na mudança de rede.
+-- ============================================================
 
--- ============================================================
--- VW_AUDITORIA — interface padronizada de auditoria manual
--- Permite ao backend usar sempre a mesma query ("SELECT * FROM VW_AUDITORIA")
--- independentemente do nó onde está a correr.
--- Cada nó cria esta view no seu schema apontando para a sua própria
--- tabela de auditoria. O campo no_origem identifica o nó na interface.
--- ============================================================
--- ============================================================
--- REDE REMOTA (ZeroTier) — Descomentar apenas quando os colegas
--- estiverem em rede remota. Em rede local manter comentado.
--- ============================================================
 /*
--- Vista global 1 remota: leitores com estado de empréstimo (via @zemprestimosdb)
+-- ── REDE LOCAL (@emprestimosdb / @materiaisdb / @eventosdb) ─
+
 CREATE OR REPLACE VIEW vw_global_leitores_emprestimos AS
 SELECT
-    l.num_cartao,
-    l.nome_completo,
-    l.cod_biblioteca,
-    l.status_leitor,
+    l.num_cartao, l.nome_completo, l.cod_biblioteca, l.status_leitor,
     l.historico_pontualidade,
-    e.id_emprestimo,
-    e.cod_material,
-    e.data_retirada,
-    e.prazo_devolucao,
+    e.id_emprestimo, e.cod_material, e.data_retirada, e.prazo_devolucao,
+    CASE WHEN e.id_emprestimo IS NOT NULL THEN 'S' ELSE 'N' END AS tem_emprestimo_activo
+FROM LEITOR l
+LEFT JOIN emprestimo@emprestimosdb e
+    ON l.num_cartao = e.num_cartao AND e.data_devolucao IS NULL;
+/
+
+CREATE OR REPLACE VIEW vw_global_catalogo AS
+SELECT
+    m.cod_material, m.titulo, m.autor, m.editora, m.ano_publicacao,
+    m.estado_material_conservacao, m.cod_biblioteca,
+    b.nome_biblioteca, b.provincia,
+    CASE WHEN m.estado_material_conservacao = 'Indisponivel' THEN 'N' ELSE 'S' END
+        AS potencialmente_disponivel
+FROM material_bibliografico@materiaisdb m
+JOIN biblioteca@eventosdb b ON m.cod_biblioteca = b.cod_biblioteca;
+/
+
+CREATE OR REPLACE VIEW vw_global_eventos_participacao AS
+SELECT
+    e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
+    e.publico_alvo, e.capacidade,
+    COUNT(pe.num_cartao) AS total_inscritos
+FROM evento@eventosdb e
+LEFT JOIN participacao_evento@eventosdb pe ON e.id_evento = pe.id_evento
+GROUP BY e.id_evento, e.titulo_evento, e.data_evento,
+         e.status_evento, e.publico_alvo, e.capacidade;
+/
+*/
+
+-- ── ZEROTIER (@zemprestimosdb / @zmateriaisdb / @zeventosdb) ─
+CREATE OR REPLACE VIEW vw_global_leitores_emprestimos AS
+SELECT
+    l.num_cartao, l.nome_completo, l.cod_biblioteca, l.status_leitor,
+    l.historico_pontualidade,
+    e.id_emprestimo, e.cod_material, e.data_retirada, e.prazo_devolucao,
     CASE WHEN e.id_emprestimo IS NOT NULL THEN 'S' ELSE 'N' END AS tem_emprestimo_activo
 FROM LEITOR l
 LEFT JOIN emprestimo@zemprestimosdb e
-    ON l.num_cartao = e.num_cartao
-   AND e.data_devolucao IS NULL;
+    ON l.num_cartao = e.num_cartao AND e.data_devolucao IS NULL;
 /
 
--- Vista global 2 remota: catálogo completo (via @zmateriaisdb + @zeventosdb)
 CREATE OR REPLACE VIEW vw_global_catalogo AS
 SELECT
-    m.cod_material,
-    m.titulo,
-    m.autor,
-    m.editora,
-    m.ano_publicacao,
-    m.estado_material_conservacao,
-    m.cod_biblioteca,
-    b.nome_biblioteca,
-    b.provincia,
-    CASE
-        WHEN m.estado_material_conservacao = 'Indisponivel' THEN 'N'
-        ELSE 'S'
-    END AS potencialmente_disponivel
+    m.cod_material, m.titulo, m.autor, m.editora, m.ano_publicacao,
+    m.estado_material_conservacao, m.cod_biblioteca,
+    b.nome_biblioteca, b.provincia,
+    CASE WHEN m.estado_material_conservacao = 'Indisponivel' THEN 'N' ELSE 'S' END
+        AS potencialmente_disponivel
 FROM material_bibliografico@zmateriaisdb m
 JOIN biblioteca@zeventosdb b ON m.cod_biblioteca = b.cod_biblioteca;
 /
 
--- Vista global 3 remota: eventos com participação (via @zeventosdb)
 CREATE OR REPLACE VIEW vw_global_eventos_participacao AS
 SELECT
-    e.id_evento,
-    e.titulo_evento,
-    e.data_evento,
-    e.status_evento,
-    e.publico_alvo,
-    e.capacidade,
+    e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
+    e.publico_alvo, e.capacidade,
     COUNT(pe.num_cartao) AS total_inscritos
 FROM evento@zeventosdb e
 LEFT JOIN participacao_evento@zeventosdb pe ON e.id_evento = pe.id_evento
-GROUP BY
-    e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
-    e.publico_alvo, e.capacidade;
+GROUP BY e.id_evento, e.titulo_evento, e.data_evento,
+         e.status_evento, e.publico_alvo, e.capacidade;
 /
-*/
 
--- ── VW_AUDITORIA (sempre local — não tem versão remota) ─────
+-- ── VW_AUDITORIA (sempre local) ─────────────────────────────
 CREATE OR REPLACE VIEW VW_AUDITORIA AS
 SELECT
-    id_auditoria,
-    data_operacao,
-    operacao,
-    cod_funcionario,
-    objeto_afetado,
-    resultado,
-    motivo_falha,
-    nos_afetados,
-    observacoes,
+    id_auditoria, data_operacao, operacao, cod_funcionario,
+    objeto_afetado, resultado, motivo_falha, nos_afetados, observacoes,
     'NACIONAL' AS no_origem
 FROM AUDITORIA_OPERACOES;
 /
