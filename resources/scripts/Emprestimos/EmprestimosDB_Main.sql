@@ -1,5 +1,5 @@
 -- ============================================================
--- EmprestimosDB_Main.sql — Script de instalacao completo
+-- EmprestimosDB_Main.sql ï¿½ Script de instalacao completo
 -- Executar como SYSDBA:
 --   sqlplus / as sysdba @/root/TP/EmprestimosDB_Main.sql
 -- ============================================================
@@ -16,21 +16,11 @@
 -- 4. Auditoria nativa (SYSDBA)
 @/root/TP/EmprestimosDB_Auditoria_SYSDBA.sql
 
--- Passa para o schema owner — o resto corre como usr_emprestimosdb
+-- Passa para o schema owner ï¿½ o resto corre como usr_emprestimosdb
 CONNECT usr_emprestimosdb/YC20220156
 
 -- 5. Database Links
-CREATE DATABASE LINK nacionaldb
-  CONNECT TO app_emprestimosdb IDENTIFIED BY "HTAJnr#22041"
-  USING 'NACIONALDB';
-
-CREATE DATABASE LINK materiaisdb
-  CONNECT TO app_emprestimosdb IDENTIFIED BY "YM20240260"
-  USING 'MATERIAISDB';
-
-CREATE DATABASE LINK eventosdb
-  CONNECT TO app_emprestimosdb IDENTIFIED BY "appev1234"
-  USING 'EVENTOSDB';
+@/root/TP/EmprestimosDB_Database_Links.sql
 
 -- 6. Snapshots (depende dos database links)
 @/root/TP/EmprestimosDB_Snapshots.sql
