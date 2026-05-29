@@ -1,138 +1,137 @@
 # Saber Comunitário
 
-Sistema de Gestão de Bibliotecas Comunitárias Distribuído — Trabalho Prático BD2 (ISCTEM).
-Node.js + Express + Oracle 10g XE · Frontend vanilla HTML/JS · BD distribuída em 4 nós.
+Sistema de Gestão de Bibliotecas Comunitárias Distribuído — Trabalho Prático BD2 (ISCTEM).  
+Node.js + Express + Oracle 10g XE · Frontend vanilla HTML/JS · Base de dados distribuída em 4 nós Oracle.
 
 ---
 
-## Pré-requisitos
+## Arquitectura do sistema
 
-| Ferramenta | Versão mínima | Notas |
-|---|---|---|
-| [Node.js](https://nodejs.org/) | 18 LTS | Inclui npm |
-| [Oracle Instant Client Basic](https://www.oracle.com/database/technologies/instant-client/downloads.html) | 21.x | **Obrigatório** — modo espesso (thick) |
-| Git | qualquer | Para clonar e gerir branches |
-| VM CentOS 6.8 com Oracle XE | — | Fornecida pelo professor |
+O sistema é composto por quatro nós Oracle independentes, cada um a correr numa VM CentOS 6.8, e por uma aplicação web que acede ao nó principal via driver `oracledb`.
 
----
+| Nó | Schema | VM | Módulo |
+|---|---|---|---|
+| BibliotecaNacionalDB | `usr_NACIONALDB` | VM Hélder | Leitores, funcionários, bibliotecas |
+| MateriaisDB | `usr_materiaisdb` | VM Yasin | Materiais, transferências, doações |
+| EmpréstimosDB | `usr_emprestimosdb` | VM Yannis | Empréstimos, multas, programas |
+| EventosBibliotecasDB | `usr_eventosdb` | VM Gerson | Eventos, participações, horários |
 
-## 1 · Oracle Instant Client
-
-O driver `oracledb` usa o modo espesso, que exige os binários nativos do Instant Client instalados na máquina.
-
-### Windows
-
-1. Descarrega o **Basic Package (ZIP)** para Windows 64-bit:  
-   [oracle.com → Instant Client → Windows x86-64](https://www.oracle.com/database/technologies/instant-client/winx64-64-downloads.html)
-
-2. Descomprime o ZIP directamente em `C:\instantclient_21_20`  
-   (o nome da pasta tem de coincidir com o que puseres em `INSTANT_CLIENT_PATH` no `.env`)
-
-3. Adiciona a pasta ao `PATH` do sistema:  
-   - Pesquisa **"Variáveis de ambiente"** no menu Iniciar  
-   - Em **Variáveis do sistema** → `Path` → **Editar** → **Novo** → `C:\instantclient_21_20`  
-   - Clica OK em tudo e abre um novo terminal
-
-4. Verifica:
-   ```cmd
-   where oci.dll
-   ```
-   Deve devolver `C:\instantclient_21_20\oci.dll`.
-
-> **Alternativa rápida:** se não quiseres mexer no PATH do sistema, define correctamente o `INSTANT_CLIENT_PATH` no `.env` — o `db.js` chama `oracledb.initOracleClient({ libDir })` com esse caminho.
+Os nós comunicam entre si através de **Database Links** Oracle e partilham dados via **Snapshots** (Materialized Views) e **Sinónimos públicos**.
 
 ---
 
-### macOS
+## Instalação da base de dados
 
-1. Descarrega o **Basic Package (ZIP)**:
-   - Intel (x86_64): [Instant Client macOS Intel](https://www.oracle.com/database/technologies/instant-client/macos-intel-x86-downloads.html)
-   - Apple Silicon (ARM64): [Instant Client macOS ARM64](https://www.oracle.com/database/technologies/instant-client/macos-arm64-downloads.html)
+### Pré-requisito único (1 vez, antes da primeira instalação em cada VM)
 
-2. Descomprime para `~/instantclient_21_20` ou `/opt/oracle/instantclient_21_20`
-
-3. Adiciona à biblioteca dinâmica:
-   ```bash
-   export DYLD_LIBRARY_PATH=~/instantclient_21_20:$DYLD_LIBRARY_PATH
-   ```
-   Para persistir, adiciona essa linha ao `~/.zshrc` (ou `~/.bash_profile`) e executa `source ~/.zshrc`.
-
-4. macOS Catalina ou superior — remove a quarentena dos binários:
-   ```bash
-   xattr -d com.apple.quarantine ~/instantclient_21_20/*.dylib 2>/dev/null || true
-   ```
-
-5. Actualiza `INSTANT_CLIENT_PATH` no `.env`:
-   ```
-   INSTANT_CLIENT_PATH=/Users/<teu-utilizador>/instantclient_21_20
-   ```
-
----
-
-### Linux
-
-**Opção A — RPM (Red Hat / CentOS / Fedora):**
-```bash
-sudo rpm -ivh oracle-instantclient21.20-basic-21.20.0.0.0-1.x86_64.rpm
-# Caminho instalado: /usr/lib/oracle/21.20/client64/lib
+```sql
+ALTER SYSTEM SET audit_trail = 'DB' SCOPE = SPFILE;
+SHUTDOWN IMMEDIATE;
+STARTUP;
 ```
 
-**Opção B — ZIP:**
+### Instalar cada nó
+
+Em cada VM, copiar todos os ficheiros da pasta correspondente para `/root/TP/` (ou o caminho configurado nos scripts) e executar o script principal como SYSDBA:
+
+**BibliotecaNacionalDB** (VM do Hélder):
 ```bash
-mkdir -p /opt/oracle
-cd /opt/oracle
-unzip instantclient-basic-linux.x64-21.20.0.0.0.zip
-# Fica em /opt/oracle/instantclient_21_20
+sqlplus sys/"bd2.isctem" as sysdba @/root/TP/BibNacional_Main.sql
 ```
 
-Configura a biblioteca dinâmica (permanente):
+**MateriaisDB** (VM do Yasin):
+```bash
+export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+sqlplus sys/bd2.isctem as sysdba @/root/No_MateriaisDB/MateriaisDB_Main.sql
+```
+
+**EmpréstimosDB** (VM do Yannis):
+```bash
+sqlplus / as sysdba @/root/TP/EmprestimosDB_Main.sql
+```
+
+**EventosBibliotecasDB** (VM do Gerson):
+```bash
+sqlplus sys/bd2.isctem as sysdba @/root/TP/EventosDB_Main.sql
+```
+
+O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → snapshots → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
+
+> **Nota sobre snapshots:** os snapshots de cada nó dependem de grants concedidos por outros nós. Após todos os nós estarem instalados e os grants cross-node aplicados, os snapshots comentados nos scripts `*_Main.sql` podem ser descomentados e executados.
+
+---
+
+## Scripts SQL — estrutura de cada nó
+
+```
+resources/scripts/
+├── BibliotecaNacional/
+│   ├── BibNacional_Main.sql         ← ponto de entrada (executar este)
+│   ├── BibNacional_Tablespaces.sql
+│   ├── BibNacional_Users.sql
+│   ├── BibNacional_Roles.sql
+│   ├── BibNacional_Database_Links.sql
+│   ├── BibNacional_Snapshots.sql
+│   ├── BibNacional_Synonyms.sql
+│   ├── BibNacional_Create.sql
+│   ├── BibNacional_Sequences.sql
+│   ├── BibNacional_Views.sql
+│   ├── BibNacional_Functions.sql
+│   ├── BibNacional_Procedures.sql
+│   ├── BibNacional_Triggers.sql
+│   ├── BibNacional_Indexes.sql
+│   ├── BibNacional_Grants.sql
+│   ├── BibNacional_Intro.sql        ← dados iniciais
+│   └── BibNacional_Audit.sql
+├── MateriaisDB/        (estrutura idêntica, prefixo MateriaisDB_)
+├── Emprestimos/        (estrutura idêntica, prefixo EmprestimosDB_)
+└── Eventos/            (estrutura idêntica, prefixo EventosDB_)
+```
+
+---
+
+## Instalação da aplicação web
+
+### Pré-requisitos
+
+| Ferramenta | Versão mínima |
+|---|---|
+| Node.js | 18 LTS |
+| Oracle Instant Client Basic | 21.x |
+
+### Oracle Instant Client
+
+O driver `oracledb` usa o modo espesso, que exige os binários nativos do Instant Client.
+
+**Windows:** descarregar o Basic Package (ZIP) de [oracle.com](https://www.oracle.com/database/technologies/instant-client/winx64-64-downloads.html), descomprimir em `C:\instantclient_21_20` e adicionar essa pasta ao `PATH` do sistema.
+
+**macOS:** descomprimir em `~/instantclient_21_20` e adicionar ao `DYLD_LIBRARY_PATH`:
+```bash
+export DYLD_LIBRARY_PATH=~/instantclient_21_20:$DYLD_LIBRARY_PATH
+```
+
+**Linux:**
 ```bash
 sudo sh -c "echo /opt/oracle/instantclient_21_20 > /etc/ld.so.conf.d/oracle-instantclient.conf"
 sudo ldconfig
 ```
 
-Ou por sessão:
-```bash
-export LD_LIBRARY_PATH=/opt/oracle/instantclient_21_20:$LD_LIBRARY_PATH
-```
+### Configurar o ficheiro `.env`
 
-Actualiza `INSTANT_CLIENT_PATH` no `.env`:
-```
-INSTANT_CLIENT_PATH=/opt/oracle/instantclient_21_20
-```
+Copiar `backend/.env.example` para `backend/.env` e preencher:
 
----
-
-## 2 · Configurar o .env
-
-Recebeste um ficheiro `backend/.env.example`. Renomeia-o para `.env`:
-
-```bash
-# Windows
-copy backend\.env.example backend\.env
-
-# macOS / Linux
-cp backend/.env.example backend/.env
-```
-
-Depois edita `backend/.env` com os teus valores:
-
-| Variável | Significado | Exemplo |
+| Variável | Descrição | Exemplo |
 |---|---|---|
-| `DB_HOST` | IP da VM CentOS onde corre o Oracle XE | `172.20.10.11` |
-| `DB_PORT` | Porta Oracle (padrão) | `1521` |
-| `DB_SERVICE` | Nome do serviço Oracle | `XE` |
-| `DB_USER` | Utilizador da base de dados | `JnrLite` |
-| `DB_PASSWORD` | Palavra-passe do utilizador | `1234` |
-| `INSTANT_CLIENT_PATH` | Caminho absoluto para o Instant Client | `C:/instantclient_21_20` |
-| `PORT` | Porta do servidor Express | `3000` |
-| `NLS_LANG` | Charset Oracle (não alterar) | `AMERICAN_AMERICA.AL32UTF8` |
+| `DB_HOST` | IP da VM Oracle | `172.20.10.11` |
+| `DB_PORT` | Porta Oracle | `1521` |
+| `DB_SERVICE` | Nome do serviço | `XE` |
+| `DB_USER` | Utilizador do schema | `usr_NACIONALDB` |
+| `DB_PASSWORD` | Palavra-passe | `HTAJnr#020403` |
+| `INSTANT_CLIENT_PATH` | Caminho do Instant Client | `C:/instantclient_21_20` |
+| `PORT` | Porta da aplicação | `3000` |
+| `NLS_LANG` | Charset (não alterar) | `AMERICAN_AMERICA.AL32UTF8` |
 
-> `INSTANT_CLIENT_PATH` usa barras `/` mesmo no Windows — o Node.js aceita nos dois sentidos, mas o driver Oracle prefere `/`.
-
----
-
-## 3 · Instalar dependências e arrancar
+### Arrancar a aplicação
 
 ```bash
 cd backend
@@ -140,51 +139,16 @@ npm install
 npm start
 ```
 
-Para desenvolvimento com reinício automático em cada alteração de ficheiro:
-```bash
-npm run dev
-```
-
 Abre o browser em **http://localhost:3000**
 
 ---
 
-## 4 · Login de demonstração
-
-Para testar o frontend **sem base de dados**, usa:
-
-| Campo | Valor |
-|---|---|
-| Email | `demo@biblioteca.mz` |
-| Palavra-passe | `demo` |
-
-Este utilizador é simulado em memória (`auth.js`) e não faz qualquer query à BD — útil para ver o layout enquanto a VM não está disponível.
-
----
-
-## 5 · Scripts Oracle (inicializar a BD)
-
-Os scripts SQL estão em `resources/scripts/`. Executa na VM CentOS com `sqlplus` na seguinte ordem:
-
-```sql
-@Main.sql          -- Cria tablespaces, utilizadores, permissões
-@Sequences.sql     -- Sequências para PKs automáticas
-@Functions.sql     -- Funções PL/SQL
-@Procedures.sql    -- Procedures PL/SQL
-@Triggers.sql      -- Triggers de negócio
-@Views.sql         -- Vistas e fragmentos
-@Indexes.sql       -- Índices de desempenho
-@Biblioteca_Intro.sql  -- Dados iniciais (bibliotecas, funcionários de teste)
-```
-
----
-
-## 6 · Estrutura do projecto
+## Estrutura do projecto
 
 ```
 TP_BD2_WEB/
 ├── backend/
-│   ├── .env.example        ← copia para .env e preenche
+│   ├── .env.example
 │   ├── server.js           ← ponto de entrada Express
 │   ├── db.js               ← ligação Oracle (thick mode)
 │   ├── middleware/
@@ -199,90 +163,50 @@ TP_BD2_WEB/
 │       ├── doacoes.js
 │       ├── transferencias.js
 │       ├── programas.js
-│       ├── bibliotecas.js
-│       └── ...
+│       └── bibliotecas.js
 ├── frontend/
-│   ├── index.html          ← SPA única — tudo é injectado aqui
+│   ├── index.html          ← SPA — toda a interface é injectada aqui
 │   ├── css/style.css
-│   ├── js/
-│   │   ├── componentes.js  ← helpers partilhados (carrega PRIMEIRO)
-│   │   ├── dashboard.js
-│   │   ├── leitores.js
-│   │   ├── materiais.js
-│   │   ├── emprestimos.js
-│   │   ├── eventos.js
-│   │   ├── doacoes.js
-│   │   ├── transferencias.js
-│   │   ├── programas.js
-│   │   └── main.js         ← estado global e router (carrega POR ÚLTIMO)
-│   └── sections/           ← templates HTML injectados pelo router
+│   └── js/
+│       ├── componentes.js  ← helpers partilhados (carrega primeiro)
+│       ├── dashboard.js
+│       ├── leitores.js
+│       ├── materiais.js
+│       ├── emprestimos.js
+│       ├── eventos.js
+│       ├── doacoes.js
+│       ├── transferencias.js
+│       ├── programas.js
+│       └── main.js         ← estado global e router (carrega por último)
 └── resources/
-    ├── docs/               ← DD v3, Regras de Negócio, Enunciado PDF
-    └── scripts/            ← scripts SQL Oracle
+    ├── docs/               ← Dicionário de Dados, Regras de Negócio, Enunciado
+    └── scripts/            ← scripts SQL Oracle (4 nós)
 ```
 
 ---
 
-## 7 · Níveis de acesso
+## Níveis de acesso
 
-| Nível | Descrição resumida |
+| Nível | Descrição |
 |---|---|
 | `Administrador` | Acesso total — rede, bibliotecas, funcionários, permissões |
-| `Coordenador` | Gestão operacional completa da sua biblioteca |
+| `Coordenador` | Gestão operacional completa da biblioteca |
 | `Bibliotecario` | Operações do dia-a-dia — materiais, empréstimos, eventos |
 | `Assistente` | Consulta e operações básicas de atendimento |
 
 ---
 
-## 8 · Workflow de colaboração (Git)
+## Login de demonstração
 
-### Branches
+Para testar o frontend sem base de dados configurada:
 
-Cada membro trabalha na sua branch dedicada:
+| Campo | Valor |
+|---|---|
+| Email | `demo@biblioteca.mz` |
+| Palavra-passe | `demo` |
 
-| Membro | Branch | Nó de BD |
-|---|---|---|
-| Yasin | `feature/yasin-materiais` | MateriaisDB |
-| Yannis | `feature/yannis-emprestimos` | EmpréstimosDB |
-| Hélder | `feature/helder-biblioteca-nacional` | BibliotecaNacionalDB |
-| Gerson | `feature/gerson-eventos` | EventosBibliotecasDB |
+Este utilizador é simulado em memória e não efectua qualquer query à base de dados.
 
-### Regras
-
-- **Nunca faças push directamente para `main`** — só via Pull Request
-- Trabalha exclusivamente na tua branch
-- Só abres PR quando o código compila e testaste manualmente
-- Antes de abrir PR, sincroniza com `main`:
-  ```bash
-  git fetch origin
-  git merge origin/main
-  ```
-
-### Comandos do dia-a-dia
-
-```bash
-# Clonar e ir para a tua branch
-git clone <url-do-repositorio>
-git checkout feature/<tua-branch>
-
-# Fazer commit do teu trabalho
-git add backend/routes/materiais.js
-git commit -m "feat(materiais): trigger de protecção de transferência RN06"
-
-# Publicar e abrir Pull Request
-git push origin feature/<tua-branch>
-# → GitHub → Compare & pull request
-```
-
-### Branch protection no GitHub (configurar pelo dono do repo)
-
-1. Repositório → **Settings** → **Branches** → **Add branch ruleset**
-2. Target: `main`
-3. Activar:
-   - ✅ Require a pull request before merging
-   - ✅ Require at least 1 approval
-   - ✅ Do not allow bypassing the above settings
-     
 ---
 
 ## Dependências do backend
@@ -291,7 +215,7 @@ git push origin feature/<tua-branch>
 |---|---|---|
 | `express` | ^4.19.2 | Framework REST API |
 | `oracledb` | ^6.6.0 | Driver Oracle (thick mode) |
-| `dotenv` | ^16.4.5 | Carregar variáveis do `.env` |
-| `cors` | ^2.8.5 | Cross-origin para o frontend |
-| `express-session` | ^1.19.0 | Gestão de sessão do utilizador |
+| `dotenv` | ^16.4.5 | Variáveis de ambiente |
+| `cors` | ^2.8.5 | Cross-origin |
+| `express-session` | ^1.19.0 | Gestão de sessão |
 | `bcryptjs` | ^3.0.3 | Hash de palavras-passe |

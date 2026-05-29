@@ -123,7 +123,31 @@ BEGIN
 END;
 /
 
--- Verificar
-SELECT OBJECT_NAME, STATUS FROM USER_OBJECTS
-WHERE OBJECT_TYPE = 'TRIGGER'
-ORDER BY OBJECT_NAME;
+-- ============================================================
+-- TRIGGERS DE AUTO-INCREMENTO — ausentes no ficheiro original
+-- ============================================================
+
+-- AVALIACAO_EVENTO: SEQ_AVALIACAO.NEXTVAL
+-- Nota: o backend tambem usa SEQ_AVALIACAO.NEXTVAL directamente no INSERT;
+-- este trigger e' uma barreira de seguranca para insercoes directas na BD
+CREATE OR REPLACE TRIGGER trg_avaliacao_id
+BEFORE INSERT ON AVALIACAO_EVENTO
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_avaliacao IS NULL THEN
+        SELECT SEQ_AVALIACAO.NEXTVAL INTO :NEW.id_avaliacao FROM DUAL;
+    END IF;
+END;
+/
+
+-- EVENTO_RECURSO: SEQ_RECURSO.NEXTVAL
+CREATE OR REPLACE TRIGGER trg_recurso_id
+BEFORE INSERT ON EVENTO_RECURSO
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_recurso IS NULL THEN
+        SELECT SEQ_RECURSO.NEXTVAL INTO :NEW.id_recurso FROM DUAL;
+    END IF;
+END;
+/
+

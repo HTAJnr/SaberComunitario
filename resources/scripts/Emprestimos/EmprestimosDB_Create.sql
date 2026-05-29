@@ -10,6 +10,7 @@ DROP TABLE PROGRAMA_ALFABETIZACAO CASCADE CONSTRAINTS;
 DROP TABLE SUSPENSAO              CASCADE CONSTRAINTS;
 DROP TABLE EMPRESTIMO             CASCADE CONSTRAINTS;
 DROP TABLE REPL_FUNCIONARIOS      CASCADE CONSTRAINTS;
+DROP TABLE AUDITORIA_EMPRESTIMOS  CASCADE CONSTRAINTS;
 
 -- ------------------------------------------------------------
 -- REPL_FUNCIONARIOS
@@ -123,7 +124,7 @@ ALTER TABLE NIVEL_PROGRESSAO ADD CONSTRAINT fk_nivel_programa
 
 -- ------------------------------------------------------------
 -- PROGRAMA_MATERIAL (N:M)
--- Materiais associados a programas (cod_material logico — sem FK DDL)
+-- Materiais associados a programas (cod_material logico ï¿½ sem FK DDL)
 -- ------------------------------------------------------------
 CREATE TABLE PROGRAMA_MATERIAL (
     cod_programa VARCHAR2(18)  NOT NULL,
@@ -155,7 +156,7 @@ ALTER TABLE PROGRAMA_FUNCIONARIO ADD CONSTRAINT chk_papel_prog_func
 
 -- ------------------------------------------------------------
 -- PARTICIPACAO_PROGRAMA
--- PK composta (num_cartao, cod_programa) — sem sequencia
+-- PK composta (num_cartao, cod_programa) ï¿½ sem sequencia
 -- estado_participacao: 'Activo','Concluido','Desistiu'
 -- ------------------------------------------------------------
 CREATE TABLE PARTICIPACAO_PROGRAMA (
@@ -175,5 +176,27 @@ ALTER TABLE PARTICIPACAO_PROGRAMA ADD CONSTRAINT fk_part_nivel
     FOREIGN KEY (id_nivel_atual) REFERENCES NIVEL_PROGRESSAO(id_nivel);
 ALTER TABLE PARTICIPACAO_PROGRAMA ADD CONSTRAINT chk_estado_participacao
     CHECK (estado_participacao IN ('Activo','Concluido','Desistiu'));
+
+-- ------------------------------------------------------------
+-- AUDITORIA_EMPRESTIMOS
+-- Registo manual de operacoes criticas (criacao, devolucao, suspensao)
+-- Populada pela procedure prc_registar_auditoria (AUTONOMOUS_TRANSACTION)
+-- ------------------------------------------------------------
+CREATE TABLE AUDITORIA_EMPRESTIMOS (
+    id_auditoria   NUMBER        NOT NULL,
+    data_operacao  DATE          DEFAULT SYSDATE NOT NULL,
+    operacao       VARCHAR2(50)  NOT NULL,
+    num_cartao     VARCHAR2(12),
+    cod_material   VARCHAR2(12),
+    id_emprestimo  NUMBER,
+    resultado      VARCHAR2(10)  NOT NULL,
+    motivo_falha   VARCHAR2(300),
+    nos_afetados   VARCHAR2(200),
+    observacoes    VARCHAR2(300)
+) TABLESPACE tbs_emprestimosdb;
+ALTER TABLE AUDITORIA_EMPRESTIMOS ADD CONSTRAINT auditoria_emp_pk
+    PRIMARY KEY (id_auditoria);
+ALTER TABLE AUDITORIA_EMPRESTIMOS ADD CONSTRAINT chk_resultado_emp
+    CHECK (resultado IN ('SUCESSO','FALHA'));
 
 COMMIT;

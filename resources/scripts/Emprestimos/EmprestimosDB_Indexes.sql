@@ -41,3 +41,10 @@ CREATE INDEX inivel_prog ON NIVEL_PROGRESSAO(cod_programa) TABLESPACE tbs_empres
 -- ------------------------------------------------------------
 CREATE INDEX ipart_prg   ON PARTICIPACAO_PROGRAMA(cod_programa)        TABLESPACE tbs_emprestimosdb_idx;
 CREATE INDEX ipart_est   ON PARTICIPACAO_PROGRAMA(estado_participacao) TABLESPACE tbs_emprestimosdb_idx;
+
+-- ------------------------------------------------------------
+-- AUDITORIA_EMPRESTIMOS
+-- ------------------------------------------------------------
+CREATE INDEX iaud_emp_cartao ON AUDITORIA_EMPRESTIMOS(num_cartao)    TABLESPACE tbs_emprestimosdb_idx;
+CREATE INDEX iaud_emp_data   ON AUDITORIA_EMPRESTIMOS(data_operacao) TABLESPACE tbs_emprestimosdb_idx;
+CREATE INDEX iaud_emp_res    ON AUDITORIA_EMPRESTIMOS(resultado)     TABLESPACE tbs_emprestimosdb_idx;

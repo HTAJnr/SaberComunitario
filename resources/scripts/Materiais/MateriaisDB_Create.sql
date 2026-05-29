@@ -188,39 +188,4 @@ ALTER TABLE AUDITORIA_MATERIAIS
     CHECK (resultado IN ('SUCESSO', 'FALHA'));
 
 
--- ============================================================
--- INDICES NA TABLESPACE DE INDICES
--- ============================================================
-CREATE INDEX idx_mat_titulo
-    ON MATERIAL_BIBLIOGRAFICO (titulo)
-    TABLESPACE tbs_MATERIAISDB_idx;
-
-CREATE INDEX idx_mat_biblioteca
-    ON MATERIAL_BIBLIOGRAFICO (cod_biblioteca)
-    TABLESPACE tbs_MATERIAISDB_idx;
-
-CREATE INDEX idx_mat_estado
-    ON MATERIAL_BIBLIOGRAFICO (estado_material_conservacao)
-    TABLESPACE tbs_MATERIAISDB_idx;
-
-CREATE INDEX idx_mat_categoria
-    ON MATERIAL_BIBLIOGRAFICO (cod_categoria)
-    TABLESPACE tbs_MATERIAISDB_idx;
-
-CREATE INDEX iaud_mat_material
-    ON AUDITORIA_MATERIAIS (cod_material)
-    TABLESPACE tbs_MATERIAISDB_idx;
-
-CREATE INDEX iaud_mat_transf
-    ON AUDITORIA_MATERIAIS (id_transferencia)
-    TABLESPACE tbs_MATERIAISDB_idx;
-
-CREATE INDEX iaud_mat_data
-    ON AUDITORIA_MATERIAIS (data_operacao)
-    TABLESPACE tbs_MATERIAISDB_idx;
-
-CREATE INDEX iaud_mat_res
-    ON AUDITORIA_MATERIAIS (resultado)
-    TABLESPACE tbs_MATERIAISDB_idx;
-
 

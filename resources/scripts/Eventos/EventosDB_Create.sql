@@ -137,8 +137,3 @@ CREATE TABLE AUDITORIA_EVENTOS (
     CONSTRAINT pk_auditoria_evt PRIMARY KEY (id_auditoria),
     CONSTRAINT chk_resultado_evt CHECK (resultado IN ('SUCESSO','FALHA'))
 ) TABLESPACE tbs_eventosdb;
-
--- Verificar
-SELECT TABLE_NAME, TABLESPACE_NAME
-FROM USER_TABLES
-ORDER BY TABLE_NAME;

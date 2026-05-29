@@ -17,10 +17,3 @@ AS
 SELECT cod_funcionario, nome_funcionario,
        cod_biblioteca, nivel_acesso
 FROM vw_replica_funcionarios@link_nacionaldb;
-
--- Verificar
-SELECT MVIEW_NAME, REFRESH_MODE, LAST_REFRESH_DATE
-FROM USER_MVIEWS;
-
-SELECT COUNT(*) AS funcionarios_replicados
-FROM repl_funcionarios;

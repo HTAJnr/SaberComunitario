@@ -1,29 +1,51 @@
 -- ============================================
--- ROLES E PRIVILÉGIOS - EventosBibliotecasDB
+-- ROLES E PRIVILï¿½GIOS - EventosBibliotecasDB
 -- Executar como SYSDBA
 -- ============================================
 
 CREATE ROLE role_eventosdb_read;
 CREATE ROLE role_eventosdb_write;
 
--- Privilégios de sessão
+-- Privilï¿½gios de sessï¿½o
 GRANT CREATE SESSION TO usr_eventosdb;
 GRANT CREATE SESSION TO app_eventosdb;
 
--- Privilégios DDL ao utilizador principal
+-- Privilï¿½gios DDL ao utilizador principal
 GRANT CREATE TABLE, CREATE VIEW, CREATE SEQUENCE,
       CREATE TRIGGER, CREATE PROCEDURE, CREATE SYNONYM
 TO usr_eventosdb;
 
--- Privilégio para database links
+-- Privilï¿½gio para database links
 GRANT CREATE DATABASE LINK TO usr_eventosdb;
 
--- Privilégio para materialized views (snapshots)
+-- Privilï¿½gio para materialized views (snapshots)
 GRANT CREATE MATERIALIZED VIEW TO usr_eventosdb;
 
--- Role de leitura ao utilizador de aplicação
+-- Role de leitura ao utilizador de aplicaï¿½ï¿½o
 GRANT role_eventosdb_read TO app_eventosdb;
 
--- Verificar
-SELECT GRANTEE, GRANTED_ROLE FROM DBA_ROLE_PRIVS
-WHERE GRANTEE IN ('USR_EVENTOSDB','APP_EVENTOSDB');
+-- ============================================================
+-- VISITOR USERS â€” utilizadores criados neste no para os outros nos
+-- Executar como SYSDBA
+-- ============================================================
+
+-- Para o Helder (BibliotecaNacionalDB)
+DROP USER app_nacionaldb CASCADE;
+CREATE USER app_nacionaldb IDENTIFIED BY HTAJnr#22041
+    DEFAULT TABLESPACE tbs_eventosdb
+    TEMPORARY TABLESPACE TEMP;
+GRANT CREATE SESSION TO app_nacionaldb;
+
+-- Para o Yannis (EmprestimosDB)
+DROP USER app_emprestimosdb CASCADE;
+CREATE USER app_emprestimosdb IDENTIFIED BY YC20220156
+    DEFAULT TABLESPACE tbs_eventosdb
+    TEMPORARY TABLESPACE TEMP;
+GRANT CREATE SESSION TO app_emprestimosdb;
+
+-- Para o Yasin (MateriaisDB)
+DROP USER app_materiaisdb CASCADE;
+CREATE USER app_materiaisdb IDENTIFIED BY YM20240260
+    DEFAULT TABLESPACE tbs_eventosdb
+    TEMPORARY TABLESPACE TEMP;
+GRANT CREATE SESSION TO app_materiaisdb;

@@ -21,9 +21,6 @@ CREATE DATABASE LINK link_emprestimosdb
     CONNECT TO app_eventosdb IDENTIFIED BY appev1234
     USING 'Emprestimosdb';
 
--- Verificar
-SELECT DB_LINK, USERNAME, HOST FROM USER_DB_LINKS;
-
 -- Testar conectividade (so funciona com VMs ligadas)
 -- SELECT SYSDATE FROM DUAL@link_nacionaldb;
 -- SELECT SYSDATE FROM DUAL@link_materiaisdb;

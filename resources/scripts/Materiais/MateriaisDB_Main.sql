@@ -8,11 +8,9 @@
 -- IMPORTANTE: Definir charset antes de executar:
 --   export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 --
--- PRE-REQUISITO — Auditoria Oracle nativa (1 vez):
---   1. ALTER SYSTEM SET audit_trail = 'DB' SCOPE = SPFILE;
---   2. SHUTDOWN IMMEDIATE;
---   3. STARTUP;
---   4. sqlplus sys/bd2.isctem as sysdba @/root/No_MateriaisDB/MateriaisDB_AuditoriaNativa.sql
+-- PRE-REQUISITO (1 vez, antes do primeiro install):
+--   ALTER SYSTEM SET audit_trail = 'DB' SCOPE = SPFILE;
+--   SHUTDOWN IMMEDIATE; STARTUP;
 -- ============================================================
 
 
@@ -47,13 +45,13 @@ CONNECT usr_materiaisdb/YM20240260
 
 
 -- ------------------------------------------------------------
--- 5. Sinonimos publicos — remotos e locais (usr_materiaisdb)
+-- 5. Sinonimos publicos (usr_materiaisdb)
 -- ------------------------------------------------------------
 @/root/No_MateriaisDB/MateriaisDB_Synonyms.sql
 
 
 -- ------------------------------------------------------------
--- 6. Tabelas, constraints e indices (usr_materiaisdb)
+-- 6. Tabelas e constraints (usr_materiaisdb)
 -- ------------------------------------------------------------
 @/root/No_MateriaisDB/MateriaisDB_Create.sql
 
@@ -71,49 +69,54 @@ CONNECT usr_materiaisdb/YM20240260
 
 
 -- ------------------------------------------------------------
--- 9. Procedures (usr_materiaisdb)
+-- 9. Funcoes (usr_materiaisdb)
+-- ------------------------------------------------------------
+@/root/No_MateriaisDB/MateriaisDB_Functions.sql
+
+
+-- ------------------------------------------------------------
+-- 10. Procedures (usr_materiaisdb)
 -- ------------------------------------------------------------
 @/root/No_MateriaisDB/MateriaisDB_Procedures.sql
 
 
 -- ------------------------------------------------------------
--- 10. Triggers (usr_materiaisdb)
+-- 11. Triggers (usr_materiaisdb)
 -- ------------------------------------------------------------
 @/root/No_MateriaisDB/MateriaisDB_Triggers.sql
 
 
 -- ------------------------------------------------------------
--- 11. GRANTs (usr_materiaisdb)
+-- 12. Indices (usr_materiaisdb)
+-- ------------------------------------------------------------
+@/root/No_MateriaisDB/MateriaisDB_Indexes.sql
+
+
+-- ------------------------------------------------------------
+-- 13. GRANTs (usr_materiaisdb)
 -- ------------------------------------------------------------
 @/root/No_MateriaisDB/MateriaisDB_Grants.sql
 
 
 -- ------------------------------------------------------------
--- 12. Dados iniciais (usr_materiaisdb)
+-- 14. Dados iniciais (usr_materiaisdb)
 -- ------------------------------------------------------------
 @/root/No_MateriaisDB/MateriaisDB_Intro.sql
 
 
 -- ------------------------------------------------------------
--- Scripts de manutencao (NAO fazem parte da instalacao)
---
--- Auditoria nativa (1 vez, apos activar audit_trail=DB):
---   sqlplus sys/bd2.isctem as sysdba @/root/No_MateriaisDB/MateriaisDB_AuditoriaNativa.sql
---
--- Snapshots (quando nos remotos estiverem disponiveis):
---   sqlplus usr_materiaisdb/YM20240260 @/root/No_MateriaisDB/MateriaisDB_Snapshots.sql
---
--- Backup:
---   sqlplus sys/bd2.isctem as sysdba @/root/No_MateriaisDB/MateriaisDB_Backup.sql
---
--- Recovery:
---   sqlplus sys/bd2.isctem as sysdba @/root/No_MateriaisDB/MateriaisDB_Recovery.sql
---
--- Limpeza completa:
---   sqlplus usr_materiaisdb/YM20240260 @/root/No_MateriaisDB/MateriaisDB_Drop.sql
+-- 15. Snapshots (so executar apos grants dos outros nos)
 -- ------------------------------------------------------------
+-- @/root/No_MateriaisDB/MateriaisDB_Snapshots.sql
 
 
 -- ------------------------------------------------------------
+-- 16. Auditoria Oracle nativa (requer SYSDBA)
+-- ------------------------------------------------------------
+CONNECT sys/bd2.isctem as sysdba
+@/root/No_MateriaisDB/MateriaisDB_Auditoria.sql
+
+
+-- ============================================================
 -- FIM DA INSTALACAO
 -- ============================================================

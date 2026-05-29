@@ -1,5 +1,5 @@
 -- ============================================================
--- EmprestimosDB_Main.sql � Script de instalacao completo
+-- EmprestimosDB_Main.sql — Script de instalacao completo
 -- Executar como SYSDBA:
 --   sqlplus / as sysdba @/root/TP/EmprestimosDB_Main.sql
 -- ============================================================
@@ -13,47 +13,45 @@
 -- 3. Roles, privilegios e visitor users
 @/root/TP/EmprestimosDB_Roles.sql
 
--- 4. Auditoria nativa (SYSDBA)
-@/root/TP/EmprestimosDB_Auditoria_SYSDBA.sql
-
--- Passa para o schema owner � o resto corre como usr_emprestimosdb
+-- Passa para o schema owner — o resto corre como usr_emprestimosdb
 CONNECT usr_emprestimosdb/YC20220156
 
--- 5. Database Links
+-- 4. Database Links
 @/root/TP/EmprestimosDB_Database_Links.sql
 
--- 6. Snapshots (depende dos database links)
+-- 5. Snapshots (depende dos database links)
 @/root/TP/EmprestimosDB_Snapshots.sql
 
--- 7. Sinonimos (depende dos database links e snapshots)
+-- 6. Sinonimos (depende dos database links e snapshots)
 @/root/TP/EmprestimosDB_Synonyms.sql
 
--- 8. Estruturas base (tabelas + constraints)
+-- 7. Estruturas base (tabelas + constraints, inclui AUDITORIA_EMPRESTIMOS)
 @/root/TP/EmprestimosDB_Create.sql
 
--- 9. Sequencias
+-- 8. Sequencias (inclui SEQ_AUDITORIA_EMP)
 @/root/TP/EmprestimosDB_Sequences.sql
 
--- 10. Views (inclui fragmentacao mista)
+-- 9. Views (inclui fragmentacao mista e VW_AUDITORIA)
 @/root/TP/EmprestimosDB_Views.sql
 
--- 11. Auditoria manual (tabela + procedure + VW_AUDITORIA)
-@/root/TP/EmprestimosDB_Auditoria_Owner.sql
-
--- 12. Funcoes
+-- 10. Funcoes
 @/root/TP/EmprestimosDB_Functions.sql
 
--- 13. Procedimentos
+-- 11. Procedimentos (inclui prc_registar_auditoria)
 @/root/TP/EmprestimosDB_Procedures.sql
 
--- 14. Triggers
+-- 12. Triggers
 @/root/TP/EmprestimosDB_Triggers.sql
 
--- 15. Indices
+-- 13. Indices (inclui indices de AUDITORIA_EMPRESTIMOS)
 @/root/TP/EmprestimosDB_Indexes.sql
 
--- 16. Grants e permissoes
+-- 14. Grants e permissoes
 @/root/TP/EmprestimosDB_Grants.sql
 
--- 17. Dados iniciais
+-- 15. Dados iniciais
 @/root/TP/EmprestimosDB_Intro.sql
+
+-- 16. Auditoria Oracle nativa (requer SYSDBA — volta a ligar como sys)
+CONNECT sys as sysdba
+@/root/TP/EmprestimosDB_Auditoria.sql

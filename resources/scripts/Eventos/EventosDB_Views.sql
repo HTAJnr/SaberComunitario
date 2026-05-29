@@ -58,8 +58,55 @@ CREATE VIEW v_bibliotecas_activas AS
            endereco, provincia, contacto_biblioteca
     FROM BIBLIOTECA;
 
--- Verificar
-SELECT VIEW_NAME FROM USER_VIEWS ORDER BY VIEW_NAME;
+-- ============================================================
+-- VISTAS DE SERVICO PARA O BACKEND — ausentes no ficheiro original
+-- Requerem sinonimo publico BIBLIOTECA (aponta para tabela local)
+-- ============================================================
+
+-- vw_eventos_proximos
+-- Usada pelo backend: GET /api/eventos?proximos=1
+-- SELECT ID_EVENTO, TITULO_EVENTO AS NOME, DATA_EVENTO AS DATA_INICIO,
+--        BIBLIOTECA_NOME AS NOME_BIBLIOTECA FROM vw_eventos_proximos ORDER BY DATA_EVENTO
+CREATE OR REPLACE VIEW vw_eventos_proximos AS
+SELECT
+    e.id_evento,
+    e.titulo_evento,
+    e.descricao_evento,
+    e.data_evento,
+    b.nome_biblioteca AS biblioteca_nome
+FROM EVENTO e
+JOIN BIBLIOTECA b ON e.cod_biblioteca = b.cod_biblioteca
+WHERE e.data_evento >= SYSDATE;
+
+-- vw_eventos_completos
+-- Usada pelo backend: GET /api/eventos/:id
+-- SELECT * FROM vw_eventos_completos WHERE id_evento = :id
+CREATE OR REPLACE VIEW vw_eventos_completos AS
+SELECT
+    e.id_evento,
+    e.titulo_evento,
+    e.descricao_evento,
+    e.local_evento,
+    e.publico_alvo,
+    e.data_evento,
+    e.capacidade,
+    e.status_evento,
+    e.recorrente,
+    b.cod_biblioteca,
+    b.nome_biblioteca,
+    f.cod_funcionario,
+    f.nome_funcionario AS nome_responsavel,
+    COUNT(pe.num_cartao) AS total_inscritos,
+    ROUND(AVG(av.nota), 1) AS media_avaliacao
+FROM EVENTO e
+JOIN BIBLIOTECA b ON e.cod_biblioteca = b.cod_biblioteca
+LEFT JOIN FUNCIONARIO f ON e.cod_funcionario_responsavel = f.cod_funcionario
+LEFT JOIN PARTICIPACAO_EVENTO pe ON e.id_evento = pe.id_evento
+LEFT JOIN AVALIACAO_EVENTO av ON e.id_evento = av.id_evento
+GROUP BY
+    e.id_evento, e.titulo_evento, e.descricao_evento, e.local_evento,
+    e.publico_alvo, e.data_evento, e.capacidade, e.status_evento, e.recorrente,
+    b.cod_biblioteca, b.nome_biblioteca, f.cod_funcionario, f.nome_funcionario;
 -- ============================================================
 -- FRAGMENTACAO HORIZONTAL (A1 + A2)
 -- A1: Fragmento temporal de EVENTO (futuros vs passados)

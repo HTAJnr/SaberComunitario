@@ -1,7 +1,43 @@
 -- ============================================================
 -- EmprestimosProg_Procedures.sql
 -- Executar como: usr_emprestimosdb
+-- Pré-requisito: EmprestimosDB_Auditoria_Owner.sql (tabela + sequencia)
 -- ============================================================
+
+-- ------------------------------------------------------------
+-- prc_registar_auditoria
+-- Regista operacoes na tabela AUDITORIA_EMPRESTIMOS.
+-- PRAGMA AUTONOMOUS_TRANSACTION: pode ser chamada dentro de triggers
+-- sem interferir com a transaccao principal.
+-- ------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE prc_registar_auditoria(
+    p_operacao      IN VARCHAR2,
+    p_num_cartao    IN VARCHAR2    DEFAULT NULL,
+    p_cod_material  IN VARCHAR2    DEFAULT NULL,
+    p_id_emprestimo IN NUMBER      DEFAULT NULL,
+    p_resultado     IN VARCHAR2,
+    p_motivo_falha  IN VARCHAR2    DEFAULT NULL,
+    p_nos_afetados  IN VARCHAR2    DEFAULT NULL,
+    p_observacoes   IN VARCHAR2    DEFAULT NULL
+) IS
+    PRAGMA AUTONOMOUS_TRANSACTION;
+BEGIN
+    INSERT INTO AUDITORIA_EMPRESTIMOS (
+        id_auditoria, data_operacao, operacao,
+        num_cartao, cod_material, id_emprestimo,
+        resultado, motivo_falha, nos_afetados, observacoes
+    ) VALUES (
+        SEQ_AUDITORIA_EMP.NEXTVAL, SYSDATE, p_operacao,
+        p_num_cartao, p_cod_material, p_id_emprestimo,
+        p_resultado, p_motivo_falha, p_nos_afetados, p_observacoes
+    );
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+END;
+/
+
 DROP PROCEDURE prc_inscrever_participante;
 DROP PROCEDURE prc_atualizar_nivel;
 DROP PROCEDURE prc_vincular_material;
@@ -60,7 +96,7 @@ END;
 -- ------------------------------------------------------------
 -- prc_atualizar_nivel
 -- Actualiza o nivel de progressao de uma participacao.
--- Identificada por (num_cartao, cod_programa) � PK composta.
+-- Identificada por (num_cartao, cod_programa) � PK composta.
 -- ------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE prc_atualizar_nivel(
     p_num_cartao   IN VARCHAR2,
@@ -132,5 +168,50 @@ EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
         p_sucesso := 'ERRO: ' || SQLERRM;
+END;
+/
+
+-- ============================================================
+-- PROCEDURE ADICIONADA — ausente no ficheiro original
+-- ============================================================
+
+-- processar_devolucao
+-- Regista a devolucao de um emprestimo: actualiza data_devolucao,
+-- estado do material, multa e observacoes. O COMMIT interno
+-- dispara trg_aplica_suspensao (AFTER UPDATE OF data_devolucao).
+-- Chamada pelo backend:
+--   BEGIN processar_devolucao(:id_emp,:cond,:obs,:multa_val,:sucesso); END;
+CREATE OR REPLACE PROCEDURE processar_devolucao(
+    p_id_emprestimo           IN  NUMBER,
+    p_estado_material_retorno IN  VARCHAR2,
+    p_observacoes             IN  VARCHAR2,
+    p_multa_valor             IN  NUMBER,
+    p_sucesso                 OUT VARCHAR2
+) IS
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count
+    FROM EMPRESTIMO
+    WHERE id_emprestimo = p_id_emprestimo AND data_devolucao IS NULL;
+
+    IF v_count = 0 THEN
+        p_sucesso := 'Erro: Emprestimo ' || p_id_emprestimo ||
+                     ' nao encontrado ou ja devolvido.';
+        RETURN;
+    END IF;
+
+    UPDATE EMPRESTIMO
+       SET data_devolucao          = SYSDATE,
+           estado_material_retorno = p_estado_material_retorno,
+           multa_valor             = NVL(p_multa_valor, 0),
+           observacoes_devolucao   = p_observacoes
+     WHERE id_emprestimo = p_id_emprestimo;
+
+    COMMIT;
+    p_sucesso := 'OK';
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        p_sucesso := 'Erro: ' || SQLERRM;
 END;
 /

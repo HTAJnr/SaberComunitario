@@ -80,3 +80,117 @@ SELECT id_emprestimo, estado_material_retorno,
        observacoes_devolucao
 FROM EMPRESTIMO
 WHERE data_devolucao IS NOT NULL;
+
+-- vw_auditoria
+-- Vista de servico sobre AUDITORIA_EMPRESTIMOS.
+-- Usada para consultas de auditoria no backend e no no nacional.
+CREATE OR REPLACE VIEW VW_AUDITORIA AS
+SELECT
+    id_auditoria,
+    data_operacao,
+    operacao,
+    resultado,
+    motivo_falha,
+    nos_afetados,
+    observacoes,
+    'EMPRESTIMOS' AS no_origem
+FROM AUDITORIA_EMPRESTIMOS;
+
+-- ============================================================
+-- VISTAS ADICIONADAS — ausentes no ficheiro original
+-- Requerem sinonimos publicos (@nacionaldb, @materiaisdb),
+-- biblioteca_snap (MV local de BIBLIOTECA@eventosdb) e REPL_FUNCIONARIOS
+-- ============================================================
+
+-- vw_emprestimos_ativos (sem 'c')
+-- Usada pelo backend: GET /api/emprestimos?estado=activo|vencido
+-- Expoe: ID_EMPRESTIMO, NUM_CARTAO, NOME_LEITOR, MATERIAL_TITULO,
+--        DATA_RETIRADA, PRAZO_DEVOLUCAO, MULTA_ESTIMADA, DIAS_ATRASO, BIBLIOTECA_NOME
+CREATE OR REPLACE VIEW vw_emprestimos_ativos AS
+SELECT
+    e.id_emprestimo,
+    e.num_cartao,
+    l.nome_completo        AS nome_leitor,
+    l.cod_biblioteca,
+    bs.nome_biblioteca     AS biblioteca_nome,
+    e.cod_material,
+    mb.titulo              AS material_titulo,
+    e.data_retirada,
+    e.prazo_devolucao,
+    TRUNC(SYSDATE) - TRUNC(e.prazo_devolucao) AS dias_atraso,
+    CASE
+        WHEN TRUNC(SYSDATE) > TRUNC(e.prazo_devolucao) THEN
+            CASE
+                WHEN pr.num_cartao IS NOT NULL THEN
+                    CASE WHEN (SELECT COUNT(*) FROM EMPRESTIMO e2
+                               WHERE e2.num_cartao = e.num_cartao
+                                 AND e2.data_devolucao > e2.prazo_devolucao) = 0
+                         THEN 0
+                         ELSE (TRUNC(SYSDATE) - TRUNC(e.prazo_devolucao)) * 10
+                    END
+                WHEN cr.num_cartao IS NOT NULL THEN
+                    (TRUNC(SYSDATE) - TRUNC(e.prazo_devolucao)) * 5
+                ELSE
+                    (TRUNC(SYSDATE) - TRUNC(e.prazo_devolucao)) * 15
+            END
+        ELSE 0
+    END AS multa_estimada
+FROM EMPRESTIMO e
+JOIN leitor               l  ON e.num_cartao  = l.num_cartao
+JOIN material_bibliografico mb ON e.cod_material = mb.cod_material
+JOIN biblioteca_snap      bs ON l.cod_biblioteca = bs.cod_biblioteca
+LEFT JOIN professor        pr ON e.num_cartao  = pr.num_cartao
+LEFT JOIN crianca          cr ON e.num_cartao  = cr.num_cartao
+WHERE e.data_devolucao IS NULL;
+
+-- vw_historico_emprestimos
+-- Usada pelo backend: GET /api/emprestimos?estado=devolvido|todos
+-- Expoe: ID_EMPRESTIMO, NUM_CARTAO, NOME_LEITOR, MATERIAL_TITULO,
+--        DATA_RETIRADA, DATA_DEVOLUCAO, PRAZO_DEVOLUCAO, MULTA_VALOR, BIBLIOTECA_NOME
+CREATE OR REPLACE VIEW vw_historico_emprestimos AS
+SELECT
+    e.id_emprestimo,
+    l.num_cartao,
+    l.nome_completo        AS nome_leitor,
+    l.cod_biblioteca,
+    CASE
+        WHEN p.num_cartao  IS NOT NULL THEN 'PROFESSOR'
+        WHEN a.num_cartao  IS NOT NULL THEN 'ADULTO'
+        WHEN cr.num_cartao IS NOT NULL THEN 'CRIANCA'
+        ELSE 'DESCONHECIDO'
+    END AS tipo_leitor,
+    mb.titulo              AS material_titulo,
+    c.area_tematica        AS categoria_area,
+    e.data_retirada,
+    e.data_devolucao,
+    ROUND(e.data_devolucao - e.data_retirada) AS dias_uso,
+    e.prazo_devolucao,
+    CASE
+        WHEN e.data_devolucao IS NULL              THEN NULL
+        WHEN e.data_devolucao <= e.prazo_devolucao THEN 'TRUE'
+        ELSE 'FALSE'
+    END AS devolvido_no_prazo,
+    e.estado_material_saida,
+    e.estado_material_retorno,
+    CASE
+        WHEN e.estado_material_retorno IS NULL                              THEN NULL
+        WHEN e.estado_material_retorno <> e.estado_material_saida THEN 'TRUE'
+        ELSE 'FALSE'
+    END AS material_danificado,
+    e.multa_valor,
+    CASE WHEN e.multa_paga = 'S' THEN 'TRUE' ELSE 'FALSE' END AS multa_paga,
+    CASE WHEN e.data_devolucao IS NOT NULL AND e.data_devolucao > e.prazo_devolucao
+         THEN ROUND(e.data_devolucao - e.prazo_devolucao)
+         ELSE 0
+    END AS dias_atraso,
+    bs.nome_biblioteca     AS biblioteca_nome,
+    f.nome_funcionario     AS funcionario_nome
+FROM EMPRESTIMO e
+JOIN leitor                l  ON e.num_cartao      = l.num_cartao
+JOIN REPL_FUNCIONARIOS     f  ON e.cod_funcionario = f.cod_funcionario
+JOIN biblioteca_snap       bs ON f.cod_biblioteca  = bs.cod_biblioteca
+JOIN material_bibliografico mb ON e.cod_material    = mb.cod_material
+JOIN categoria             c  ON mb.cod_categoria  = c.id_categoria
+LEFT JOIN professor        p  ON l.num_cartao      = p.num_cartao
+LEFT JOIN adulto           a  ON l.num_cartao      = a.num_cartao
+LEFT JOIN crianca          cr ON l.num_cartao      = cr.num_cartao;

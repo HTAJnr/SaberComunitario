@@ -39,8 +39,17 @@ CREATE INDEX iaud_evt_res
     ON AUDITORIA_EVENTOS(resultado)
     TABLESPACE tbs_eventosdb_idx;
 
--- Verificar
-SELECT INDEX_NAME, TABLE_NAME, TABLESPACE_NAME
-FROM USER_INDEXES
-WHERE TABLESPACE_NAME = 'TBS_EVENTOSDB_IDX'
-ORDER BY TABLE_NAME;
+-- ============================================================
+-- INDICES ADICIONAIS — ausentes no ficheiro original
+-- ============================================================
+
+-- EVENTO — data e responsavel (usados em ORDER BY e JOIN frequentes)
+CREATE INDEX iev_dt     ON EVENTO(data_evento)                 TABLESPACE tbs_eventosdb_idx;
+CREATE INDEX iev_resp   ON EVENTO(cod_funcionario_responsavel)  TABLESPACE tbs_eventosdb_idx;
+
+-- PARTICIPACAO_EVENTO — por evento (para contar inscritos e listar participantes)
+CREATE INDEX ip_ev      ON PARTICIPACAO_EVENTO(id_evento)       TABLESPACE tbs_eventosdb_idx;
+
+-- AVALIACAO_EVENTO — por evento e por leitor
+CREATE INDEX iav_ev     ON AVALIACAO_EVENTO(id_evento)          TABLESPACE tbs_eventosdb_idx;
+CREATE INDEX iav_leit   ON AVALIACAO_EVENTO(num_cartao)         TABLESPACE tbs_eventosdb_idx;

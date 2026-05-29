@@ -11,3 +11,11 @@ CREATE SEQUENCE SEQ_AUDITORIA_MAT
     NOCACHE
     NOCYCLE;
 
+-- SEQ_TRANSFERENCIA: auto-incremento do id_transferencia em TRANSFERENCIA
+-- Usada pelo trigger trg_transferencia_id
+CREATE SEQUENCE SEQ_TRANSFERENCIA
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE
+    NOCYCLE;
+

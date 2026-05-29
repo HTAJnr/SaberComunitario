@@ -38,8 +38,32 @@ GRANT SELECT ON SEQ_EVENTO                  TO app_eventosdb;
 GRANT SELECT ON SEQ_AUDITORIA_EVT           TO app_eventosdb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO          TO app_eventosdb;
 
--- Verificar
-SELECT TABLE_NAME, PRIVILEGE, GRANTEE
-FROM USER_TAB_PRIVS
-WHERE GRANTEE = 'APP_EVENTOSDB'
-ORDER BY TABLE_NAME;
+-- ============================================================
+-- GRANTS PARA VISITOR USERS — acesso de outros nos a este no
+-- Executar como usr_eventosdb
+-- ============================================================
+
+-- Para o Helder (app_nacionaldb)
+GRANT SELECT ON BIBLIOTECA              TO app_nacionaldb;
+GRANT SELECT ON EVENTO                  TO app_nacionaldb;
+GRANT SELECT ON PARTICIPACAO_EVENTO     TO app_nacionaldb;
+GRANT SELECT ON AVALIACAO_EVENTO        TO app_nacionaldb;
+GRANT SELECT ON HORARIO_BIBLIOTECA      TO app_nacionaldb;
+GRANT SELECT ON v_programacao_eventos   TO app_nacionaldb;
+GRANT SELECT ON v_horarios_bibliotecas  TO app_nacionaldb;
+GRANT SELECT ON v_bibliotecas_activas   TO app_nacionaldb;
+GRANT DELETE ON PARTICIPACAO_EVENTO     TO app_nacionaldb;
+GRANT DELETE ON AVALIACAO_EVENTO        TO app_nacionaldb;
+GRANT INSERT ON AUDITORIA_EVENTOS       TO app_nacionaldb;
+
+-- Para o Yasin (app_materiaisdb)
+GRANT SELECT ON BIBLIOTECA              TO app_materiaisdb;
+GRANT SELECT ON HORARIO_BIBLIOTECA      TO app_materiaisdb;
+GRANT SELECT ON EVENTO                  TO app_materiaisdb;
+GRANT SELECT ON v_bibliotecas_activas   TO app_materiaisdb;
+GRANT SELECT ON v_horarios_bibliotecas  TO app_materiaisdb;
+GRANT SELECT ON v_programacao_eventos   TO app_materiaisdb;
+
+-- Para o Yannis (app_emprestimosdb)
+GRANT SELECT ON BIBLIOTECA              TO app_emprestimosdb;
+GRANT SELECT ON v_bibliotecas_activas   TO app_emprestimosdb;
