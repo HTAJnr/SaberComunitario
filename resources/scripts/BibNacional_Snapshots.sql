@@ -14,8 +14,7 @@
 --   Requer: app_nacionaldb com SELECT ON PROGRAMA_ALFABETIZACAO,
 --           PARTICIPACAO_PROGRAMA, NIVEL_PROGRESSAO no EmprestimosDB.
 --
--- O destino (local vs ZeroTier) é controlado pelo tnsnames.ora.
--- Para trocar de rede: ./switch_rede.sh local|remoto
+
 -- ============================================================
 
 -- ============================================================
@@ -43,19 +42,18 @@ DROP MATERIALIZED VIEW mv_relatorio_programas;
 CREATE MATERIALIZED VIEW mv_relatorio_programas
   REFRESH COMPLETE ON DEMAND
 AS
-SELECT p.id_programa,
+SELECT p.cod_programa,
        p.nome_programa,
        p.cod_biblioteca,
-       p.data_inicio,
-       p.data_fim,
        p.estado_programa,
-       COUNT(pp.num_cartao)                                                    AS total_participantes,
-       SUM(CASE WHEN pp.status_participacao = 'Concluido' THEN 1 ELSE 0 END)   AS concluidos,
-       SUM(CASE WHEN pp.status_participacao = 'Em curso'  THEN 1 ELSE 0 END)   AS em_curso,
-       MAX(np.nivel)                                                            AS nivel_maximo_atingido
+       COUNT(pp.num_cartao)                                                         AS total_participantes,
+       SUM(CASE WHEN pp.estado_participacao = 'Concluido' THEN 1 ELSE 0 END)        AS concluidos,
+       SUM(CASE WHEN pp.estado_participacao = 'Activo'    THEN 1 ELSE 0 END)        AS em_curso,
+       SUM(CASE WHEN pp.estado_participacao = 'Desistiu'  THEN 1 ELSE 0 END)        AS desistencias,
+       MAX(np.ordem)                                                                AS nivel_maximo_atingido
   FROM PROGRAMA_ALFABETIZACAO@emprestimosdb p
-  LEFT JOIN PARTICIPACAO_PROGRAMA@emprestimosdb pp ON pp.id_programa = p.id_programa
-  LEFT JOIN NIVEL_PROGRESSAO@emprestimosdb np       ON np.num_cartao  = pp.num_cartao
-                                                   AND np.id_programa = p.id_programa
- GROUP BY p.id_programa, p.nome_programa, p.cod_biblioteca,
-          p.data_inicio, p.data_fim, p.estado_programa;
+  LEFT JOIN PARTICIPACAO_PROGRAMA@emprestimosdb pp
+         ON pp.cod_programa = p.cod_programa
+  LEFT JOIN NIVEL_PROGRESSAO@emprestimosdb np
+         ON np.id_nivel    = pp.id_nivel_atual
+ GROUP BY p.cod_programa, p.nome_programa, p.cod_biblioteca, p.estado_programa;

@@ -1,9 +1,6 @@
 -- ============================================================
--- BibNacional_Intro.sql — Dados de teste do nó BibliotecaNacionalDB  (v3)
+-- BibNacional_Intro.sql — Dados de teste do nó BibliotecaNacionalDB
 -- Executar DEPOIS de: Create + Sequences + Views + Functions + Procedures + Triggers + Indexes
---
--- v3: domínio de leitores adicionado a este nó; programas de alfabetização
---     removidos (pertencem ao EmpréstimosProgramasDB — nó do Yannis).
 --
 -- Tabelas locais: FUNCAO_FUNCIONARIO, FUNCIONARIO, FUNCIONARIO_HABILIDADE,
 --   HORARIO_FUNCIONARIO, LEITOR, ADULTO, ADULTO_INTERESSE, PROFESSOR,

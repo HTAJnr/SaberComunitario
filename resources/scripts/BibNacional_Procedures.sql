@@ -1,25 +1,17 @@
 -- ============================================================
 -- BibNacional_Procedures.sql
--- Versão com sinónimos públicos — sem @links directos.
 --
 -- PORQUÊ EXECUTE IMMEDIATE NAS QUERIES CROSS-NODE:
 -- O Oracle PL/SQL valida objectos referenciados em tempo de compilação.
 -- Quando uma procedure contém "SELECT ... FROM tabela@link", o Oracle
 -- tenta resolver o objecto remoto no momento em que o código é compilado.
--- Se o nó remoto não está acessível nesse instante (ex: outros nós do
--- grupo ainda não estão ligados), a compilação falha com ORA-04052.
--- Com EXECUTE IMMEDIATE, a query é tratada como SQL dinâmico e só é
--- resolvida em tempo de execução — quando o link já está activo.
--- Resultado: a procedure compila sempre; o erro só ocorre se o nó
--- remoto estiver down no momento da chamada, que é o comportamento correcto.
+-- Se o nó remoto não está acessível nesse instante, a compilação falha
+-- com ORA-04052. Com EXECUTE IMMEDIATE, a query é tratada como SQL
+-- dinâmico e só é resolvida em runtime — quando o link já está activo.
 --
--- SINÓNIMOS vs @LINKS:
--- As strings de EXECUTE IMMEDIATE referenciam os sinónimos públicos
+-- As strings de EXECUTE IMMEDIATE referenciam sinónimos públicos
 -- (ex: "emprestimo" em vez de "emprestimo@emprestimosdb").
--- O Oracle resolve o sinónimo em runtime, que por sua vez aponta para
--- o @link correcto definido em BibNacional_Synonyms.sql.
--- Para alternar entre rede local e ZeroTier, basta recriar os sinónimos
--- — este ficheiro não precisa de ser tocado.
+-- O Oracle resolve o sinónimo em runtime via BibNacional_Synonyms.sql.
 -- ============================================================
 
 

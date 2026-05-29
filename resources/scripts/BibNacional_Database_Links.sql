@@ -3,8 +3,6 @@
 -- Executar como usr_NACIONALDB:
 --   sqlplus usr_NACIONALDB/HTAJnr#020403 @/root/TP/BibNacional_Database_Links.sql
 --
--- O destino (local vs ZeroTier) é controlado pelo tnsnames.ora.
--- Para trocar de rede: ./switch_rede.sh local|remoto
 -- ============================================================
 
 DROP DATABASE LINK materiaisdb;

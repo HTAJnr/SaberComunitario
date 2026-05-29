@@ -9,11 +9,6 @@
 -- o mesmo nome que tabelas remotas criam ORA-01775 (loop) porque
 -- o nó remoto também tem um sinónimo com esse nome. @link explícito
 -- quebra o loop e identifica inequivocamente o nó de destino.
---
--- Para alternar entre rede local e ZeroTier nestas views,
--- corre o bloco da secção que precisas (local ou ZeroTier)
--- e comenta o outro — são os únicos 3 objectos que precisam
--- de ser recriados numa mudança de rede.
 -- ============================================================
 
 -- ============================================================
@@ -172,7 +167,7 @@ CREATE OR REPLACE VIEW vw_leitor_publico AS
 SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
 FROM LEITOR;
-/
+/ 
 
 CREATE OR REPLACE VIEW vw_leitor_privado AS
 SELECT num_cartao, data_nasc, genero, nivel_escolar,
@@ -256,14 +251,8 @@ WHERE data_demissao IS NOT NULL;
 -- mesmo nome que a tabela remota — o nó remoto resolve o sinónimo
 -- de volta para si próprio criando um loop infinito.
 --
--- ── INSTRUÇÃO DE USO ────────────────────────────────────────
--- Rede LOCAL  → corre o bloco "REDE LOCAL"  e comenta "ZEROTIER"
--- ZeroTier    → corre o bloco "ZEROTIER"    e comenta "REDE LOCAL"
--- Só estes 3 objectos precisam de ser recriados na mudança de rede.
--- ============================================================
 
-/*
--- ── REDE LOCAL (@emprestimosdb / @materiaisdb / @eventosdb) ─
+-- ============================================================
 
 CREATE OR REPLACE VIEW vw_global_leitores_emprestimos AS
 SELECT
@@ -276,6 +265,7 @@ LEFT JOIN emprestimo@emprestimosdb e
     ON l.num_cartao = e.num_cartao AND e.data_devolucao IS NULL;
 /
 
+-- Yasin nao tem que me dar acesso a essa? Nao 
 CREATE OR REPLACE VIEW vw_global_catalogo AS
 SELECT
     m.cod_material, m.titulo, m.autor, m.editora, m.ano_publicacao,
@@ -294,41 +284,6 @@ SELECT
     COUNT(pe.num_cartao) AS total_inscritos
 FROM evento@eventosdb e
 LEFT JOIN participacao_evento@eventosdb pe ON e.id_evento = pe.id_evento
-GROUP BY e.id_evento, e.titulo_evento, e.data_evento,
-         e.status_evento, e.publico_alvo, e.capacidade;
-/
-*/
-
--- ── ZEROTIER (@zemprestimosdb / @zmateriaisdb / @zeventosdb) ─
-CREATE OR REPLACE VIEW vw_global_leitores_emprestimos AS
-SELECT
-    l.num_cartao, l.nome_completo, l.cod_biblioteca, l.status_leitor,
-    l.historico_pontualidade,
-    e.id_emprestimo, e.cod_material, e.data_retirada, e.prazo_devolucao,
-    CASE WHEN e.id_emprestimo IS NOT NULL THEN 'S' ELSE 'N' END AS tem_emprestimo_activo
-FROM LEITOR l
-LEFT JOIN emprestimo@zemprestimosdb e
-    ON l.num_cartao = e.num_cartao AND e.data_devolucao IS NULL;
-/
-
-CREATE OR REPLACE VIEW vw_global_catalogo AS
-SELECT
-    m.cod_material, m.titulo, m.autor, m.editora, m.ano_publicacao,
-    m.estado_material_conservacao, m.cod_biblioteca,
-    b.nome_biblioteca, b.provincia,
-    CASE WHEN m.estado_material_conservacao = 'Indisponivel' THEN 'N' ELSE 'S' END
-        AS potencialmente_disponivel
-FROM material_bibliografico@zmateriaisdb m
-JOIN biblioteca@zeventosdb b ON m.cod_biblioteca = b.cod_biblioteca;
-/
-
-CREATE OR REPLACE VIEW vw_global_eventos_participacao AS
-SELECT
-    e.id_evento, e.titulo_evento, e.data_evento, e.status_evento,
-    e.publico_alvo, e.capacidade,
-    COUNT(pe.num_cartao) AS total_inscritos
-FROM evento@zeventosdb e
-LEFT JOIN participacao_evento@zeventosdb pe ON e.id_evento = pe.id_evento
 GROUP BY e.id_evento, e.titulo_evento, e.data_evento,
          e.status_evento, e.publico_alvo, e.capacidade;
 /

@@ -1,7 +1,5 @@
 -- ============================================================
 -- BibNacional_Functions.sql
--- Apenas local — sem referências cross-node.
--- Nenhuma alteração necessária para sinónimos.
 -- ============================================================
 
 -- FUNCAO: total_doacoes_doador

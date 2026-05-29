@@ -16,7 +16,7 @@ CREATE INDEX ifh_func ON FUNCIONARIO_HABILIDADE(cod_funcionario) TABLESPACE tbs_
 -- HORARIO_FUNCIONARIO
 CREATE INDEX ihf_func ON HORARIO_FUNCIONARIO(cod_funcionario) TABLESPACE tbs_NACIONALDB_idx;
 
--- LEITOR (movido para este nó na v3)
+-- LEITOR
 CREATE INDEX il_bib    ON LEITOR(cod_biblioteca)        TABLESPACE tbs_NACIONALDB_idx;
 CREATE INDEX il_status ON LEITOR(status_leitor)         TABLESPACE tbs_NACIONALDB_idx;
 CREATE INDEX il_nome   ON LEITOR(nome_completo)         TABLESPACE tbs_NACIONALDB_idx;

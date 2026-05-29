@@ -2,8 +2,7 @@
 -- BibNacional_Triggers.sql
 -- Versão com sinónimos públicos — sem @links directos.
 -- O trigger impede_exclusao_coordenador usa EXECUTE IMMEDIATE
--- com o sinónimo "biblioteca_responsavel" em vez de
--- "biblioteca_responsavel@eventosdb" / "@zeventosdb".
+-- com o sinónimo "biblioteca_responsavel".
 -- ============================================================
 
 -- ============================================================
@@ -90,8 +89,7 @@ END;
 -- TRIGGER: impede_exclusao_coordenador
 -- Usa sinónimo "biblioteca_responsavel" (definido em BibNacional_Synonyms.sql)
 -- em vez de "biblioteca_responsavel@eventosdb" / "@zeventosdb".
--- Para alternar entre rede local e ZeroTier, basta recriar o sinónimo
--- — este trigger não precisa de ser tocado.
+
 CREATE OR REPLACE TRIGGER impede_exclusao_coordenador
 BEFORE DELETE ON FUNCIONARIO
 FOR EACH ROW
