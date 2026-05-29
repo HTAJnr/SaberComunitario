@@ -53,5 +53,5 @@ CONNECT usr_emprestimosdb/YC20220156
 @/root/TP/EmprestimosDB_Intro.sql
 
 -- 16. Auditoria Oracle nativa (requer SYSDBA — volta a ligar como sys)
-CONNECT sys as sysdba
+CONNECT sys/bd2.isctem as sysdba
 @/root/TP/EmprestimosDB_Auditoria.sql
