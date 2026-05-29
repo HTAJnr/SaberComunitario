@@ -130,6 +130,7 @@ Copiar `backend/.env.example` para `backend/.env` e preencher:
 | `INSTANT_CLIENT_PATH` | Caminho do Instant Client | `C:/instantclient_21_20` |
 | `PORT` | Porta da aplicação | `3000` |
 | `NLS_LANG` | Charset (não alterar) | `AMERICAN_AMERICA.AL32UTF8` |
+| `NODE_NAME` | Nome do nó para auditoria cross-node | `BibliotecaNacionalDB` |
 
 ### Arrancar a aplicação
 

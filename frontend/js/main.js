@@ -8,6 +8,55 @@
 // ── Estado global ─────────────────────────────
 let utilizadorActual = null;
 let modalSalvarFn = null;
+let noActual = null; // { no_nome, db_user } — carregado via /api/no/info na inicialização
+
+// ── Helpers de restrição por nó ───────────────
+function _noEh(nomeNo) {
+  return (noActual?.no_nome || 'BibliotecaNacionalDB') === nomeNo;
+}
+
+// Botão activo ou disabled+tooltip consoante o nó activo
+function _btnNo(nomeNo, classes, iconeHtml, label, onclickStr) {
+  if (_noEh(nomeNo)) {
+    return `<button class="${classes}" onclick="${onclickStr}">${iconeHtml}${label}</button>`;
+  }
+  return `<button class="${classes}" disabled style="opacity:.45;cursor:not-allowed"
+    title="Só disponível no nó ${nomeNo}">${iconeHtml}${label}</button>`;
+}
+
+// Item de ctx-menu activo ou desabilitado consoante o nó activo
+function _ctxItemNo(nomeNo, icone, label, onclickStr, extraClass = '') {
+  if (_noEh(nomeNo)) {
+    return `<div class="ctx-menu-item ${extraClass}" onclick="${onclickStr}">
+      <i class="fa-solid ${icone}" style="width:14px"></i> ${label}</div>`;
+  }
+  return `<div class="ctx-menu-item" style="opacity:.4;cursor:not-allowed"
+    title="Só disponível no nó ${nomeNo}">
+    <i class="fa-solid ${icone}" style="width:14px"></i> ${label}
+    <i class="fa-solid fa-circle-info" style="font-size:9px;margin-left:4px;color:var(--text-muted)"></i>
+  </div>`;
+}
+
+// Aplica restrições de nó a botões estáticos do HTML (chamado uma vez após noActual ser carregado)
+function _aplicarRestricoesNo() {
+  const restricoes = [
+    { id: 'btn-novo-emprestimo',  no: 'EmpréstimosProgramasDB' },
+    { id: 'btn-novo-evento',      no: 'EventosBibliotecasDB' },
+    { id: 'btn-solicitar-transf', no: 'MateriaisDB' },
+    { id: 'btn-registar-doacao',  no: 'BibliotecaNacionalDB' },
+    { id: 'btn-adicionar-mat',    no: 'MateriaisDB' },
+    { id: 'btn-adicionar-bib',    no: 'EventosBibliotecasDB' },
+    { id: 'btn-novo-prog',        no: 'EmpréstimosProgramasDB' },
+  ];
+  restricoes.forEach(({ id, no }) => {
+    const btn = document.getElementById(id);
+    if (!btn || _noEh(no)) return;
+    btn.disabled = true;
+    btn.style.opacity = '.45';
+    btn.style.cursor  = 'not-allowed';
+    btn.title = `Só disponível no nó ${no}`;
+  });
+}
 
 // ── Helpers HTTP ──────────────────────────────
 async function api(path, opts = {}) {
@@ -186,7 +235,11 @@ function mostrarApp() {
 
   document.getElementById('topbar-region-pill').textContent = `${regiao} · ${prov}`;
 
+  // Identidade do nó verificada via Oracle (SELECT USER FROM DUAL) — não falsificável via .env
+  try { noActual = await get('/api/no/info'); } catch { noActual = { no_nome: 'BibliotecaNacionalDB', db_user: null }; }
+
   configurarNavPorRole();
+  _aplicarRestricoesNo();
   _carregarNotificacoes();
   navegarPara(location.hash.slice(1) || 'dashboard');
 }
@@ -241,6 +294,7 @@ const sectionLoaders = {
   programas:       carregarProgramas,
   permissoes:      carregarPermissoes,
   biblioteca:      carregarBibliotecas,
+  auditoria:       carregarAuditoria,
 };
 
 const SECTION_TOPBAR = {
@@ -255,6 +309,7 @@ const SECTION_TOPBAR = {
   programas:      { titulo: 'Programas' },
   permissoes:     { titulo: 'Permissões' },
   biblioteca:     { titulo: 'Bibliotecas' },
+  auditoria:      { titulo: 'Auditoria' },
 };
 
 function configurarNavPorRole() {
@@ -269,9 +324,13 @@ function configurarNavPorRole() {
     if (el) el.style.display = '';
   };
 
-  ['transferencias', 'funcionarios', 'doacoes', 'permissoes', 'biblioteca'].forEach(show);
+  ['transferencias', 'funcionarios', 'doacoes', 'permissoes', 'biblioteca', 'auditoria'].forEach(show);
   const labelGestao = document.getElementById('nav-label-gestao');
   if (labelGestao) labelGestao.style.display = '';
+
+  // Auditoria: só Admin e Coordenador
+  hide('auditoria');
+  if (['Administrador', 'Coordenador'].includes(nivel)) show('auditoria');
 
   if (nivel === 'Assistente') {
     hide('transferencias');
@@ -542,7 +601,7 @@ function _mostrarErroPerfil(msg) {
 // INICIALIZAÇÃO
 // ════════════════════════════════════════════════
 async function inicializarHTML() {
-  const seccoes = ['dashboard','leitores','materiais','emprestimos','funcionarios','eventos','doacoes','transferencias','programas','permissoes','biblioteca'];
+  const seccoes = ['dashboard','leitores','materiais','emprestimos','funcionarios','eventos','doacoes','transferencias','programas','permissoes','biblioteca','auditoria'];
 
   const loginHtml = await fetch('sections/login.html').then(r => r.text());
   document.getElementById('app').insertAdjacentHTML('beforebegin', loginHtml);
