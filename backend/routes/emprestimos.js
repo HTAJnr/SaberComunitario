@@ -180,6 +180,23 @@ router.get('/validar-leitor/:num_cartao', autenticar, async (req, res) => {
       return res.json({ pode_emprestar: false, motivo: 'Leitor está bloqueado permanentemente.', codigo: 'LEITOR_BLOQUEADO' });
     }
 
+    // Auto-libertar suspensões expiradas e restaurar estado do leitor
+    await conn.execute(
+      `UPDATE SUSPENSAO SET ESTADO_SUSPENSAO = 'Cumprida'
+        WHERE NUM_CARTAO = :nc AND ESTADO_SUSPENSAO = 'Activa' AND DATA_FIM < SYSDATE`,
+      { nc }
+    );
+    await conn.execute(
+      `UPDATE LEITOR SET STATUS_LEITOR = 'Activo'
+        WHERE NUM_CARTAO = :nc AND STATUS_LEITOR = 'Suspenso'
+          AND NOT EXISTS (
+            SELECT 1 FROM SUSPENSAO s
+            WHERE s.NUM_CARTAO = :nc AND s.ESTADO_SUSPENSAO = 'Activa' AND SYSDATE <= s.DATA_FIM
+          )`,
+      { nc }
+    );
+    await conn.commit();
+
     // Verificar suspensão activa
     const suspR = await conn.execute(
       `SELECT s.ID_SUSPENSAO, s.DATA_FIM FROM SUSPENSAO s
@@ -381,6 +398,23 @@ router.post('/', autenticar, async (req, res) => {
     if (mat.TRANS_ATIVAS > 0)
       return res.status(409).json({ erro: true, codigo: 'MATERIAL_EM_TRANSFERENCIA', mensagem: 'Material está em processo de transferência.' });
 
+    // Auto-libertar suspensões expiradas e restaurar estado do leitor
+    await conn.execute(
+      `UPDATE SUSPENSAO SET ESTADO_SUSPENSAO = 'Cumprida'
+        WHERE NUM_CARTAO = :nc AND ESTADO_SUSPENSAO = 'Activa' AND DATA_FIM < SYSDATE`,
+      { nc: num_cartao }
+    );
+    await conn.execute(
+      `UPDATE LEITOR SET STATUS_LEITOR = 'Activo'
+        WHERE NUM_CARTAO = :nc AND STATUS_LEITOR = 'Suspenso'
+          AND NOT EXISTS (
+            SELECT 1 FROM SUSPENSAO s
+            WHERE s.NUM_CARTAO = :nc AND s.ESTADO_SUSPENSAO = 'Activa' AND SYSDATE <= s.DATA_FIM
+          )`,
+      { nc: num_cartao }
+    );
+    await conn.commit();
+
     // 2. Verificar leitor
     const leitorR = await conn.execute(
       `SELECT l.STATUS_LEITOR, l.DISTANCIA_BIBLIOTECA, l.HISTORICO_PONTUALIDADE,
@@ -531,8 +565,7 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
     const { multaDano } = await calcularMultaDano(conn, emp.COD_MATERIAL, estadoRetorno);
     const multaTotal = multaAtraso + multaDano;
 
-    // RN05: definir motivo antes da procedure — CHECK constraint exige MOTIVO_INDISPONIBILIDADE
-    // quando ESTADO = 'Indisponivel'. A procedure lida com 'PERDIDO' mas não define o motivo.
+    // Actualizar estado de conservação do material conforme condição de retorno
     const estadoLower = estadoRetorno.toLowerCase();
     if (estadoLower === 'destruido') {
       await conn.execute(
@@ -545,8 +578,26 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
     } else if (estadoLower === 'perdido') {
       await conn.execute(
         `UPDATE MATERIAL_BIBLIOGRAFICO
-            SET MOTIVO_INDISPONIBILIDADE = 'Perdido em empréstimo'
+            SET ESTADO_MATERIAL_CONSERVACAO = 'Indisponivel',
+                MOTIVO_INDISPONIBILIDADE    = 'Perdido em empréstimo'
           WHERE COD_MATERIAL = :id`,
+        { id: emp.COD_MATERIAL }
+      );
+    } else if (estadoLower === 'degradado') {
+      await conn.execute(
+        `UPDATE MATERIAL_BIBLIOGRAFICO
+            SET ESTADO_MATERIAL_CONSERVACAO = 'Degradado',
+                MOTIVO_INDISPONIBILIDADE    = NULL
+          WHERE COD_MATERIAL = :id AND ESTADO_MATERIAL_CONSERVACAO = 'Bom'`,
+        { id: emp.COD_MATERIAL }
+      );
+    } else {
+      // 'Bom' — restaurar se estava Degradado (não altera se Indisponivel por outras razões)
+      await conn.execute(
+        `UPDATE MATERIAL_BIBLIOGRAFICO
+            SET ESTADO_MATERIAL_CONSERVACAO = 'Bom',
+                MOTIVO_INDISPONIBILIDADE    = NULL
+          WHERE COD_MATERIAL = :id AND ESTADO_MATERIAL_CONSERVACAO = 'Degradado'`,
         { id: emp.COD_MATERIAL }
       );
     }

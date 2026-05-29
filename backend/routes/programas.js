@@ -116,6 +116,19 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     }
 
     conn = await getConnection();
+
+    // Validar materiais antes de qualquer insert
+    for (const m of materiais) {
+      const matCheck = await conn.execute(
+        `SELECT COUNT(*) AS N FROM MATERIAL_BIBLIOGRAFICO WHERE COD_MATERIAL = :mat`,
+        { mat: m.cod_material },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      if (matCheck.rows[0].N === 0) {
+        return res.status(404).json({ erro: true, codigo: 'MATERIAL_NAO_ENCONTRADO', mensagem: `Material '${m.cod_material}' não encontrado.` });
+      }
+    }
+
     const codPrograma = await gerarCodPrograma(conn);
 
     await conn.execute(

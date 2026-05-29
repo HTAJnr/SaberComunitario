@@ -283,7 +283,7 @@ router.post('/:id/participantes', autenticar, async (req, res) => {
 
     // 1. Verificar que o evento existe e não passou
     const eventoResult = await conn.execute(
-      `SELECT DATA_EVENTO, PUBLICO_ALVO, COD_BIBLIOTECA FROM EVENTO WHERE ID_EVENTO = :id`,
+      `SELECT DATA_EVENTO, PUBLICO_ALVO, COD_BIBLIOTECA, CAPACIDADE FROM EVENTO WHERE ID_EVENTO = :id`,
       { id: parseInt(req.params.id) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -303,6 +303,18 @@ router.post('/:id/participantes', autenticar, async (req, res) => {
     );
     if (dupResult.rows[0].N > 0) {
       return res.status(409).json({ erro: 'Leitor já inscrito neste evento.' });
+    }
+
+    // 2b. Verificar capacidade do evento
+    if (evento.CAPACIDADE != null) {
+      const capResult = await conn.execute(
+        `SELECT COUNT(*) AS N FROM PARTICIPACAO_EVENTO WHERE ID_EVENTO = :id`,
+        { id: parseInt(req.params.id) },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      if (capResult.rows[0].N >= evento.CAPACIDADE) {
+        return res.status(409).json({ erro: `Evento sem vagas disponíveis (capacidade: ${evento.CAPACIDADE}).` });
+      }
     }
 
     // 3. Verificar público-alvo vs tipo de leitor
