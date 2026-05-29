@@ -125,8 +125,8 @@ Copiar `backend/.env.example` para `backend/.env` e preencher:
 | `DB_HOST` | IP da VM Oracle | `172.20.10.11` |
 | `DB_PORT` | Porta Oracle | `1521` |
 | `DB_SERVICE` | Nome do serviço | `XE` |
-| `DB_USER` | Utilizador do schema | `usr_NACIONALDB` |
-| `DB_PASSWORD` | Palavra-passe | `HTAJnr#020403` |
+| `DB_USER` | Utilizador de aplicação (nunca o `usr_`) | `app_NACIONALDB` |
+| `DB_PASSWORD` | Palavra-passe | `HTAJnr#22041` |
 | `INSTANT_CLIENT_PATH` | Caminho do Instant Client | `C:/instantclient_21_20` |
 | `PORT` | Porta da aplicação | `3000` |
 | `NLS_LANG` | Charset (não alterar) | `AMERICAN_AMERICA.AL32UTF8` |
