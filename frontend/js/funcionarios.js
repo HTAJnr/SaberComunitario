@@ -87,8 +87,42 @@ const _MATRIZ_PERM = [
 // ════════════════════════════════════════════════
 
 async function carregarFuncionarios() {
+  const isAdmin = utilizadorActual?.NIVEL_ACESSO === 'Administrador';
+
   try {
     _funcRows = await get('/api/funcionarios');
+
+    if (isAdmin) {
+      ['filtro-func-regiao', 'filtro-func-provincia', 'filtro-func-bib'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = '';
+      });
+
+      const selProv = document.getElementById('filtro-func-provincia');
+      if (selProv && selProv.options.length === 1) {
+        const provincias = [...new Set(_funcRows.map(r => r.PROVINCIA).filter(Boolean))].sort();
+        provincias.forEach(p => {
+          const o = document.createElement('option');
+          o.value = p; o.textContent = p;
+          selProv.appendChild(o);
+        });
+      }
+
+      const selBib = document.getElementById('filtro-func-bib');
+      if (selBib && selBib.options.length === 1) {
+        const vistos = new Set();
+        _funcRows.forEach(r => {
+          if (r.COD_BIBLIOTECA && !vistos.has(r.COD_BIBLIOTECA)) {
+            vistos.add(r.COD_BIBLIOTECA);
+            const o = document.createElement('option');
+            o.value = r.COD_BIBLIOTECA;
+            o.textContent = r.NOME_BIBLIOTECA || r.COD_BIBLIOTECA;
+            selBib.appendChild(o);
+          }
+        });
+      }
+    }
+
     _renderizarTabelaFuncionarios();
   } catch (err) {
     toast('Erro a carregar funcionários: ' + err.message, 'erro');
@@ -99,13 +133,21 @@ function _renderizarTabelaFuncionarios() {
   const tbody = document.getElementById('tabela-funcionarios');
   if (!tbody) return;
 
-  const q = (document.getElementById('filtro-func-q')?.value || '').toLowerCase();
-  const rows = _funcRows.filter(r =>
-    !q ||
-    (r.NOME || '').toLowerCase().includes(q) ||
-    (r.FUNCAO || '').toLowerCase().includes(q) ||
-    (r.NOME_BIBLIOTECA || '').toLowerCase().includes(q)
-  );
+  const q        = (document.getElementById('filtro-func-q')?.value || '').toLowerCase();
+  const regiao   = document.getElementById('filtro-func-regiao')?.value || '';
+  const provincia = document.getElementById('filtro-func-provincia')?.value || '';
+  const bibCod   = document.getElementById('filtro-func-bib')?.value || '';
+  const rows = _funcRows.filter(r => {
+    if (q && !(
+      (r.NOME || '').toLowerCase().includes(q) ||
+      (r.FUNCAO || '').toLowerCase().includes(q) ||
+      (r.NOME_BIBLIOTECA || '').toLowerCase().includes(q)
+    )) return false;
+    if (regiao   && regiaoDeProvinccia(r.PROVINCIA) !== regiao)  return false;
+    if (provincia && (r.PROVINCIA || '') !== provincia)           return false;
+    if (bibCod   && (r.COD_BIBLIOTECA || '') !== bibCod)          return false;
+    return true;
+  });
 
   if (!rows.length) {
     tbody.innerHTML = linhaVazia(8, q ? 'Sem resultados para "' + q + '"' : 'Sem funcionários');
@@ -148,12 +190,8 @@ function abrirCtxMenuFunc(evt, cod) {
      </div>`,
   ];
   if (isAdmin && String(cod) !== String(utilizadorActual?.COD_FUNCIONARIO)) {
-    itens.push(`<div class="ctx-menu-item" onclick="fecharCtxMenuFunc();abrirModalPermissoes('${cod}')">
-       <i class="fa-solid fa-shield-halved fa-fw"></i> Gerir permissões
-     </div>`);
-    itens.push(`<div class="ctx-menu-item ctx-menu-danger" onclick="fecharCtxMenuFunc();_desactivarFunc('${cod}')">
-       <i class="fa-solid fa-user-slash fa-fw"></i> Desactivar
-     </div>`);
+    itens.push(_ctxItemNo('BibliotecaNacionalDB', 'fa-shield-halved fa-fw', 'Gerir permissões', `fecharCtxMenuFunc();abrirModalPermissoes('${cod}')`));
+    itens.push(_ctxItemNo('BibliotecaNacionalDB', 'fa-user-slash fa-fw', 'Desactivar', `fecharCtxMenuFunc();_desactivarFunc('${cod}')`, 'ctx-menu-danger'));
   }
 
   const menu = document.getElementById('ctx-menu-func');

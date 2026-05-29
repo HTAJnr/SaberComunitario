@@ -94,19 +94,10 @@ function abrirCtxMenuEvento(evt, id) {
       <i class="fa-solid fa-eye" style="width:14px"></i> Ver detalhe
     </div>
     ${podeGerir && planeado ? `
-    <div class="ctx-menu-item" onclick="fecharCtxMenuEvento();abrirModalEditarEvento(${id})">
-      <i class="fa-solid fa-pen" style="width:14px"></i> Editar
-    </div>
-    <div class="ctx-menu-item" onclick="fecharCtxMenuEvento();marcarRealizadoEvento(${id})">
-      <i class="fa-solid fa-circle-check" style="width:14px"></i> Marcar realizado
-    </div>
-    <div class="ctx-menu-item ctx-menu-danger" onclick="fecharCtxMenuEvento();cancelarEvento(${id})">
-      <i class="fa-solid fa-ban" style="width:14px"></i> Cancelar
-    </div>` : ''}
-    ${podeGerir ? `
-    <div class="ctx-menu-item ctx-menu-danger" onclick="fecharCtxMenuEvento();eliminarEvento(${id})">
-      <i class="fa-solid fa-trash" style="width:14px"></i> Apagar
-    </div>` : ''}
+    ${_ctxItemNo('EventosBibliotecasDB', 'fa-pen', 'Editar', `fecharCtxMenuEvento();abrirModalEditarEvento(${id})`)}
+    ${_ctxItemNo('EventosBibliotecasDB', 'fa-circle-check', 'Marcar realizado', `fecharCtxMenuEvento();marcarRealizadoEvento(${id})`)}
+    ${_ctxItemNo('EventosBibliotecasDB', 'fa-ban', 'Cancelar', `fecharCtxMenuEvento();cancelarEvento(${id})`, 'ctx-menu-danger')}` : ''}
+    ${podeGerir ? _ctxItemNo('EventosBibliotecasDB', 'fa-trash', 'Apagar', `fecharCtxMenuEvento();eliminarEvento(${id})`, 'ctx-menu-danger') : ''}
   `;
 
   const btn  = evt.currentTarget;

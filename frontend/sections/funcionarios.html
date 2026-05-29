@@ -2,11 +2,24 @@
 
   <!-- Barra de acções -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    <div class="search-wrapper" style="max-width:280px">
+    <div class="search-wrapper" style="max-width:220px">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
       <input id="filtro-func-q" type="text" placeholder="Pesquisar por nome…"
              oninput="_renderizarTabelaFuncionarios()" class="input-field"/>
     </div>
+    <!-- Filtros de rede — apenas Admin (mostrados via JS) -->
+    <select id="filtro-func-regiao" onchange="_renderizarTabelaFuncionarios()" class="input-field" style="width:110px;display:none">
+      <option value="">Toda a região</option>
+      <option value="Sul">Sul</option>
+      <option value="Centro">Centro</option>
+      <option value="Norte">Norte</option>
+    </select>
+    <select id="filtro-func-provincia" onchange="_renderizarTabelaFuncionarios()" class="input-field" style="width:160px;display:none">
+      <option value="">Toda a província</option>
+    </select>
+    <select id="filtro-func-bib" onchange="_renderizarTabelaFuncionarios()" class="input-field" style="width:180px;display:none">
+      <option value="">Todas as bibliotecas</option>
+    </select>
     <button onclick="abrirWizardFunc()" class="btn-primary" style="white-space:nowrap;flex-shrink:0">
       <i class="fa-solid fa-user-plus" style="margin-right:5px"></i>Cadastrar Funcionário
     </button>

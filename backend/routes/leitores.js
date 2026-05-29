@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
-const { autenticar, exigirNivel } = require('../middleware/permissoes');
+const { autenticar, exigirNivel, exigirNo } = require('../middleware/permissoes');
 
 function normalizarTelefone(tel) {
   if (!tel) return tel;
@@ -605,7 +605,7 @@ router.patch('/:id/status', exigirNivel('Administrador', 'Coordenador'), async (
 });
 
 // ── DELETE /:id — eliminar leitor ────────────────────────────
-router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
+router.delete('/:id', exigirNivel('Administrador'), exigirNo('BibliotecaNacionalDB'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();

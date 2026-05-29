@@ -2,7 +2,7 @@
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
-const { autenticar, exigirNivel } = require('../middleware/permissoes');
+const { autenticar, exigirNivel, exigirNo } = require('../middleware/permissoes');
 
 // Gera email a partir do nome: "Ana Beatriz Machava" → "ana.machava@sabercomunitario.mz"
 function gerarEmail(nome) {
@@ -471,7 +471,7 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, re
   }
 });
 
-router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
+router.delete('/:id', exigirNivel('Administrador'), exigirNo('BibliotecaNacionalDB'), async (req, res) => {
   if (String(req.params.id) === String(req.session.cod_funcionario)) {
     return res.status(403).json({ erro: 'Não pode desactivar a sua própria conta.' });
   }
@@ -497,7 +497,7 @@ router.delete('/:id', exigirNivel('Administrador'), async (req, res) => {
 });
 
 // PATCH /:id/acesso — altera nível de acesso (muda ID_FUNCAO); só Administrador
-router.patch('/:id/acesso', exigirNivel('Administrador'), async (req, res) => {
+router.patch('/:id/acesso', exigirNivel('Administrador'), exigirNo('BibliotecaNacionalDB'), async (req, res) => {
   if (String(req.params.id) === String(req.session.cod_funcionario)) {
     return res.status(403).json({ erro: 'Não pode alterar as suas próprias permissões.' });
   }

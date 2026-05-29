@@ -18,6 +18,7 @@ const programasRouter = require('./routes/programas');
 const bibliotecasRouter = require('./routes/bibliotecas');
 const suspensoesRouter  = require('./routes/suspensoes');
 const auditoriaRouter   = require('./routes/auditoria');
+const { inicializarNoOrigem } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -88,4 +89,5 @@ app.listen(PORT, () => {
   console.log(`\x1b[36m[SERVER]\x1b[0m          /api/emprestimos | /api/funcionarios | /api/eventos | /api/doacoes | /api/doadores`);
   console.log(`\x1b[36m[SERVER]\x1b[0m          /api/transferencias | /api/programas | /api/bibliotecas | /api/suspensoes | /api/auditoria`);
   console.log('\x1b[36m════════════════════════════════════════\x1b[0m');
+  inicializarNoOrigem();
 });

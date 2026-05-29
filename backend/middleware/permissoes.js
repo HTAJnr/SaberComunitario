@@ -1,3 +1,5 @@
+const { getNoOrigem } = require('../db');
+
 function autenticar(req, res, next) {
   if (!req.session.funcionario) {
     return res.status(401).json({
@@ -26,4 +28,18 @@ function exigirNivel(...niveis) {
   ];
 }
 
-module.exports = { autenticar, exigirNivel };
+function exigirNo(...nos) {
+  return (req, res, next) => {
+    const noActual = getNoOrigem();
+    if (!nos.includes(noActual)) {
+      return res.status(403).json({
+        erro: true,
+        codigo: 'NO_ERRADO',
+        mensagem: `Operação exclusiva do nó ${nos.join(' ou ')}. Nó actual: ${noActual}.`,
+      });
+    }
+    next();
+  };
+}
+
+module.exports = { autenticar, exigirNivel, exigirNo };

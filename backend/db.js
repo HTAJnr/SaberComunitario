@@ -76,4 +76,39 @@ async function listUserTables() {
   }
 }
 
-module.exports = { getConnection, testConnection, listUserTables, oracledb };
+// ── Identidade do nó ──────────────────────────────────────────
+const _NO_MAP = {
+  'APP_NACIONALDB':    'BibliotecaNacionalDB',
+  'APP_EMPRESTIMOSDB': 'EmpréstimosProgramasDB',
+  'APP_MATERIAISDB':   'MateriaisDB',
+  'APP_EVENTOSDB':     'EventosBibliotecasDB',
+  'USR_NACIONALDB':    'BibliotecaNacionalDB',
+  'USR_EMPRESTIMOSDB': 'EmpréstimosProgramasDB',
+  'USR_MATERIAISDB':   'MateriaisDB',
+  'USR_EVENTOSDB':     'EventosBibliotecasDB',
+};
+
+let _noOrigemCached = null;
+
+async function inicializarNoOrigem() {
+  let conn;
+  try {
+    conn = await getConnection();
+    const r = await conn.execute('SELECT USER FROM DUAL', [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+    const dbUser = (r.rows[0].USER || '').toUpperCase();
+    _noOrigemCached = _NO_MAP[dbUser] || process.env.NODE_NAME || 'BibliotecaNacionalDB';
+    console.log(`\x1b[36m[DB]\x1b[0m              Nó: ${_noOrigemCached} (${dbUser})`);
+  } catch (err) {
+    _noOrigemCached = process.env.NODE_NAME || 'BibliotecaNacionalDB';
+    console.warn(`\x1b[33m[DB] AVISO\x1b[0m        Identidade do nó não verificada: ${err.message}`);
+    console.warn(`                  Fallback: ${_noOrigemCached}`);
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+function getNoOrigem() {
+  return _noOrigemCached || process.env.NODE_NAME || 'BibliotecaNacionalDB';
+}
+
+module.exports = { getConnection, testConnection, listUserTables, inicializarNoOrigem, getNoOrigem, oracledb };

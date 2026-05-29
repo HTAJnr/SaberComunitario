@@ -105,14 +105,8 @@ function abrirCtxMenuMat(evt, cod, disponivel) {
     <div class="ctx-menu-item" onclick="fecharCtxMenuMat();abrirDrawerMat('${cod}')">
       <i class="fa-solid fa-eye" style="width:14px"></i> Ver detalhe
     </div>
-    ${['Administrador','Coordenador','Bibliotecario'].includes(nivel) ? `
-    <div class="ctx-menu-item" onclick="fecharCtxMenuMat();abrirModalEditarMat('${cod}')">
-      <i class="fa-solid fa-pen" style="width:14px"></i> Editar
-    </div>` : ''}
-    ${['Administrador','Coordenador'].includes(nivel) ? `
-    <div class="ctx-menu-item ctx-menu-danger" onclick="fecharCtxMenuMat();eliminarMaterial('${cod}')">
-      <i class="fa-solid fa-trash" style="width:14px"></i> Eliminar
-    </div>` : ''}
+    ${['Administrador','Coordenador','Bibliotecario'].includes(nivel) ? _ctxItemNo('MateriaisDB', 'fa-pen', 'Editar', `fecharCtxMenuMat();abrirModalEditarMat('${cod}')`) : ''}
+    ${['Administrador','Coordenador'].includes(nivel) ? _ctxItemNo('MateriaisDB', 'fa-trash', 'Eliminar', `fecharCtxMenuMat();eliminarMaterial('${cod}')`, 'ctx-menu-danger') : ''}
   `;
 
   const btn  = evt.currentTarget;

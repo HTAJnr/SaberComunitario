@@ -22,15 +22,34 @@ function bdgPontualidade(h) {
 }
 
 async function carregarLeitores() {
+  const isAdmin = utilizadorActual?.NIVEL_ACESSO === 'Administrador';
+  const selBib  = document.getElementById('filtro-leitor-bib');
+
+  if (isAdmin && selBib) {
+    selBib.style.display = '';
+    if (selBib.options.length === 1) {
+      try {
+        const bibs = await get('/api/funcionarios/bibliotecas');
+        bibs.forEach(b => {
+          const o = document.createElement('option');
+          o.value = b.COD_BIBLIOTECA; o.textContent = b.NOME;
+          selBib.appendChild(o);
+        });
+      } catch (_) {}
+    }
+  }
+
   const search    = document.getElementById('filtro-leitor-q')?.value || '';
   const status    = document.getElementById('filtro-leitor-estado')?.value || '';
   const tipo      = document.getElementById('filtro-leitor-tipo')?.value || '';
   const historico = document.getElementById('filtro-leitor-historico')?.value || '';
+  const biblioteca = isAdmin ? (selBib?.value || '') : '';
   const params = new URLSearchParams();
-  if (search)    params.set('search', search);
-  if (status)    params.set('status', status);
-  if (tipo)      params.set('tipo', tipo);
-  if (historico) params.set('historico', historico);
+  if (search)     params.set('search', search);
+  if (status)     params.set('status', status);
+  if (tipo)       params.set('tipo', tipo);
+  if (historico)  params.set('historico', historico);
+  if (biblioteca) params.set('biblioteca', biblioteca);
   try {
     const { leitores: rows } = await get(`/api/leitores?${params}`);
     const tbody = document.getElementById('tabela-leitores');
@@ -58,7 +77,7 @@ function abrirCtxMenuLeitor(evt, numCartao, nome, statusActual) {
   const nivel = utilizadorActual?.NIVEL_ACESSO || '';
   const podeEditar   = ['Administrador','Coordenador','Bibliotecario'].includes(nivel);
   const podeStatus   = ['Administrador','Coordenador'].includes(nivel);
-  const podeEliminar = nivel === 'Administrador';
+  const podeEliminar = nivel === 'Administrador' && _noEh('BibliotecaNacionalDB');
 
   const menu = document.getElementById('ctx-menu-leitor');
   menu.innerHTML = `
