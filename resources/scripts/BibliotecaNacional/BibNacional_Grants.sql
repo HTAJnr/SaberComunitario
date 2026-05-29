@@ -145,14 +145,8 @@ GRANT SELECT ON vw_replica_funcionarios         TO app_emprestimosdb;
 
 -- Verificações de leitores (RN09: e-books exigem leitor adulto)
 GRANT SELECT ON LEITOR                          TO app_materiaisdb;
--- Verificação de tipo de leitor
-GRANT SELECT ON ADULTO                          TO app_eventosdb;
-GRANT SELECT ON CRIANCA                         TO app_eventosdb;
-GRANT SELECT ON PROFESSOR                       TO app_eventosdb;
-GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
-
--- RN09: verificar se leitor é adulto antes de acesso a e-book
 GRANT SELECT ON ADULTO                          TO app_materiaisdb;
+GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
 
 -- Replicação de funcionários (snapshot repl_funcionarios no nó do Yasin)
 GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;

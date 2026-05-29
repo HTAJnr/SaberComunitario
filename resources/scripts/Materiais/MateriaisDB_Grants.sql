@@ -33,6 +33,7 @@ GRANT SELECT  ON SEQ_AUDITORIA_MAT         TO app_materiaisdb;
 -- RN05: verifica disponibilidade e actualiza estado via procedure
 -- NAO tem UPDATE directo — deve usar atualizar_estado_material
 GRANT SELECT  ON MATERIAL_BIBLIOGRAFICO    TO app_emprestimosdb;
+GRANT SELECT  ON CATEGORIA                 TO app_emprestimosdb;
 GRANT SELECT  ON vw_mat_disponivel         TO app_emprestimosdb;
 GRANT EXECUTE ON atualizar_estado_material TO app_emprestimosdb;
 

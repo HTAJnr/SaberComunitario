@@ -16,7 +16,10 @@
 -- Permite verificar dados de funcionarios sem depender
 -- da disponibilidade do no do Helder
 -- ============================================================
+DROP MATERIALIZED VIEW repl_funcionarios;
+
 CREATE MATERIALIZED VIEW repl_funcionarios
+  BUILD IMMEDIATE
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
@@ -31,7 +34,10 @@ FROM vw_replica_funcionarios@link_nacionaldb;
 -- Permite verificar dados de bibliotecas sem depender
 -- da disponibilidade do no do Gerson
 -- ============================================================
+DROP MATERIALIZED VIEW biblioteca_snap;
+
 CREATE MATERIALIZED VIEW biblioteca_snap
+  BUILD IMMEDIATE
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
@@ -45,7 +51,10 @@ SELECT * FROM biblioteca@link_eventosdb;
 -- Permite verificar dados de leitores sem depender
 -- da disponibilidade do no do Helder
 -- ============================================================
+DROP MATERIALIZED VIEW snap_leitor_publico;
+
 CREATE MATERIALIZED VIEW snap_leitor_publico
+  BUILD IMMEDIATE
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
@@ -53,5 +62,3 @@ AS
 SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
 FROM vw_leitor_publico@link_nacionaldb;
-
-
