@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="resources/imgs/Logo.png" alt="Saber Comunitário" width="180" />
+</div>
+
 # Saber Comunitário
 
 Sistema de Gestão de Bibliotecas Comunitárias Distribuído — Trabalho Prático BD2 (ISCTEM).  
