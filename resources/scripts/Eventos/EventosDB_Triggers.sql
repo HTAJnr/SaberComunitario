@@ -29,10 +29,12 @@ BEGIN
     v_dia_semana := CASE v_dia_semana
         WHEN 'SEGUNDA-FEIRA' THEN 'Segunda-feira'
         WHEN 'TERCA-FEIRA'   THEN 'Terca-feira'
+        WHEN 'TER' || CHR(199) || 'A-FEIRA' THEN 'Terca-feira'
         WHEN 'QUARTA-FEIRA'  THEN 'Quarta-feira'
         WHEN 'QUINTA-FEIRA'  THEN 'Quinta-feira'
         WHEN 'SEXTA-FEIRA'   THEN 'Sexta-feira'
         WHEN 'SABADO'        THEN 'Sabado'
+        WHEN 'S' || CHR(193) || 'BADO' THEN 'Sabado'
         WHEN 'DOMINGO'       THEN 'Domingo'
         ELSE v_dia_semana
     END;

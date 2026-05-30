@@ -222,5 +222,3 @@ VALUES (1, 'MPC20250002', 4, 'Boa discussao, poderia ter mais tempo de debate.',
 -- FIM DO SCRIPT
 -- ============================================================
 COMMIT;
-
-SELECT cod_biblioteca, nome_biblioteca, provincia FROM BIBLIOTECA;

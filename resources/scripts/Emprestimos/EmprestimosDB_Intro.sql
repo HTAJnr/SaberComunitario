@@ -26,52 +26,7 @@
 -- ============================================================
 
 -- ============================================================
--- 1. REPL_FUNCIONARIOS
---    Replica parcial de funcionarios vinda do BibliotecaNacionalDB
---    Todos os 10 funcionarios do sistema (FUC20250001-FUC20251000)
--- ============================================================
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250001', 'Ana Maria Sitoe', 'Administrador', 1, 'BIBMPC0001', 'Administrador');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250002', 'Carlos Nhambiu', 'Coordenador', 2, 'BIBMPC0001', 'Coordenador');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250003', 'Beatriz Cossa', 'Bibliotecario', 3, 'BIBMPC0001', 'Bibliotecario');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250004', 'Domingos Machava', 'Assistente', 4, 'BIBMPC0001', 'Assistente');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250005', 'Esperanca Bila', 'Coordenador', 2, 'BIBGZA0001', 'Coordenador');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250006', 'Fernando Mondlane', 'Bibliotecario', 3, 'BIBGZA0001', 'Bibliotecario');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250007', 'Graca Tembe', 'Assistente', 4, 'BIBGZA0001', 'Assistente');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250008', 'Helder Zunguze', 'Coordenador', 2, 'BIBSOF0001', 'Coordenador');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20250009', 'Ilda Macuacua', 'Bibliotecario', 3, 'BIBSOF0001', 'Bibliotecario');
-
-INSERT INTO REPL_FUNCIONARIOS (cod_funcionario, nome_funcionario, nivel_acesso,
-    id_funcao, cod_biblioteca, nome_funcao)
-VALUES ('FUC20251000', 'Jorge Nuvunga', 'Assistente', 4, 'BIBSOF0001', 'Assistente');
-
--- ============================================================
--- 2. EMPRESTIMOS
+-- 1. EMPRESTIMOS
 --    num_cartao e cod_material referenciam dados remotos
 --    (BibliotecaNacionalDB e MateriaisDB respectivamente)
 -- ============================================================
@@ -106,13 +61,13 @@ VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'GZA20250001', 'FUC20250005', 'MAT20240001',
     'Bom', 'Bom', 75.00, 'N');
 -- id_emprestimo = 3
 
--- Emprestimo devolvido com 65 dias de atraso — leitor SOF20250001
+-- Emprestimo devolvido com 65 dias de atraso — leitor SOF20250002
 -- Atraso > 60 dias: leitor bloqueado, material marcado como Indisponivel
 INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
     data_retirada, prazo_devolucao, data_devolucao,
     estado_material_saida, estado_material_retorno,
     multa_valor, multa_paga)
-VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'SOF20250001', 'FUC20250008', 'MAT20190001',
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'SOF20250002', 'FUC20250008', 'MAT20190001',
     TO_DATE('2024-11-01','YYYY-MM-DD'), TO_DATE('2024-11-15','YYYY-MM-DD'),
     TO_DATE('2025-01-19','YYYY-MM-DD'),
     'Bom', 'Perdido', 975.00, 'N');

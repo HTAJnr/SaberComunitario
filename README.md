@@ -34,34 +34,44 @@ SHUTDOWN IMMEDIATE;
 STARTUP;
 ```
 
-### Instalar cada nó
+### Ordem de instalação
 
-Em cada VM, copiar todos os ficheiros da pasta correspondente para `/root/TP/` (ou o caminho configurado nos scripts) e executar o script principal como SYSDBA:
+Os scripts de cada nó são resilientes (usam DROP defensivo), mas a ordem abaixo garante que os database links e snapshots cross-node funcionam correctamente.
 
-**BibliotecaNacionalDB** (VM do Hélder):
+**Passo 1 — instalar os 3 nós dependentes** (podem correr em paralelo ou por esta ordem):
+
+**EventosBibliotecasDB:**
+```bash
+sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EventosDB_Main.sql
+```
+
+**EmpréstimosDB:**
+```bash
+sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EmprestimosDB_Main.sql
+```
+
+**MateriaisDB:**
+```bash
+sqlplus sys/"bd2.isctem" as sysdba @/root/TP/MateriaisDB_Main.sql
+```
+
+**Passo 2 — instalar o nó principal:**
+
+**BibliotecaNacionalDB:**
 ```bash
 sqlplus sys/"bd2.isctem" as sysdba @/root/TP/BibNacional_Main.sql
 ```
 
-**MateriaisDB** (VM do Yasin):
+**Passo 3 — criar os snapshots do EventosBibliotecasDB** (obrigatório após o Passo 2):
+
+Na VM do EventosBibliotecasDB, correr como `usr_eventosdb` (não como sysdba):
 ```bash
-export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
-sqlplus sys/bd2.isctem as sysdba @/root/TP/MateriaisDB_Main.sql
+sqlplus usr_eventosdb/eventos1234 @/root/TP/EventosDB_Snapshots.sql
 ```
 
-**EmpréstimosDB** (VM do Yannis):
-```bash
-sqlplus / as sysdba @/root/TP/EmprestimosDB_Main.sql
-```
+Este script cria as materialized views `repl_funcionarios`, `repl_funcao_funcionario` e `snap_leitor` que puxam dados do BibliotecaNacionalDB via database link. Só funciona depois do BibliotecaNacionalDB estar activo.
 
-**EventosBibliotecasDB** (VM do Gerson):
-```bash
-sqlplus sys/bd2.isctem as sysdba @/root/TP/EventosDB_Main.sql
-```
-
-O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → snapshots → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
-
-> **Nota sobre snapshots:** os snapshots de cada nó dependem de grants concedidos por outros nós. Após todos os nós estarem instalados e os grants cross-node aplicados, os snapshots comentados nos scripts `*_Main.sql` podem ser descomentados e executados.
+O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
 
 ---
 

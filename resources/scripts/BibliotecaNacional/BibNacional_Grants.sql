@@ -192,7 +192,6 @@ GRANT EXECUTE ON proc_gerir_acesso_bd           TO app_NACIONALDB;
 GRANT EXECUTE ON prc_registar_auditoria         TO app_NACIONALDB;
 GRANT EXECUTE ON prc_apagar_leitor              TO app_NACIONALDB;
 GRANT EXECUTE ON prc_remover_funcionario        TO app_NACIONALDB;
-GRANT EXECUTE ON prc_sincronizar_funcionarios   TO app_NACIONALDB;
 GRANT EXECUTE ON prc_modificar_nivel_acesso     TO app_NACIONALDB;
 GRANT EXECUTE ON prc_demo_2pc                   TO app_NACIONALDB;
 GRANT EXECUTE ON prc_emitir_honorifico              TO app_NACIONALDB;

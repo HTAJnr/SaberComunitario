@@ -9,24 +9,7 @@ DROP TABLE NIVEL_PROGRESSAO       CASCADE CONSTRAINTS;
 DROP TABLE PROGRAMA_ALFABETIZACAO CASCADE CONSTRAINTS;
 DROP TABLE SUSPENSAO              CASCADE CONSTRAINTS;
 DROP TABLE EMPRESTIMO             CASCADE CONSTRAINTS;
-DROP TABLE REPL_FUNCIONARIOS      CASCADE CONSTRAINTS;
 DROP TABLE AUDITORIA_EMPRESTIMOS  CASCADE CONSTRAINTS;
-
--- ------------------------------------------------------------
--- REPL_FUNCIONARIOS
--- Replica parcial de FUNCIONARIO vinda do BibliotecaNacionalDB
--- Actualizada pelo app_nacionaldb via GRANT INSERT/UPDATE/DELETE
--- ------------------------------------------------------------
-CREATE TABLE REPL_FUNCIONARIOS (
-    cod_funcionario  VARCHAR2(12)  NOT NULL,
-    nome_funcionario VARCHAR2(100),
-    nivel_acesso     VARCHAR2(15),
-    id_funcao        NUMBER,
-    cod_biblioteca   VARCHAR2(10),
-    nome_funcao      VARCHAR2(15)
-) TABLESPACE tbs_emprestimosdb;
-ALTER TABLE REPL_FUNCIONARIOS ADD CONSTRAINT pk_repl_funcionarios
-    PRIMARY KEY (cod_funcionario);
 
 -- ------------------------------------------------------------
 -- EMPRESTIMO

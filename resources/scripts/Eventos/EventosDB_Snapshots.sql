@@ -44,10 +44,3 @@ AS
 SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
 FROM leitor@link_nacionaldb;
-
--- Verificar
-SELECT MVIEW_NAME, REFRESH_MODE, LAST_REFRESH_DATE
-FROM USER_MVIEWS;
-
-SELECT COUNT(*) AS funcionarios_replicados FROM repl_funcionarios;
-SELECT COUNT(*) AS leitores_replicados     FROM snap_leitor;

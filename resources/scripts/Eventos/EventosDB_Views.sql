@@ -144,9 +144,6 @@ CREATE OR REPLACE VIEW vw_frag_participacao_passado AS
         WHERE ep.id_evento = pe.id_evento
     );
 
--- Verificar
-SELECT VIEW_NAME FROM USER_VIEWS ORDER BY VIEW_NAME;
-
 -- ============================================================
 -- VISTAS PARA O BACKEND
 -- BIBLIOTECA e HORARIO_BIBLIOTECA sao locais neste no.
@@ -199,5 +196,5 @@ LEFT JOIN BIBLIOTECA_RESPONSAVEL br
     ON b.cod_biblioteca = br.cod_biblioteca
    AND br.papel = 'Principal'
    AND br.data_fim IS NULL
-LEFT JOIN FUNCIONARIO f ON br.cod_funcionario = f.cod_funcionario;
+LEFT JOIN repl_funcionarios f ON br.cod_funcionario = f.cod_funcionario;
 /
