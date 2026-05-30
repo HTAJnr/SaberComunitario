@@ -17,8 +17,10 @@ GRANT CREATE TABLE, CREATE VIEW, CREATE SEQUENCE,
       CREATE TRIGGER, CREATE PROCEDURE, CREATE SYNONYM
 TO usr_eventosdb;
 
--- Privil�gio para database links
+-- Privilégio para database links (PUBLIC para que app_eventosdb os resolva)
 GRANT CREATE DATABASE LINK TO usr_eventosdb;
+GRANT CREATE PUBLIC DATABASE LINK TO usr_eventosdb;
+GRANT DROP PUBLIC DATABASE LINK TO usr_eventosdb;
 
 -- Privil�gio para materialized views (snapshots)
 GRANT CREATE MATERIALIZED VIEW TO usr_eventosdb;

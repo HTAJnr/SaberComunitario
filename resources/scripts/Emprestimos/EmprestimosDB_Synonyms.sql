@@ -5,6 +5,15 @@
 --   GRANT CREATE PUBLIC SYNONYM TO usr_emprestimosdb;
 -- ============================================================
 
+-- DROP de synonyms auto-referenciais que apontam @EMPRESTIMOSDB a partir
+-- do próprio nó — criados por engano ao correr o script errado neste nó.
+-- Os objectos locais são acedidos directamente via grant, não via dblink.
+DROP PUBLIC SYNONYM vw_emprestimos_ativos;
+DROP PUBLIC SYNONYM vw_historico_emprestimos;
+DROP PUBLIC SYNONYM processar_devolucao;
+DROP PUBLIC SYNONYM seq_emprestimo;
+DROP PUBLIC SYNONYM seq_nivel;
+
 -- SINONIMOS PUBLICOS � BibliotecaNacionalDB (Helder)
 CREATE OR REPLACE PUBLIC SYNONYM leitor
     FOR leitor@nacionaldb;
@@ -36,6 +45,13 @@ CREATE OR REPLACE PUBLIC SYNONYM transferencia
     FOR transferencia@materiaisdb;
 
 -- SINONIMOS PUBLICOS � Objectos locais (usr_emprestimosdb)
+-- Vistas e objectos acedidos via dblink por outros nos (substituem os auto-referenciais)
+CREATE OR REPLACE PUBLIC SYNONYM vw_emprestimos_ativos    FOR usr_emprestimosdb.vw_emprestimos_ativos;
+CREATE OR REPLACE PUBLIC SYNONYM vw_historico_emprestimos FOR usr_emprestimosdb.vw_historico_emprestimos;
+CREATE OR REPLACE PUBLIC SYNONYM processar_devolucao      FOR usr_emprestimosdb.processar_devolucao;
+CREATE OR REPLACE PUBLIC SYNONYM seq_emprestimo           FOR usr_emprestimosdb.seq_emprestimo;
+CREATE OR REPLACE PUBLIC SYNONYM seq_nivel                FOR usr_emprestimosdb.seq_nivel;
+
 CREATE OR REPLACE PUBLIC SYNONYM emprestimo
     FOR usr_emprestimosdb.emprestimo;
 CREATE OR REPLACE PUBLIC SYNONYM suspensao

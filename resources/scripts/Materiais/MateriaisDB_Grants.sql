@@ -23,6 +23,10 @@ GRANT SELECT  ON VW_AUDITORIA             TO app_materiaisdb;
 GRANT EXECUTE ON atualizar_estado_material TO app_materiaisdb;
 GRANT EXECUTE ON registar_auditoria_mat    TO app_materiaisdb;
 GRANT SELECT  ON SEQ_AUDITORIA_MAT         TO app_materiaisdb;
+-- Autenticacao local (app_materiaisdb autentica contra snapshots locais)
+GRANT SELECT  ON REPL_FUNCIONARIOS         TO app_materiaisdb;
+GRANT SELECT  ON REPL_FUNCAO_FUNCIONARIO   TO app_materiaisdb;
+GRANT SELECT  ON BIBLIOTECA_SNAP           TO app_materiaisdb;
 
 
 -- ============================================================
@@ -39,9 +43,16 @@ GRANT EXECUTE ON atualizar_estado_material TO app_emprestimosdb;
 
 -- Para o Helder (app_nacionaldb)
 -- Supervisao: visao global do catalogo + actualizacao para demo 2PC
-GRANT SELECT ON MATERIAL_BIBLIOGRAFICO TO app_nacionaldb;
-GRANT SELECT ON vw_mat_disponivel      TO app_nacionaldb;
-GRANT UPDATE ON MATERIAL_BIBLIOGRAFICO TO app_nacionaldb;
+GRANT SELECT ON MATERIAL_BIBLIOGRAFICO    TO app_nacionaldb;
+GRANT SELECT ON LIVRO_FISICO             TO app_nacionaldb;
+GRANT SELECT ON EBOOK                    TO app_nacionaldb;
+GRANT SELECT ON PERIODICO                TO app_nacionaldb;
+GRANT SELECT ON TRANSFERENCIA            TO app_nacionaldb;
+GRANT SELECT ON vw_mat_disponivel        TO app_nacionaldb;
+GRANT SELECT ON vw_materiais_completos   TO app_nacionaldb;
+GRANT SELECT ON vw_transferencias_detalhadas TO app_nacionaldb;
+GRANT SELECT ON SEQ_TRANSFERENCIA        TO app_nacionaldb;
+GRANT UPDATE ON MATERIAL_BIBLIOGRAFICO   TO app_nacionaldb;
 
 -- Para o Gerson (app_eventosdb)
 -- Planeamento de eventos: catalogo publico e disponibilidade

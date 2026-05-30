@@ -28,3 +28,9 @@ DROP USER app_materiaisdb CASCADE;
 CREATE USER app_materiaisdb IDENTIFIED BY "YM20240260"
   DEFAULT TABLESPACE tbs_emprestimosdb
   TEMPORARY TABLESPACE TEMP;
+
+-- Visitor user do Gerson (EventosBibliotecasDB)
+DROP USER app_eventosdb CASCADE;
+CREATE USER app_eventosdb IDENTIFIED BY "appev1234"
+  DEFAULT TABLESPACE tbs_emprestimosdb
+  TEMPORARY TABLESPACE TEMP;

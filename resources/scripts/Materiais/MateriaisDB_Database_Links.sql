@@ -1,24 +1,22 @@
 -- ============================================================
 -- MateriaisDB_Database_Links.sql
+-- Pré-requisito: usr_materiaisdb precisa de CREATE PUBLIC DATABASE LINK
+--   (concedido em MateriaisDB_Roles.sql via sysdba)
 -- Executar como: usr_materiaisdb
 -- ============================================================
 
--- Apagar links antigos
-DROP DATABASE LINK link_emprestimosdb;
-DROP DATABASE LINK link_eventosdb;
-DROP DATABASE LINK link_nacionaldb;
+DROP PUBLIC DATABASE LINK link_emprestimosdb;
+DROP PUBLIC DATABASE LINK link_eventosdb;
+DROP PUBLIC DATABASE LINK link_nacionaldb;
 
--- Recriar com app_materiaisdb (visitor user criado por cada colega)
--- Cada colega criou app_materiaisdb no servidor deles com a password deles
-CREATE DATABASE LINK link_emprestimosdb
+CREATE PUBLIC DATABASE LINK link_emprestimosdb
   CONNECT TO app_materiaisdb IDENTIFIED BY "YM20240260"
   USING 'EMPRESTIMOSDB';
 
-CREATE DATABASE LINK link_eventosdb
+CREATE PUBLIC DATABASE LINK link_eventosdb
   CONNECT TO app_materiaisdb IDENTIFIED BY "YM20240260"
   USING 'EVENTOSDB';
 
-CREATE DATABASE LINK link_nacionaldb
+CREATE PUBLIC DATABASE LINK link_nacionaldb
   CONNECT TO app_materiaisdb IDENTIFIED BY "YM20240260"
   USING 'NACIONALDB';
-

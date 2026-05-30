@@ -20,6 +20,18 @@ GRANT SELECT ON v_horarios_bibliotecas      TO app_eventosdb;
 GRANT SELECT ON v_bibliotecas_activas       TO app_eventosdb;
 GRANT SELECT ON v_evento_global             TO app_eventosdb;
 
+-- Vistas acedidas via dblink por outros nós (dashboard, bibliotecas)
+GRANT SELECT ON vw_eventos_proximos          TO app_eventosdb;
+GRANT SELECT ON vw_eventos_proximos          TO app_nacionaldb;
+GRANT SELECT ON vw_eventos_completos         TO app_eventosdb;
+GRANT SELECT ON vw_eventos_completos         TO app_nacionaldb;
+GRANT SELECT ON vw_bibliotecas_operacionais  TO app_eventosdb;
+GRANT SELECT ON vw_bibliotecas_operacionais  TO app_nacionaldb;
+GRANT SELECT ON vw_horarios_biblioteca_semana TO app_eventosdb;
+GRANT SELECT ON vw_horarios_biblioteca_semana TO app_nacionaldb;
+GRANT SELECT ON vw_participacoes_eventos     TO app_eventosdb;
+GRANT SELECT ON vw_participacoes_eventos     TO app_nacionaldb;
+
 -- Vistas de fragmento originais
 GRANT SELECT ON frag_evento_sul             TO app_eventosdb;
 GRANT SELECT ON frag_evento_centro          TO app_eventosdb;
@@ -35,8 +47,15 @@ GRANT SELECT ON vw_frag_participacao_passado TO app_eventosdb;
 
 -- Sequencias
 GRANT SELECT ON SEQ_EVENTO                  TO app_eventosdb;
+GRANT SELECT ON SEQ_AVALIACAO               TO app_eventosdb;
 GRANT SELECT ON SEQ_AUDITORIA_EVT           TO app_eventosdb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO          TO app_eventosdb;
+
+-- Procedimento de participacao (chamado pelo backend local e via dblink pelo NacionalDB)
+GRANT EXECUTE ON INSERE_PARTICIPACAO_EVENTO TO app_eventosdb;
+GRANT EXECUTE ON INSERE_PARTICIPACAO_EVENTO TO app_nacionaldb;
+-- NacionalDB usa seq_avaliacao@eventosdb directamente para INSERT em AVALIACAO_EVENTO
+GRANT SELECT ON SEQ_AVALIACAO               TO app_nacionaldb;
 
 -- ============================================================
 -- GRANTS PARA VISITOR USERS — acesso de outros nos a este no
@@ -45,6 +64,7 @@ GRANT SELECT ON SEQ_HORARIO_EVENTO          TO app_eventosdb;
 
 -- Para o Helder (app_nacionaldb)
 GRANT SELECT ON BIBLIOTECA              TO app_nacionaldb;
+GRANT SELECT ON BIBLIOTECA_RESPONSAVEL  TO app_nacionaldb;
 GRANT SELECT ON EVENTO                  TO app_nacionaldb;
 GRANT SELECT ON PARTICIPACAO_EVENTO     TO app_nacionaldb;
 GRANT SELECT ON AVALIACAO_EVENTO        TO app_nacionaldb;

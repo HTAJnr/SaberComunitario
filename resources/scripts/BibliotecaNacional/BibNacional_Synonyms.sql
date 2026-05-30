@@ -127,6 +127,7 @@ CREATE OR REPLACE PUBLIC SYNONYM seq_avaliacao                FOR seq_avaliacao@
 CREATE OR REPLACE PUBLIC SYNONYM vw_eventos_proximos          FOR vw_eventos_proximos@eventosdb;
 CREATE OR REPLACE PUBLIC SYNONYM vw_eventos_completos         FOR vw_eventos_completos@eventosdb;
 CREATE OR REPLACE PUBLIC SYNONYM insere_participacao_evento   FOR insere_participacao_evento@eventosdb;
+CREATE OR REPLACE PUBLIC SYNONYM biblioteca_responsavel       FOR biblioteca_responsavel@eventosdb;
 
 -- biblioteca_snap é uma MV local que replica BIBLIOTECA do EventosDB
 CREATE OR REPLACE PUBLIC SYNONYM biblioteca                   FOR biblioteca_snap;
