@@ -69,3 +69,8 @@ CREATE OR REPLACE PUBLIC SYNONYM FUNCIONARIO
     FOR usr_eventosdb.repl_funcionarios;
 CREATE OR REPLACE PUBLIC SYNONYM FUNCAO_FUNCIONARIO
     FOR usr_eventosdb.repl_funcao_funcionario;
+
+-- Snapshots locais (acesso directo pelo app_eventosdb sem prefixo de schema)
+CREATE OR REPLACE PUBLIC SYNONYM snap_leitor             FOR usr_eventosdb.snap_leitor;
+CREATE OR REPLACE PUBLIC SYNONYM repl_funcionarios       FOR usr_eventosdb.repl_funcionarios;
+CREATE OR REPLACE PUBLIC SYNONYM repl_funcao_funcionario FOR usr_eventosdb.repl_funcao_funcionario;

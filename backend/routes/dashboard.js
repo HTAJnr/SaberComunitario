@@ -11,6 +11,17 @@ function getCodBib(req) {
   return req.session.cod_biblioteca;
 }
 
+// Executa uma query de contagem e devolve 0 se o nó remoto estiver offline.
+// Usar apenas para métricas não-críticas — evita que um nó offline derrube todo o dashboard.
+async function safeCount(conn, sql, params) {
+  try {
+    const r = await conn.execute(sql, params || [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+    return r.rows[0]?.TOTAL ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 // ── Endpoints legados (mantidos para compatibilidade) ─────────────────────────
 
 router.get('/metricas', autenticar, async (req, res) => {
@@ -74,25 +85,20 @@ router.get('/emprestimos-ativos', autenticar, async (req, res) => {
 
     let sql;
     const params = {};
+    const base = `SELECT E.ID_EMPRESTIMO,
+                         L.NOME_COMPLETO AS NOME_LEITOR,
+                         E.NUM_CARTAO,
+                         M.TITULO,
+                         E.PRAZO_DEVOLUCAO AS DATA_DEVOLUCAO_PREV,
+                         GREATEST(0, TRUNC(SYSDATE) - TRUNC(E.PRAZO_DEVOLUCAO)) AS DIAS_ATRASO
+                  FROM snap_emp_activos E
+                  JOIN LEITOR L ON E.NUM_CARTAO = L.NUM_CARTAO
+                  JOIN snap_material_basico M ON E.COD_MATERIAL = M.COD_MATERIAL
+                  WHERE TRUNC(SYSDATE) > TRUNC(E.PRAZO_DEVOLUCAO)`;
     if (isAdmin(req)) {
-      sql = `SELECT * FROM (
-               SELECT ID_EMPRESTIMO, NOME_LEITOR, NUM_CARTAO,
-                      TITULO,
-                      PRAZO_DEVOLUCAO AS DATA_DEVOLUCAO_PREV,
-                      DIAS_ATRASO
-               FROM vw_emprestimos_ativos
-               ORDER BY DIAS_ATRASO DESC
-             ) WHERE ROWNUM <= 10`;
+      sql = `SELECT * FROM (${base} ORDER BY DIAS_ATRASO DESC) WHERE ROWNUM <= 10`;
     } else {
-      sql = `SELECT * FROM (
-               SELECT ID_EMPRESTIMO, NOME_LEITOR, NUM_CARTAO,
-                      TITULO,
-                      PRAZO_DEVOLUCAO AS DATA_DEVOLUCAO_PREV,
-                      DIAS_ATRASO
-               FROM vw_emprestimos_ativos
-               WHERE COD_BIBLIOTECA = :cod_bib
-               ORDER BY DIAS_ATRASO DESC
-             ) WHERE ROWNUM <= 10`;
+      sql = `SELECT * FROM (${base} AND M.COD_BIBLIOTECA = :cod_bib ORDER BY DIAS_ATRASO DESC) WHERE ROWNUM <= 10`;
       params.cod_bib = getCodBib(req);
     }
 
@@ -112,12 +118,15 @@ router.get('/eventos-proximos', autenticar, async (req, res) => {
     conn = await getConnection();
     const result = await conn.execute(
       `SELECT * FROM (
-         SELECT ID_EVENTO,
-                TITULO_EVENTO   AS NOME,
-                DATA_EVENTO     AS DATA_INICIO,
-                BIBLIOTECA_NOME AS NOME_BIBLIOTECA
-         FROM vw_eventos_proximos
-         ORDER BY DATA_EVENTO
+         SELECT E.ID_EVENTO,
+                E.TITULO_EVENTO   AS NOME,
+                E.DATA_EVENTO     AS DATA_INICIO,
+                B.NOME_BIBLIOTECA AS NOME_BIBLIOTECA
+         FROM snap_eventos E
+         JOIN BIBLIOTECA B ON E.COD_BIBLIOTECA = B.COD_BIBLIOTECA
+         WHERE E.DATA_EVENTO >= SYSDATE
+           AND (E.STATUS_EVENTO IS NULL OR E.STATUS_EVENTO != 'Cancelado')
+         ORDER BY E.DATA_EVENTO
        ) WHERE ROWNUM <= 5`,
       [],
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -151,31 +160,21 @@ router.get('/rede', exigirNivel('Administrador'), async (req, res) => {
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
-    const vencResult = await conn.execute(
-      `SELECT COUNT(*) AS TOTAL
-       FROM EMPRESTIMO
-       WHERE DATA_DEVOLUCAO IS NULL
-         AND TRUNC(SYSDATE) > TRUNC(PRAZO_DEVOLUCAO)`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+    // Usa snap_emp_activos (local) em vez de link live ao EmprestimosDB
+    const empVencidos = await safeCount(conn,
+      `SELECT COUNT(*) AS TOTAL FROM snap_emp_activos
+       WHERE TRUNC(SYSDATE) > TRUNC(PRAZO_DEVOLUCAO)`, []);
 
-    const perdidosResult = await conn.execute(
-      `SELECT COUNT(*) AS TOTAL
-       FROM EMPRESTIMO
+    // Materiais perdidos este mês — dado histórico, requer link live; safeCount protege se offline
+    const matPerdidos = await safeCount(conn,
+      `SELECT COUNT(*) AS TOTAL FROM EMPRESTIMO
        WHERE ESTADO_MATERIAL_RETORNO = 'Perdido'
-         AND TRUNC(DATA_DEVOLUCAO, 'MM') = TRUNC(SYSDATE, 'MM')`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+         AND TRUNC(DATA_DEVOLUCAO, 'MM') = TRUNC(SYSDATE, 'MM')`, []);
 
-    const transfResult = await conn.execute(
-      `SELECT COUNT(*) AS TOTAL
-       FROM TRANSFERENCIA
-       WHERE ESTADO_TRANSFERENCIA = 'Pendente'`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+    // Usa snap_transferencias (local) em vez de link live ao MateriaisDB
+    const transfPendentes = await safeCount(conn,
+      `SELECT COUNT(*) AS TOTAL FROM snap_transferencias
+       WHERE ESTADO_TRANSFERENCIA = 'Pendente'`, []);
 
     const m = metResult.rows[0] || {};
     res.json({
@@ -183,9 +182,9 @@ router.get('/rede', exigirNivel('Administrador'), async (req, res) => {
       total_leitores:           m.TOTAL_LEITORES            || 0,
       emprestimos_ativos:       m.EMPRESTIMOS_ATIVOS        || 0,
       materiais_acervo:         m.MATERIAIS_ACERVO          || 0,
-      emprestimos_vencidos:     vencResult.rows[0]?.TOTAL   || 0,
-      transferencias_pendentes: transfResult.rows[0]?.TOTAL || 0,
-      materiais_perdidos_mes:   perdidosResult.rows[0]?.TOTAL || 0,
+      emprestimos_vencidos:     empVencidos,
+      transferencias_pendentes: transfPendentes,
+      materiais_perdidos_mes:   matPerdidos,
       total_multas_por_cobrar:  m.TOTAL_MULTAS_POR_COBRAR  || 0,
     });
   } catch (err) {
@@ -213,29 +212,31 @@ router.get('/biblioteca', autenticar, async (req, res) => {
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
+    // Empréstimos vencidos — snapshot local (resiliente a EmprestimosDB offline)
     const vencResult = await conn.execute(
       `SELECT COUNT(*) AS TOTAL
-       FROM EMPRESTIMO E
-       JOIN MATERIAL_BIBLIOGRAFICO M ON E.COD_MATERIAL = M.COD_MATERIAL
-       WHERE M.COD_BIBLIOTECA = :bib
-         AND E.DATA_DEVOLUCAO IS NULL
+       FROM snap_emp_activos E, snap_material_basico M
+       WHERE E.COD_MATERIAL = M.COD_MATERIAL
+         AND M.COD_BIBLIOTECA = :bib
          AND TRUNC(SYSDATE) > TRUNC(E.PRAZO_DEVOLUCAO)`,
       { bib: codBib },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
+    // Transferências pendentes — snapshot local (resiliente a MateriaisDB offline)
     const transfResult = await conn.execute(
       `SELECT COUNT(*) AS TOTAL
-       FROM TRANSFERENCIA
+       FROM snap_transferencias
        WHERE ESTADO_TRANSFERENCIA = 'Pendente'
          AND (COD_BIBLIOTECA_ORIGEM = :bib OR COD_BIBLIOTECA_DESTINO = :bib2)`,
       { bib: codBib, bib2: codBib },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
+    // Eventos do mês — snapshot local (resiliente a EventosDB offline)
     const eventosResult = await conn.execute(
       `SELECT COUNT(*) AS TOTAL
-       FROM EVENTO
+       FROM snap_eventos
        WHERE COD_BIBLIOTECA = :bib
          AND EXTRACT(MONTH FROM DATA_EVENTO) = EXTRACT(MONTH FROM SYSDATE)
          AND EXTRACT(YEAR  FROM DATA_EVENTO) = EXTRACT(YEAR  FROM SYSDATE)`,
@@ -243,6 +244,7 @@ router.get('/biblioteca', autenticar, async (req, res) => {
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
+    // Doações — locais no NacionalDB, sem risco de offline
     const doacoesResult = await conn.execute(
       `SELECT COUNT(DISTINCT D.ID_DOACAO) AS TOTAL
        FROM DOACAO D
@@ -254,11 +256,12 @@ router.get('/biblioteca', autenticar, async (req, res) => {
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
+    // Empréstimos da semana — snapshots locais
     const semanaResult = await conn.execute(
       `SELECT TRUNC(E.DATA_RETIRADA) AS DIA, COUNT(*) AS TOTAL
-       FROM EMPRESTIMO E
-       JOIN MATERIAL_BIBLIOGRAFICO M ON E.COD_MATERIAL = M.COD_MATERIAL
-       WHERE M.COD_BIBLIOTECA = :bib
+       FROM snap_emp_activos E, snap_material_basico M
+       WHERE E.COD_MATERIAL = M.COD_MATERIAL
+         AND M.COD_BIBLIOTECA = :bib
          AND E.DATA_RETIRADA >= TRUNC(SYSDATE) - 6
        GROUP BY TRUNC(E.DATA_RETIRADA)
        ORDER BY DIA`,
@@ -266,12 +269,13 @@ router.get('/biblioteca', autenticar, async (req, res) => {
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
+    // Top 5 materiais actualmente em empréstimo (snapshot — dados activos apenas)
     const topResult = await conn.execute(
       `SELECT * FROM (
          SELECT M.TITULO, COUNT(*) AS TOTAL_EMPRESTIMOS
-         FROM EMPRESTIMO E
-         JOIN MATERIAL_BIBLIOGRAFICO M ON E.COD_MATERIAL = M.COD_MATERIAL
-         WHERE M.COD_BIBLIOTECA = :bib
+         FROM snap_emp_activos E, snap_material_basico M
+         WHERE E.COD_MATERIAL = M.COD_MATERIAL
+           AND M.COD_BIBLIOTECA = :bib
          GROUP BY M.TITULO
          ORDER BY COUNT(*) DESC
        ) WHERE ROWNUM <= 5`,
@@ -324,6 +328,7 @@ router.get('/devolucoes-hoje', autenticar, async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
+    // Usa snapshots locais — resiliente a EmprestimosDB e MateriaisDB offline
     const result = await conn.execute(
       `SELECT * FROM (
          SELECT E.ID_EMPRESTIMO,
@@ -331,12 +336,11 @@ router.get('/devolucoes-hoje', autenticar, async (req, res) => {
                 E.NUM_CARTAO,
                 M.TITULO,
                 E.PRAZO_DEVOLUCAO
-         FROM EMPRESTIMO E
+         FROM snap_emp_activos E
          JOIN LEITOR L ON E.NUM_CARTAO = L.NUM_CARTAO
-         JOIN MATERIAL_BIBLIOGRAFICO M ON E.COD_MATERIAL = M.COD_MATERIAL
-         WHERE L.COD_BIBLIOTECA = :bib
+         JOIN snap_material_basico M ON E.COD_MATERIAL = M.COD_MATERIAL
+         WHERE M.COD_BIBLIOTECA = :bib
            AND TRUNC(E.PRAZO_DEVOLUCAO) = TRUNC(SYSDATE)
-           AND E.DATA_DEVOLUCAO IS NULL
          ORDER BY E.PRAZO_DEVOLUCAO
        ) WHERE ROWNUM <= 5`,
       { bib: codBib },
@@ -391,19 +395,21 @@ router.get('/transferencias-recentes', exigirNivel('Administrador', 'Coordenador
   let conn;
   try {
     conn = await getConnection();
+    // Usa snapshots locais — resiliente a MateriaisDB offline.
+    // Ordenado por ID_TRANSFERENCIA DESC (DATA_SOLICITACAO não está no snapshot).
     const result = await conn.execute(
       `SELECT * FROM (
          SELECT T.ID_TRANSFERENCIA, M.TITULO,
                 BO.NOME_BIBLIOTECA AS NOME_ORIGEM,
                 BD.NOME_BIBLIOTECA AS NOME_DESTINO,
-                T.DATA_SOLICITACAO, T.ESTADO_TRANSFERENCIA,
+                T.ESTADO_TRANSFERENCIA,
                 T.COD_BIBLIOTECA_ORIGEM, T.COD_BIBLIOTECA_DESTINO
-         FROM TRANSFERENCIA T
-         JOIN MATERIAL_BIBLIOGRAFICO M ON T.COD_MATERIAL = M.COD_MATERIAL
+         FROM snap_transferencias T
+         JOIN snap_material_basico M ON T.COD_MATERIAL = M.COD_MATERIAL
          JOIN BIBLIOTECA BO ON T.COD_BIBLIOTECA_ORIGEM = BO.COD_BIBLIOTECA
          JOIN BIBLIOTECA BD ON T.COD_BIBLIOTECA_DESTINO = BD.COD_BIBLIOTECA
          WHERE T.COD_BIBLIOTECA_ORIGEM = :bib OR T.COD_BIBLIOTECA_DESTINO = :bib2
-         ORDER BY T.DATA_SOLICITACAO DESC
+         ORDER BY T.ID_TRANSFERENCIA DESC
        ) WHERE ROWNUM <= 3`,
       { bib: codBib, bib2: codBib },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }

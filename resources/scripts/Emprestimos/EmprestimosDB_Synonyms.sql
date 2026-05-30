@@ -79,3 +79,12 @@ CREATE OR REPLACE PUBLIC SYNONYM vw_auditoria
 CREATE OR REPLACE PUBLIC SYNONYM vw_relatorio_programas
     FOR usr_emprestimosdb.vw_relatorio_programas;
 
+-- Snapshots locais (acesso directo pelo app_emprestimosdb sem prefixo de schema)
+CREATE OR REPLACE PUBLIC SYNONYM snap_leitor     FOR usr_emprestimosdb.snap_leitor;
+CREATE OR REPLACE PUBLIC SYNONYM snap_material   FOR usr_emprestimosdb.snap_material;
+CREATE OR REPLACE PUBLIC SYNONYM snap_adulto     FOR usr_emprestimosdb.snap_adulto;
+CREATE OR REPLACE PUBLIC SYNONYM snap_crianca    FOR usr_emprestimosdb.snap_crianca;
+CREATE OR REPLACE PUBLIC SYNONYM snap_professor  FOR usr_emprestimosdb.snap_professor;
+CREATE OR REPLACE PUBLIC SYNONYM snap_categoria  FOR usr_emprestimosdb.snap_categoria;
+CREATE OR REPLACE PUBLIC SYNONYM biblioteca_snap FOR usr_emprestimosdb.biblioteca_snap;
+

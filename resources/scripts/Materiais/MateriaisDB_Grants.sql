@@ -7,7 +7,7 @@
 
 
 -- ============================================================
--- GRANTS PARA APP_MATERIAISDB (utilizador de aplicacao local)
+-- SECÇÃO 1: UTILIZADOR LOCAL — app_materiaisdb
 -- ============================================================
 GRANT SELECT, INSERT, UPDATE, DELETE ON CATEGORIA               TO app_materiaisdb;
 GRANT SELECT, INSERT, UPDATE, DELETE ON MATERIAL_BIBLIOGRAFICO  TO app_materiaisdb;
@@ -27,36 +27,77 @@ GRANT SELECT  ON SEQ_AUDITORIA_MAT         TO app_materiaisdb;
 GRANT SELECT  ON REPL_FUNCIONARIOS         TO app_materiaisdb;
 GRANT SELECT  ON REPL_FUNCAO_FUNCIONARIO   TO app_materiaisdb;
 GRANT SELECT  ON BIBLIOTECA_SNAP           TO app_materiaisdb;
+GRANT SELECT  ON SNAP_LEITOR_PUBLICO       TO app_materiaisdb;
 
 
 -- ============================================================
--- GRANTS PARA VISITOR USERS (outros nos)
+-- SECÇÃO 2: ROLES PARA VISITOR USERS
+-- Roles simplificam a gestao: adicionar um no = atribuir o role,
+-- em vez de repetir dezenas de grants.
+-- NOTA: roles funcionam para acesso local; para acesso via dblink
+-- os grants directos da Secção 3 sao obrigatorios (limitacao Oracle).
 -- ============================================================
 
--- Para o Yannis (app_emprestimosdb)
+-- role_mat_leitura — catalogo publico e disponibilidade
+-- Destinatarios: todos os nos visitantes
+-- (role criado em MateriaisDB_Roles.sql como SYSDBA)
+GRANT SELECT ON CATEGORIA               TO role_mat_leitura;
+GRANT SELECT ON VW_MAT_DISPONIVEL       TO role_mat_leitura;
+GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO TO role_mat_leitura;
+
+-- role_mat_completo — visao detalhada para supervisao nacional
+-- Destinatario: app_nacionaldb (dashboard e demo 2PC)
+GRANT SELECT ON CATEGORIA                    TO role_mat_completo;
+GRANT SELECT ON MATERIAL_BIBLIOGRAFICO       TO role_mat_completo;
+GRANT SELECT ON LIVRO_FISICO                 TO role_mat_completo;
+GRANT SELECT ON EBOOK                        TO role_mat_completo;
+GRANT SELECT ON PERIODICO                    TO role_mat_completo;
+GRANT SELECT ON TRANSFERENCIA                TO role_mat_completo;
+GRANT SELECT ON VW_MAT_DISPONIVEL            TO role_mat_completo;
+GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO      TO role_mat_completo;
+GRANT SELECT ON vw_materiais_completos       TO role_mat_completo;
+GRANT SELECT ON vw_transferencias_detalhadas TO role_mat_completo;
+GRANT SELECT ON SEQ_TRANSFERENCIA            TO role_mat_completo;
+
+-- (atribuicao de roles feita em MateriaisDB_Roles.sql como SYSDBA)
+
+
+-- ============================================================
+-- SECÇÃO 3: GRANTS DIRECTOS AOS VISITOR USERS
+-- Obrigatorios para acesso via dblink (roles nao transitam
+-- por dblink no Oracle — ORA-01031 sem grant directo).
+-- Tambem cobre DML e EXECUTE que os roles nao incluem.
+-- ============================================================
+
+-- ── Yannis (app_emprestimosdb) ──────────────────────────────
 -- RN05: verifica disponibilidade e actualiza estado via procedure
--- NAO tem UPDATE directo — deve usar atualizar_estado_material
-GRANT SELECT  ON MATERIAL_BIBLIOGRAFICO    TO app_emprestimosdb;
-GRANT SELECT  ON CATEGORIA                 TO app_emprestimosdb;
-GRANT SELECT  ON vw_mat_disponivel         TO app_emprestimosdb;
-GRANT EXECUTE ON atualizar_estado_material TO app_emprestimosdb;
+GRANT SELECT  ON CATEGORIA                  TO app_emprestimosdb;
+GRANT SELECT  ON MATERIAL_BIBLIOGRAFICO     TO app_emprestimosdb;
+GRANT SELECT  ON VW_MAT_DISPONIVEL          TO app_emprestimosdb;
+GRANT SELECT  ON VW_MAT_CATALOGO_PUBLICO    TO app_emprestimosdb;
+-- NAO tem UPDATE directo — usa procedure
+GRANT EXECUTE ON atualizar_estado_material  TO app_emprestimosdb;
 
--- Para o Helder (app_nacionaldb)
+-- ── Helder (app_nacionaldb) ─────────────────────────────────
 -- Supervisao: visao global do catalogo + actualizacao para demo 2PC
-GRANT SELECT ON MATERIAL_BIBLIOGRAFICO    TO app_nacionaldb;
-GRANT SELECT ON LIVRO_FISICO             TO app_nacionaldb;
-GRANT SELECT ON EBOOK                    TO app_nacionaldb;
-GRANT SELECT ON PERIODICO                TO app_nacionaldb;
-GRANT SELECT ON TRANSFERENCIA            TO app_nacionaldb;
-GRANT SELECT ON vw_mat_disponivel        TO app_nacionaldb;
-GRANT SELECT ON vw_materiais_completos   TO app_nacionaldb;
+GRANT SELECT ON CATEGORIA                    TO app_nacionaldb;
+GRANT SELECT ON MATERIAL_BIBLIOGRAFICO       TO app_nacionaldb;
+GRANT SELECT ON LIVRO_FISICO                 TO app_nacionaldb;
+GRANT SELECT ON EBOOK                        TO app_nacionaldb;
+GRANT SELECT ON PERIODICO                    TO app_nacionaldb;
+GRANT SELECT ON TRANSFERENCIA                TO app_nacionaldb;
+GRANT SELECT ON VW_MAT_DISPONIVEL            TO app_nacionaldb;
+GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO      TO app_nacionaldb;
+GRANT SELECT ON vw_materiais_completos       TO app_nacionaldb;
 GRANT SELECT ON vw_transferencias_detalhadas TO app_nacionaldb;
-GRANT SELECT ON SEQ_TRANSFERENCIA        TO app_nacionaldb;
-GRANT UPDATE ON MATERIAL_BIBLIOGRAFICO   TO app_nacionaldb;
+GRANT SELECT ON SEQ_TRANSFERENCIA            TO app_nacionaldb;
+-- DML directo para demo 2PC
+GRANT UPDATE ON MATERIAL_BIBLIOGRAFICO       TO app_nacionaldb;
+GRANT EXECUTE ON atualizar_estado_material   TO app_nacionaldb;
 
--- Para o Gerson (app_eventosdb)
+-- ── Gerson (app_eventosdb) ──────────────────────────────────
 -- Planeamento de eventos: catalogo publico e disponibilidade
 -- NAO tem acesso directo a MATERIAL_BIBLIOGRAFICO
-GRANT SELECT ON vw_mat_catalogo_publico TO app_eventosdb;
-GRANT SELECT ON vw_mat_disponivel       TO app_eventosdb;
-
+GRANT SELECT ON CATEGORIA               TO app_eventosdb;
+GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO TO app_eventosdb;
+GRANT SELECT ON VW_MAT_DISPONIVEL       TO app_eventosdb;

@@ -32,8 +32,8 @@ WITH BibliotecasPorDoacao AS (
 SELECT
     d.id_doacao,
     d.data_doacao,
-    r.nome_doador AS doador_nome,
-    r.tipo_doador AS doador_tipo,
+    r.nome_doador,
+    r.tipo_doador,
     r.contacto    AS doador_contacto,
     COUNT(DISTINCT i.id_itemDoado) AS total_itens,
     NVL(SUM(i.valor_estimado * i.quantidade), 0) AS valor_total_doacao,
@@ -320,8 +320,10 @@ FROM AUDITORIA_OPERACOES;
 
 -- ============================================================
 -- SECÇÃO 7: MÉTRICAS DO SISTEMA (DASHBOARD ADMIN)
--- Usa sinónimos que resolvem para @emprestimosdb, @materiaisdb,
--- @eventosdb — falha se qualquer nó estiver offline.
+-- Usa snapshots locais em vez de links live — resiliente a nós offline.
+-- snap_material_basico → MaterialsDB
+-- snap_emp_activos     → EmprestimosDB
+-- snap_eventos         → EventosDB
 -- LEITOR, DOACAO, ITEM_DOACAO são locais; BIBLIOTECA usa biblioteca_snap.
 -- ============================================================
 
@@ -329,31 +331,30 @@ CREATE OR REPLACE VIEW vw_metricas_sistema AS
 SELECT
     (SELECT COUNT(*) FROM BIBLIOTECA WHERE cod_biblioteca IS NOT NULL)     AS total_bibliotecas_ativas,
     (SELECT COUNT(*) FROM LEITOR)                                           AS total_leitores_cadastrados,
-    (SELECT COUNT(*) FROM MATERIAL_BIBLIOGRAFICO)                           AS total_materiais_acervo,
-    (SELECT COUNT(*) FROM EMPRESTIMO WHERE data_devolucao IS NULL)          AS total_emprestimos_ativos,
-    ROUND(
-        (SELECT COUNT(*) FROM EMPRESTIMO e
-          WHERE e.data_devolucao IS NOT NULL
-            AND e.data_devolucao <= e.prazo_devolucao) /
-        NULLIF((SELECT COUNT(*) FROM EMPRESTIMO WHERE data_devolucao IS NOT NULL), 0) * 100,
-    2) AS taxa_devolucao_no_prazo,
-    (SELECT NVL(SUM(multa_valor), 0) FROM EMPRESTIMO WHERE multa_paga = 'N') AS valor_multas_pendentes,
+    (SELECT COUNT(*) FROM snap_material_basico)                             AS total_materiais_acervo,
+    (SELECT COUNT(*) FROM snap_emp_activos)                                 AS total_emprestimos_ativos,
+    0                                                                       AS taxa_devolucao_no_prazo,
+    (SELECT NVL(SUM(multa_valor), 0)
+       FROM snap_emp_activos WHERE multa_paga = 'N')                        AS valor_multas_pendentes,
     (SELECT NVL(SUM(i.valor_estimado * i.quantidade), 0)
        FROM DOACAO d
        JOIN ITEM_DOACAO i ON d.id_doacao = i.id_doacao
       WHERE EXTRACT(MONTH FROM d.data_doacao) = EXTRACT(MONTH FROM SYSDATE)
         AND EXTRACT(YEAR  FROM d.data_doacao) = EXTRACT(YEAR  FROM SYSDATE)
-    ) AS total_doacoes_mes_atual,
-    (SELECT COUNT(*) FROM EVENTO WHERE data_evento BETWEEN SYSDATE AND SYSDATE + 30) AS eventos_proximos_30_dias,
+    )                                                                       AS total_doacoes_mes_atual,
+    (SELECT COUNT(*) FROM snap_eventos
+      WHERE data_evento BETWEEN SYSDATE AND SYSDATE + 30)                  AS eventos_proximos_30_dias,
     (SELECT COUNT(*) FROM LEITOR WHERE status_leitor = 'Suspenso')          AS leitores_suspensos
 FROM dual;
 /
 
 -- ============================================================
 -- SECÇÃO 8: MÉTRICAS POR BIBLIOTECA (DASHBOARD BIBLIOTECÁRIO)
--- Usa sinónimos para MATERIAL_BIBLIOGRAFICO (@materiaisdb),
--- EMPRESTIMO (@emprestimosdb) e EVENTO (@eventosdb).
--- LEITOR e FUNCIONARIO são locais; BIBLIOTECA usa biblioteca_snap.
+-- Usa snapshots locais — resiliente a MATERIAISDB, EMPRESTIMOSDB
+-- e EVENTOSDB offline. LEITOR e FUNCIONARIO são locais.
+-- NOTA: devolucoes_hoje = 0 (snap_emp_activos só tem activos).
+-- NOTA: emprestimos_hoje aproximado pelo material da biblioteca,
+--       não pelo funcionário (funcionário está sempre local).
 -- ============================================================
 
 CREATE OR REPLACE VIEW vw_metricas_por_biblioteca AS
@@ -364,53 +365,46 @@ SELECT
     b.endereco,
     (SELECT COUNT(*)
        FROM LEITOR l
-      WHERE l.cod_biblioteca = b.cod_biblioteca) AS total_leitores,
+      WHERE l.cod_biblioteca = b.cod_biblioteca)                            AS total_leitores,
     (SELECT COUNT(*)
-       FROM MATERIAL_BIBLIOGRAFICO m
-      WHERE m.cod_biblioteca = b.cod_biblioteca) AS total_materiais,
+       FROM snap_material_basico smb
+      WHERE smb.cod_biblioteca = b.cod_biblioteca)                          AS total_materiais,
     (SELECT COUNT(*)
-       FROM MATERIAL_BIBLIOGRAFICO m
-      WHERE m.cod_biblioteca = b.cod_biblioteca
-        AND m.estado_material_conservacao != 'Indisponivel'
+       FROM snap_material_basico smb
+      WHERE smb.cod_biblioteca = b.cod_biblioteca
+        AND smb.estado_material_conservacao != 'Indisponivel'
         AND NOT EXISTS (
-            SELECT 1 FROM EMPRESTIMO e
-             WHERE e.cod_material = m.cod_material
-               AND e.data_devolucao IS NULL
-        )) AS materiais_disponiveis,
+            SELECT 1 FROM snap_emp_activos sea
+             WHERE sea.cod_material = smb.cod_material
+        ))                                                                  AS materiais_disponiveis,
     (SELECT COUNT(*)
-       FROM EMPRESTIMO e
-       JOIN MATERIAL_BIBLIOGRAFICO m ON e.cod_material = m.cod_material
-      WHERE m.cod_biblioteca = b.cod_biblioteca
-        AND e.data_devolucao IS NULL) AS emprestimos_ativos,
+       FROM snap_emp_activos sea, snap_material_basico smb
+      WHERE sea.cod_material = smb.cod_material
+        AND smb.cod_biblioteca = b.cod_biblioteca)                          AS emprestimos_ativos,
     (SELECT COUNT(*)
-       FROM EMPRESTIMO e
-       JOIN FUNCIONARIO f ON e.cod_funcionario = f.cod_funcionario
-      WHERE f.cod_biblioteca = b.cod_biblioteca
-        AND TRUNC(e.data_retirada) = TRUNC(SYSDATE)) AS emprestimos_hoje,
+       FROM snap_emp_activos sea, snap_material_basico smb
+      WHERE sea.cod_material = smb.cod_material
+        AND smb.cod_biblioteca = b.cod_biblioteca
+        AND TRUNC(sea.data_retirada) = TRUNC(SYSDATE))                     AS emprestimos_hoje,
+    0                                                                       AS devolucoes_hoje,
     (SELECT COUNT(*)
-       FROM EMPRESTIMO e
-       JOIN FUNCIONARIO f ON e.cod_funcionario = f.cod_funcionario
-      WHERE f.cod_biblioteca = b.cod_biblioteca
-        AND TRUNC(e.data_devolucao) = TRUNC(SYSDATE)) AS devolucoes_hoje,
+       FROM snap_emp_activos sea, snap_material_basico smb
+      WHERE sea.cod_material = smb.cod_material
+        AND smb.cod_biblioteca = b.cod_biblioteca
+        AND SYSDATE > sea.prazo_devolucao + 7)                             AS emprestimos_muito_atrasados,
     (SELECT COUNT(*)
-       FROM EMPRESTIMO e
-       JOIN MATERIAL_BIBLIOGRAFICO m ON e.cod_material = m.cod_material
-      WHERE m.cod_biblioteca = b.cod_biblioteca
-        AND e.data_devolucao IS NULL
-        AND SYSDATE > e.prazo_devolucao + 7) AS emprestimos_muito_atrasados,
-    (SELECT COUNT(*)
-       FROM EVENTO ev
-      WHERE ev.cod_biblioteca = b.cod_biblioteca
-        AND ev.data_evento BETWEEN SYSDATE AND SYSDATE + 30) AS eventos_proximos,
+       FROM snap_eventos sev
+      WHERE sev.cod_biblioteca = b.cod_biblioteca
+        AND sev.data_evento BETWEEN SYSDATE AND SYSDATE + 30)              AS eventos_proximos,
     (SELECT titulo_evento
-       FROM EVENTO ev
-      WHERE ev.cod_biblioteca = b.cod_biblioteca
-        AND TRUNC(ev.data_evento) = TRUNC(SYSDATE)
-        AND ROWNUM = 1) AS evento_hoje,
-    (SELECT NVL(SUM(e.multa_valor), 0)
-       FROM EMPRESTIMO e
-       JOIN FUNCIONARIO f ON e.cod_funcionario = f.cod_funcionario
-      WHERE f.cod_biblioteca = b.cod_biblioteca
-        AND e.multa_paga = 'N') AS multas_pendentes
+       FROM snap_eventos sev
+      WHERE sev.cod_biblioteca = b.cod_biblioteca
+        AND TRUNC(sev.data_evento) = TRUNC(SYSDATE)
+        AND ROWNUM = 1)                                                     AS evento_hoje,
+    (SELECT NVL(SUM(sea.multa_valor), 0)
+       FROM snap_emp_activos sea, snap_material_basico smb
+      WHERE sea.cod_material = smb.cod_material
+        AND smb.cod_biblioteca = b.cod_biblioteca
+        AND sea.multa_paga = 'N')                                           AS multas_pendentes
 FROM BIBLIOTECA b;
 /

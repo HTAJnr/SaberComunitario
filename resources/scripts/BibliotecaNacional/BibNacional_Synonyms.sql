@@ -73,6 +73,12 @@ CREATE OR REPLACE PUBLIC SYNONYM vw_auditoria                 FOR usr_NACIONALDB
 CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_sistema          FOR usr_NACIONALDB.vw_metricas_sistema;
 CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_por_biblioteca   FOR usr_NACIONALDB.vw_metricas_por_biblioteca;
 
+-- Snapshots (acesso directo pelo backend — sem schema prefix)
+CREATE OR REPLACE PUBLIC SYNONYM snap_emp_activos             FOR usr_NACIONALDB.snap_emp_activos;
+CREATE OR REPLACE PUBLIC SYNONYM snap_material_basico         FOR usr_NACIONALDB.snap_material_basico;
+CREATE OR REPLACE PUBLIC SYNONYM snap_eventos                 FOR usr_NACIONALDB.snap_eventos;
+CREATE OR REPLACE PUBLIC SYNONYM snap_transferencias          FOR usr_NACIONALDB.snap_transferencias;
+
 -- ── FUNCTION ────────────────────────────────────────────────
 
 CREATE OR REPLACE PUBLIC SYNONYM total_doacoes_doador         FOR usr_NACIONALDB.total_doacoes_doador;

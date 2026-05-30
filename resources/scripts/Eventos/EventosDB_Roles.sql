@@ -8,6 +8,11 @@ CREATE ROLE role_eventosdb_read;
 DROP ROLE role_eventosdb_write;
 CREATE ROLE role_eventosdb_write;
 
+-- Roles para visitor users (outros nos)
+BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_evt_visitante'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+CREATE ROLE role_evt_visitante;
+
 -- Privil�gios de sess�o
 GRANT CREATE SESSION TO usr_eventosdb;
 GRANT CREATE SESSION TO app_eventosdb;
@@ -25,8 +30,13 @@ GRANT DROP PUBLIC DATABASE LINK TO usr_eventosdb;
 -- Privil�gio para materialized views (snapshots)
 GRANT CREATE MATERIALIZED VIEW TO usr_eventosdb;
 
--- Role de leitura ao utilizador de aplica��o
+-- Role de leitura ao utilizador de aplicacao local
 GRANT role_eventosdb_read TO app_eventosdb;
+
+-- Roles de visitor aos outros nos
+GRANT role_evt_visitante TO app_emprestimosdb;
+GRANT role_evt_visitante TO app_materiaisdb;
+GRANT role_evt_visitante TO app_nacionaldb;
 
 -- ============================================================
 -- VISITOR USERS — utilizadores criados neste no para os outros nos

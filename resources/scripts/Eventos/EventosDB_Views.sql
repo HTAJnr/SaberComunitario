@@ -1,7 +1,7 @@
 -- ============================================
 -- VISTAS DE FRAGMENTO - EventosBibliotecasDB (v4)
 -- ============================================
-CREATE VIEW frag_evento_sul AS
+CREATE OR REPLACE VIEW frag_evento_sul AS
     SELECT e.*
     FROM EVENTO e
     WHERE e.cod_biblioteca IN (
@@ -10,7 +10,7 @@ CREATE VIEW frag_evento_sul AS
            OR provincia = 'Maputo Provincia'
     );
 
-CREATE VIEW frag_evento_centro AS
+CREATE OR REPLACE VIEW frag_evento_centro AS
     SELECT e.*
     FROM EVENTO e
     WHERE e.cod_biblioteca IN (
@@ -18,7 +18,7 @@ CREATE VIEW frag_evento_centro AS
         WHERE provincia IN ('Sofala','Manica','Tete','Zambezia')
     );
 
-CREATE VIEW frag_evento_norte AS
+CREATE OR REPLACE VIEW frag_evento_norte AS
     SELECT e.*
     FROM EVENTO e
     WHERE e.cod_biblioteca IN (
@@ -26,7 +26,7 @@ CREATE VIEW frag_evento_norte AS
         WHERE provincia IN ('Nampula','Cabo Delgado','Niassa')
     );
 
-CREATE VIEW v_evento_global AS
+CREATE OR REPLACE VIEW v_evento_global AS
     SELECT * FROM frag_evento_sul
     UNION ALL
     SELECT * FROM frag_evento_centro
@@ -36,7 +36,7 @@ CREATE VIEW v_evento_global AS
 -- ============================================
 -- VISTAS DE SERVICO - EventosBibliotecasDB (v4)
 -- ============================================
-CREATE VIEW v_programacao_eventos AS
+CREATE OR REPLACE VIEW v_programacao_eventos AS
     SELECT e.id_evento, e.titulo_evento, e.status_evento,
            e.publico_alvo, e.local_evento, e.recorrente,
            b.nome_biblioteca, b.provincia,
@@ -46,14 +46,14 @@ CREATE VIEW v_programacao_eventos AS
     JOIN BIBLIOTECA b ON e.cod_biblioteca = b.cod_biblioteca
     LEFT JOIN HORARIO_EVENTO h ON e.id_evento = h.id_evento;
 
-CREATE VIEW v_horarios_bibliotecas AS
+CREATE OR REPLACE VIEW v_horarios_bibliotecas AS
     SELECT b.cod_biblioteca, b.nome_biblioteca,
            b.provincia, b.endereco,
            h.dia_semana, h.hora_abertura, h.hora_fecho
     FROM BIBLIOTECA b
     JOIN HORARIO_BIBLIOTECA h ON b.cod_biblioteca = h.cod_biblioteca;
 
-CREATE VIEW v_bibliotecas_activas AS
+CREATE OR REPLACE VIEW v_bibliotecas_activas AS
     SELECT cod_biblioteca, nome_biblioteca,
            endereco, provincia, contacto_biblioteca
     FROM BIBLIOTECA;

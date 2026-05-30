@@ -80,3 +80,7 @@ CREATE OR REPLACE PUBLIC SYNONYM ATUALIZAR_ESTADO_MATERIAL
 CREATE OR REPLACE PUBLIC SYNONYM REGISTAR_AUDITORIA_MAT
     FOR usr_materiaisdb.REGISTAR_AUDITORIA_MAT;
 
+-- Snapshots locais (acesso directo pelo app_materiaisdb sem prefixo de schema)
+CREATE OR REPLACE PUBLIC SYNONYM snap_leitor_publico FOR usr_materiaisdb.snap_leitor_publico;
+CREATE OR REPLACE PUBLIC SYNONYM biblioteca_snap     FOR usr_materiaisdb.biblioteca_snap;
+

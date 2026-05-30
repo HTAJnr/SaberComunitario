@@ -59,3 +59,79 @@ LEFT JOIN PARTICIPACAO_PROGRAMA@emprestimosdb pp
 GROUP BY
     p.cod_programa, p.cod_biblioteca, p.nome_programa,
     p.publico_alvo, p.duracao_semanas, p.estado_programa;
+
+
+-- ============================================================
+-- MV 3: snap_material_basico
+-- Master: MateriaisDB. Replica colunas mínimas de MATERIAL_BIBLIOGRAFICO
+-- para joins no dashboard sem depender de MATERIAISDB estar online.
+-- Requer: app_nacionaldb com SELECT ON MATERIAL_BIBLIOGRAFICO no MateriaisDB.
+-- ============================================================
+
+DROP MATERIALIZED VIEW snap_material_basico;
+
+CREATE MATERIALIZED VIEW snap_material_basico
+  REFRESH COMPLETE ON DEMAND
+  START WITH SYSDATE
+  NEXT SYSDATE + 1/24
+AS
+SELECT cod_material, titulo, cod_biblioteca, estado_material_conservacao
+FROM material_bibliografico@materiaisdb;
+
+
+-- ============================================================
+-- MV 4: snap_emp_activos
+-- Master: EmprestimosDB. Replica empréstimos sem devolução.
+-- Dashboard usa este snapshot em vez do link live — funciona
+-- mesmo com EMPRESTIMOSDB offline (dados da última actualização).
+-- Requer: app_nacionaldb com SELECT ON EMPRESTIMO no EmprestimosDB.
+-- ============================================================
+
+DROP MATERIALIZED VIEW snap_emp_activos;
+
+CREATE MATERIALIZED VIEW snap_emp_activos
+  REFRESH COMPLETE ON DEMAND
+  START WITH SYSDATE
+  NEXT SYSDATE + 1/24
+AS
+SELECT id_emprestimo, num_cartao, cod_material,
+       data_retirada, prazo_devolucao, multa_valor, multa_paga
+FROM emprestimo@emprestimosdb
+WHERE data_devolucao IS NULL;
+
+
+-- ============================================================
+-- MV 5: snap_eventos
+-- Master: EventosDB. Replica eventos (todos — filtragem por data
+-- em tempo de execução para não desactualizar o snapshot).
+-- Requer: app_nacionaldb com SELECT ON EVENTO no EventosDB.
+-- ============================================================
+
+DROP MATERIALIZED VIEW snap_eventos;
+
+CREATE MATERIALIZED VIEW snap_eventos
+  REFRESH COMPLETE ON DEMAND
+  START WITH SYSDATE
+  NEXT SYSDATE + 1/24
+AS
+SELECT id_evento, titulo_evento, data_evento, status_evento, cod_biblioteca
+FROM evento@eventosdb;
+
+
+-- ============================================================
+-- MV 6: snap_transferencias
+-- Master: MateriaisDB. Replica transferências (estado + bibliotecas)
+-- para o dashboard admin não depender de MATERIAISDB estar online.
+-- Requer: app_nacionaldb com SELECT ON TRANSFERENCIA no MateriaisDB.
+-- ============================================================
+
+DROP MATERIALIZED VIEW snap_transferencias;
+
+CREATE MATERIALIZED VIEW snap_transferencias
+  REFRESH COMPLETE ON DEMAND
+  START WITH SYSDATE
+  NEXT SYSDATE + 1/24
+AS
+SELECT id_transferencia, cod_material, estado_transferencia,
+       cod_biblioteca_origem, cod_biblioteca_destino
+FROM transferencia@materiaisdb;

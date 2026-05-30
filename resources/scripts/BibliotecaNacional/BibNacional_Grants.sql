@@ -1,18 +1,17 @@
 -- ============================================================
 -- BibNacional_Grants.sql
--- Permissões completas para app_NACIONALDB
+-- Permissões completas para app_NACIONALDB e visitor users
 -- Executar como usr_NACIONALDB:
 --   sqlplus usr_NACIONALDB/"HTAJnr#020403" @/root/TP/BibNacional_Grants.sql
 -- ============================================================
 
 
 -- ============================================================
--- SECÇÃO 1: POPULAR O ROLE DE LEITURA
+-- SECÇÃO 1: POPULAR O ROLE DE LEITURA (app_NACIONALDB local)
 -- O role foi criado mas nunca recebeu privilégios.
--- Atribuir SELECT em todas as tabelas e vistas ao role,
--- depois o role já está atribuído ao app_NACIONALDB via Roles.sql.
--- NOTA: mesmo com o role populado, os grants directos abaixo
--- continuam a ser necessários para acesso cross-node via dblink.
+-- NOTA: mesmo com o role populado, os grants directos da
+-- Secção 3 continuam a ser necessários para acesso cross-node
+-- via dblink (roles nao transitam por dblink no Oracle).
 -- ============================================================
 
 -- Tabelas base — leitura
@@ -33,9 +32,11 @@ GRANT SELECT ON CERTIFICADO_DOACAO      TO role_NACIONALDB_read;
 GRANT SELECT ON AUDITORIA_OPERACOES     TO role_NACIONALDB_read;
 
 -- Snapshots (MVs locais) — leitura
--- biblioteca_snap replica BIBLIOTECA do EventosDB; sem este grant app_NACIONALDB
--- obtém ORA-00942 em qualquer query que referencie o sinónimo BIBLIOTECA
 GRANT SELECT ON biblioteca_snap                 TO role_NACIONALDB_read;
+GRANT SELECT ON snap_material_basico            TO role_NACIONALDB_read;
+GRANT SELECT ON snap_emp_activos                TO role_NACIONALDB_read;
+GRANT SELECT ON snap_eventos                    TO role_NACIONALDB_read;
+GRANT SELECT ON snap_transferencias             TO role_NACIONALDB_read;
 
 -- Vistas — leitura
 GRANT SELECT ON vw_doacoes_detalhadas           TO role_NACIONALDB_read;
@@ -60,8 +61,10 @@ GRANT SELECT ON vw_func_activos_confidencial    TO role_NACIONALDB_read;
 GRANT SELECT ON vw_func_inactivos_operacional   TO role_NACIONALDB_read;
 GRANT SELECT ON vw_func_inactivos_confidencial  TO role_NACIONALDB_read;
 GRANT SELECT ON VW_AUDITORIA                    TO role_NACIONALDB_read;
+GRANT SELECT ON vw_metricas_sistema             TO role_NACIONALDB_read;
+GRANT SELECT ON vw_metricas_por_biblioteca      TO role_NACIONALDB_read;
 
--- Sequências — leitura (necessário para NEXTVAL/CURRVAL no backend)
+-- Sequências — leitura
 GRANT SELECT ON SEQ_FUNCAO       TO role_NACIONALDB_read;
 GRANT SELECT ON SEQ_FUNCIONARIO  TO role_NACIONALDB_read;
 GRANT SELECT ON SEQ_HORARIO_FUNC TO role_NACIONALDB_read;
@@ -73,11 +76,7 @@ GRANT SELECT ON SEQ_AUDITORIA    TO role_NACIONALDB_read;
 
 
 -- ============================================================
--- SECÇÃO 2: POPULAR O ROLE DE ESCRITA
--- Operações DML para o backend e para outros nós que escrevem
--- neste nó (ex: prc_apagar_leitor chama DELETE cross-node desde
--- o EventosBibliotecasDB de volta para cá — não se aplica aqui,
--- mas o backend local precisa de INSERT/UPDATE/DELETE).
+-- SECÇÃO 2: POPULAR O ROLE DE ESCRITA (app_NACIONALDB local)
 -- ============================================================
 
 GRANT INSERT, UPDATE, DELETE ON FUNCIONARIO            TO role_NACIONALDB_write;
@@ -95,10 +94,10 @@ GRANT INSERT, UPDATE, DELETE ON ITEM_DOACAO            TO role_NACIONALDB_write;
 GRANT INSERT, UPDATE, DELETE ON CERTIFICADO_DOACAO     TO role_NACIONALDB_write;
 -- AUDITORIA: só INSERT — ninguém apaga registos de auditoria
 GRANT INSERT ON AUDITORIA_OPERACOES                    TO role_NACIONALDB_write;
--- Gestão de permissões (módulo Admin): atribui/altera funções de funcionários
+-- Gestão de permissões (módulo Admin)
 GRANT INSERT, UPDATE, DELETE ON FUNCAO_FUNCIONARIO     TO role_NACIONALDB_write;
 
--- Sequências — NEXTVAL (escrita)
+-- Sequências — NEXTVAL
 GRANT SELECT ON SEQ_FUNCAO       TO role_NACIONALDB_write;
 GRANT SELECT ON SEQ_FUNCIONARIO  TO role_NACIONALDB_write;
 GRANT SELECT ON SEQ_HORARIO_FUNC TO role_NACIONALDB_write;
@@ -109,83 +108,119 @@ GRANT SELECT ON SEQ_CERTIFICADO  TO role_NACIONALDB_write;
 GRANT SELECT ON SEQ_AUDITORIA    TO role_NACIONALDB_write;
 
 -- NOTA: GRANT role_NACIONALDB_write TO app_NACIONALDB está em BibNacional_Roles.sql
--- (corre como SYSDBA — usr_NACIONALDB não tem ADMIN OPTION para atribuir roles).
 
 
 -- ============================================================
--- SECÇÃO 3: GRANTS DIRECTOS AOS VISITOR USERS
--- Roles não funcionam através de dblinks — ORA-01031 sem grant directo.
--- Os visitor users são criados em BibNacional_Users.sql com a mesma
--- password do app_ de cada nó, para não ser necessário trocar passwords.
--- Cada visitor user recebe apenas o mínimo que o nó visitante precisa.
+-- SECÇÃO 3: ROLES PARA VISITOR USERS
+-- Simplificam a gestao local; grants directos (Secção 4)
+-- sao obrigatorios para acesso via dblink.
+-- ============================================================
+
+-- role_nac_visitante — acesso base para todos os nos visitantes
+-- Inclui: leitores, funcionarios, metricas e snapshots
+-- (roles criados em BibNacional_Roles.sql como SYSDBA)
+GRANT SELECT ON LEITOR                      TO role_nac_visitante;
+GRANT SELECT ON ADULTO                      TO role_nac_visitante;
+GRANT SELECT ON FUNCIONARIO                 TO role_nac_visitante;
+GRANT SELECT ON FUNCAO_FUNCIONARIO          TO role_nac_visitante;
+GRANT SELECT ON vw_leitor_publico           TO role_nac_visitante;
+GRANT SELECT ON vw_replica_funcionarios     TO role_nac_visitante;
+GRANT SELECT ON vw_metricas_sistema         TO role_nac_visitante;
+GRANT SELECT ON vw_metricas_por_biblioteca  TO role_nac_visitante;
+GRANT SELECT ON snap_material_basico        TO role_nac_visitante;
+GRANT SELECT ON snap_emp_activos            TO role_nac_visitante;
+GRANT SELECT ON snap_eventos                TO role_nac_visitante;
+GRANT SELECT ON snap_transferencias         TO role_nac_visitante;
+
+-- role_nac_leitor_tipo — tipos de leitor para validacoes de emprestimo/evento
+-- Destinatarios: app_emprestimosdb, app_eventosdb
+GRANT SELECT ON CRIANCA                     TO role_nac_leitor_tipo;
+GRANT SELECT ON PROFESSOR                   TO role_nac_leitor_tipo;
+GRANT SELECT ON vw_func_activos_operacional TO role_nac_leitor_tipo;
+
+-- (atribuicao de roles feita em BibNacional_Roles.sql como SYSDBA)
+
+
+-- ============================================================
+-- SECÇÃO 4: GRANTS DIRECTOS AOS VISITOR USERS
+-- Obrigatorios para acesso via dblink + DML exclusivo por no.
+-- ── Dashboard: visitor users precisam das views de metricas e
+--    snapshots quando o backend corre noutro no.
 -- ============================================================
 
 -- ── Yannis (app_emprestimosdb) ──────────────────────────────
 
--- RN01: trigger verifica status_leitor antes de criar empréstimo
+-- RN01: trigger verifica status_leitor antes de criar emprestimo
 GRANT SELECT ON LEITOR                          TO app_emprestimosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_emprestimosdb;
 
--- RN03: trigger de devolução actualiza status_leitor e historico_pontualidade
--- (suspensão e bloqueio — transacção distribuída via 2PC)
+-- RN03: trigger de devolucao actualiza status_leitor
 GRANT UPDATE ON LEITOR                          TO app_emprestimosdb;
 
--- RN01/RN04.1: verificar tipo de leitor antes de criar empréstimo
+-- RN01/RN04.1: verificar tipo de leitor
 GRANT SELECT ON ADULTO                          TO app_emprestimosdb;
 GRANT SELECT ON PROFESSOR                       TO app_emprestimosdb;
 GRANT SELECT ON CRIANCA                         TO app_emprestimosdb;
 
--- RN02: function de cálculo de prazo consulta distancia e historico_pontualidade
--- (já coberto pelo SELECT ON LEITOR acima)
-
--- Programas: procedure valida funcionário antes de inserir em PROGRAMA_FUNCIONARIO
+-- Verificacao de nivel de acesso cross-node
 GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_emprestimosdb;
-
--- Verificação de nível de acesso cross-node
 GRANT SELECT ON FUNCIONARIO                     TO app_emprestimosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_emprestimosdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_emprestimosdb;
 
+-- Dashboard e snapshots
+GRANT SELECT ON vw_metricas_sistema             TO app_emprestimosdb;
+GRANT SELECT ON vw_metricas_por_biblioteca      TO app_emprestimosdb;
+GRANT SELECT ON snap_material_basico            TO app_emprestimosdb;
+GRANT SELECT ON snap_emp_activos                TO app_emprestimosdb;
+GRANT SELECT ON snap_eventos                    TO app_emprestimosdb;
+GRANT SELECT ON snap_transferencias             TO app_emprestimosdb;
+
 -- ── Yasin (app_materiaisdb) ─────────────────────────────────
 
--- Verificações de leitores (RN09: e-books exigem leitor adulto)
+-- RN09: e-books exigem leitor adulto
 GRANT SELECT ON LEITOR                          TO app_materiaisdb;
 GRANT SELECT ON ADULTO                          TO app_materiaisdb;
 GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
 
--- Replicação de funcionários (snapshot repl_funcionarios no nó do Yasin)
+-- Replicacao de funcionarios
 GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;
-
 GRANT SELECT ON FUNCIONARIO                     TO app_materiaisdb;
 GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_materiaisdb;
 
+-- Dashboard e snapshots
+GRANT SELECT ON vw_metricas_sistema             TO app_materiaisdb;
+GRANT SELECT ON vw_metricas_por_biblioteca      TO app_materiaisdb;
+GRANT SELECT ON snap_material_basico            TO app_materiaisdb;
+GRANT SELECT ON snap_emp_activos                TO app_materiaisdb;
+GRANT SELECT ON snap_eventos                    TO app_materiaisdb;
+GRANT SELECT ON snap_transferencias             TO app_materiaisdb;
+
 -- ── Gerson (app_eventosdb) ──────────────────────────────────
 
--- Verificação de leitores antes de inscrever em eventos
+-- Verificacao de leitores antes de inscrever em eventos
 GRANT SELECT ON LEITOR                          TO app_eventosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_eventosdb;
-
--- Verificação de tipo de leitor antes de inscrever em evento
 GRANT SELECT ON ADULTO                          TO app_eventosdb;
 GRANT SELECT ON CRIANCA                         TO app_eventosdb;
 GRANT SELECT ON PROFESSOR                       TO app_eventosdb;
 
--- Verificação de funcionários (responsável de evento, responsável de biblioteca)
--- Gerson_No_EventosBibliotecasDB_v2 confirma: acede a FUNCIONARIO via dblink
--- para validar cod_funcionario_responsavel antes de INSERT em BIBLIOTECA_RESPONSAVEL
+-- Verificacao de funcionarios (responsavel de evento/biblioteca)
 GRANT SELECT ON FUNCIONARIO                     TO app_eventosdb;
+GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_eventosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_eventosdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_eventosdb;
 
--- ADICIONADO: validação de função do funcionário responsável de evento/biblioteca
--- Gerson_No_EventosBibliotecasDB_v2: "a procedure de inserção verifica via database
--- link se o funcionário existe antes de inserir" — isso passa por FUNCAO_FUNCIONARIO
--- para confirmar nível de acesso/função, exactamente como o Yannis faz para programas
-GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_eventosdb;
+-- Dashboard e snapshots
+GRANT SELECT ON vw_metricas_sistema             TO app_eventosdb;
+GRANT SELECT ON vw_metricas_por_biblioteca      TO app_eventosdb;
+GRANT SELECT ON snap_material_basico            TO app_eventosdb;
+GRANT SELECT ON snap_emp_activos                TO app_eventosdb;
+GRANT SELECT ON snap_eventos                    TO app_eventosdb;
+GRANT SELECT ON snap_transferencias             TO app_eventosdb;
 
 -- ── Backend local (app_NACIONALDB) ──────────────────────────
--- O Node.js usa este user para DML e execução de procedures.
--- Procedures só são chamadas pelo backend local — não por outros nós.
+-- O Node.js usa este user para DML e execucao de procedures.
 GRANT EXECUTE ON registrar_doacao_completa      TO app_NACIONALDB;
 GRANT EXECUTE ON reemitir_certificado           TO app_NACIONALDB;
 GRANT EXECUTE ON proc_gerir_acesso_bd           TO app_NACIONALDB;
@@ -194,6 +229,6 @@ GRANT EXECUTE ON prc_apagar_leitor              TO app_NACIONALDB;
 GRANT EXECUTE ON prc_remover_funcionario        TO app_NACIONALDB;
 GRANT EXECUTE ON prc_modificar_nivel_acesso     TO app_NACIONALDB;
 GRANT EXECUTE ON prc_demo_2pc                   TO app_NACIONALDB;
-GRANT EXECUTE ON prc_emitir_honorifico              TO app_NACIONALDB;
-GRANT EXECUTE ON total_doacoes_doador               TO app_NACIONALDB;
-GRANT EXECUTE ON prc_atualizar_doacao_segura        TO app_NACIONALDB;
+GRANT EXECUTE ON prc_emitir_honorifico          TO app_NACIONALDB;
+GRANT EXECUTE ON total_doacoes_doador           TO app_NACIONALDB;
+GRANT EXECUTE ON prc_atualizar_doacao_segura    TO app_NACIONALDB;
