@@ -24,9 +24,11 @@ CREATE MATERIALIZED VIEW repl_funcionarios
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
-SELECT cod_funcionario, nome_funcionario, cod_biblioteca, nivel_acesso
-FROM vw_replica_funcionarios@link_nacionaldb;
-
+SELECT f.cod_funcionario, f.nome_funcionario, f.cod_biblioteca,
+       fn.nivel_acesso
+FROM funcionario@link_nacionaldb f,
+     funcao_funcionario@link_nacionaldb fn
+WHERE f.id_funcao = fn.id_funcao AND f.data_demissao IS NULL;
 
 -- ============================================================
 -- SNAPSHOT 2 — biblioteca_snap
@@ -61,4 +63,7 @@ CREATE MATERIALIZED VIEW snap_leitor_publico
 AS
 SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
-FROM vw_leitor_publico@link_nacionaldb;
+FROM leitor@link_nacionaldb;
+
+-- RECOMPILAR O TRIGGER QUE DEPENDE DO SNAP 1
+ALTER TRIGGER trg_valida_transferencia COMPILE;

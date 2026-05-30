@@ -1,14 +1,31 @@
 -- ============================================================
--- MateriaisDB_Triggers.sql â€” Triggers do no MateriaisDB
+-- MateriaisDB_Triggers.sql — Triggers do no MateriaisDB
 -- Sistema de Gestao de Bibliotecas Comunitarias Distribuido
 -- Executar como: usr_materiaisdb
--- Executar DEPOIS de: MateriaisDB_Synonyms.sql, MateriaisDB_Procedures.sql
+-- Executar DEPOIS de: MateriaisDB_Synonyms.sql, MateriaisDB_Procedures.sql,
+--                     MateriaisDB_Functions.sql
 -- ============================================================
 
 
 -- ============================================================
--- TRIGGER 1 â€” trg_transferencia_insert (RN06)
+-- TRIGGER 1 — trg_transferencia_id
+-- Gera id_transferencia automaticamente via SEQ_TRANSFERENCIA
+-- ============================================================
+CREATE OR REPLACE TRIGGER trg_transferencia_id
+BEFORE INSERT ON TRANSFERENCIA
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_transferencia IS NULL THEN
+        SELECT SEQ_TRANSFERENCIA.NEXTVAL INTO :NEW.id_transferencia FROM DUAL;
+    END IF;
+END trg_transferencia_id;
+/
+
+
+-- ============================================================
+-- TRIGGER 2 — trg_transferencia_insert (RN06)
 -- Proteccao no INSERT de TRANSFERENCIA
+-- Verifica emprestimo activo no EmprestimosDB via sinonimo
 -- ============================================================
 CREATE OR REPLACE TRIGGER trg_transferencia_insert
 BEFORE INSERT ON TRANSFERENCIA
@@ -75,7 +92,116 @@ END trg_transferencia_insert;
 
 
 -- ============================================================
--- TRIGGER 2 â€” trg_transferencia_fluxo (RN06)
+-- TRIGGER 3 — protege_ultimo_exemplar_insert
+-- Bloqueia transferencia se for o ultimo exemplar disponivel
+-- Usa funcao normaliza_titulo para comparar por titulo
+-- quando o material nao tem ISBN
+-- ============================================================
+CREATE OR REPLACE TRIGGER protege_ultimo_exemplar_insert
+BEFORE INSERT ON TRANSFERENCIA
+FOR EACH ROW
+DECLARE
+    v_disponiveis NUMBER;
+    v_isbn        VARCHAR2(20);
+    v_titulo      VARCHAR2(200);
+BEGIN
+    IF :NEW.estado_transferencia <> 'Pendente' THEN
+        RETURN;
+    END IF;
+
+    SELECT ISBN, titulo INTO v_isbn, v_titulo
+    FROM MATERIAL_BIBLIOGRAFICO
+    WHERE cod_material = :NEW.cod_material;
+
+    IF v_isbn IS NOT NULL THEN
+        SELECT COUNT(m.cod_material) INTO v_disponiveis
+        FROM MATERIAL_BIBLIOGRAFICO m
+        WHERE m.ISBN = v_isbn
+        AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
+        AND m.cod_material NOT IN (
+            SELECT cod_material FROM emprestimo_activo)
+        AND m.cod_material NOT IN (
+            SELECT cod_material FROM TRANSFERENCIA
+            WHERE estado_transferencia IN ('Pendente', 'Aprovada')
+            AND id_transferencia <> :NEW.id_transferencia);
+    ELSE
+        SELECT COUNT(m.cod_material) INTO v_disponiveis
+        FROM MATERIAL_BIBLIOGRAFICO m
+        WHERE normaliza_titulo(m.titulo) = normaliza_titulo(v_titulo)
+        AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
+        AND m.cod_material NOT IN (
+            SELECT cod_material FROM emprestimo_activo)
+        AND m.cod_material NOT IN (
+            SELECT cod_material FROM TRANSFERENCIA
+            WHERE estado_transferencia IN ('Pendente', 'Aprovada')
+            AND id_transferencia <> :NEW.id_transferencia);
+    END IF;
+
+    IF v_disponiveis <= 1 THEN
+        RAISE_APPLICATION_ERROR(-20015,
+            'Transferencia bloqueada: ultimo exemplar disponivel de "' ||
+            v_titulo || '" na biblioteca de origem.');
+    END IF;
+END protege_ultimo_exemplar_insert;
+/
+
+
+-- ============================================================
+-- TRIGGER 4 — protege_ultimo_exemplar_update
+-- Bloqueia aprovacao se for o ultimo exemplar disponivel
+-- ============================================================
+CREATE OR REPLACE TRIGGER protege_ultimo_exemplar_update
+BEFORE UPDATE ON TRANSFERENCIA
+FOR EACH ROW
+DECLARE
+    v_disponiveis NUMBER;
+    v_isbn        VARCHAR2(20);
+    v_titulo      VARCHAR2(200);
+BEGIN
+    IF NOT (:NEW.estado_transferencia = 'Aprovada' AND
+            :OLD.estado_transferencia <> 'Aprovada') THEN
+        RETURN;
+    END IF;
+
+    SELECT ISBN, titulo INTO v_isbn, v_titulo
+    FROM MATERIAL_BIBLIOGRAFICO
+    WHERE cod_material = :NEW.cod_material;
+
+    IF v_isbn IS NOT NULL THEN
+        SELECT COUNT(m.cod_material) INTO v_disponiveis
+        FROM MATERIAL_BIBLIOGRAFICO m
+        WHERE m.ISBN = v_isbn
+        AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
+        AND m.cod_material NOT IN (
+            SELECT cod_material FROM emprestimo_activo)
+        AND m.cod_material NOT IN (
+            SELECT cod_material FROM TRANSFERENCIA
+            WHERE estado_transferencia IN ('Pendente', 'Aprovada')
+            AND id_transferencia <> :NEW.id_transferencia);
+    ELSE
+        SELECT COUNT(m.cod_material) INTO v_disponiveis
+        FROM MATERIAL_BIBLIOGRAFICO m
+        WHERE normaliza_titulo(m.titulo) = normaliza_titulo(v_titulo)
+        AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
+        AND m.cod_material NOT IN (
+            SELECT cod_material FROM emprestimo_activo)
+        AND m.cod_material NOT IN (
+            SELECT cod_material FROM TRANSFERENCIA
+            WHERE estado_transferencia IN ('Pendente', 'Aprovada')
+            AND id_transferencia <> :NEW.id_transferencia);
+    END IF;
+
+    IF v_disponiveis <= 1 THEN
+        RAISE_APPLICATION_ERROR(-20016,
+            'Aprovacao bloqueada: ultimo exemplar disponivel de "' ||
+            v_titulo || '" na biblioteca de origem.');
+    END IF;
+END protege_ultimo_exemplar_update;
+/
+
+
+-- ============================================================
+-- TRIGGER 5 — trg_transferencia_fluxo (RN06)
 -- Validacao do fluxo de estados de TRANSFERENCIA
 -- ============================================================
 CREATE OR REPLACE TRIGGER trg_transferencia_fluxo
@@ -142,26 +268,13 @@ BEGIN
 END trg_transferencia_fluxo;
 /
 
--- ============================================================
--- TRIGGERS ADICIONADOS â€” ausentes no ficheiro original
--- ============================================================
 
--- TRIGGER: trg_transferencia_id
--- Auto-incremento do id_transferencia usando SEQ_TRANSFERENCIA
-CREATE OR REPLACE TRIGGER trg_transferencia_id
-BEFORE INSERT ON TRANSFERENCIA
-FOR EACH ROW
-BEGIN
-    IF :NEW.id_transferencia IS NULL THEN
-        SELECT SEQ_TRANSFERENCIA.NEXTVAL INTO :NEW.id_transferencia FROM DUAL;
-    END IF;
-END;
-/
-
--- TRIGGER: trg_valida_transferencia
--- Valida consistencia: bibliotecas diferentes, material na origem,
--- funcionarios nas bibliotecas correctas
--- FUNCIONARIO e MATERIAL_BIBLIOGRAFICO acedidos via sinonimo (transparente)
+-- ============================================================
+-- TRIGGER 6 — trg_valida_transferencia
+-- Valida funcionarios e material da transferencia
+-- NOTA: depende de repl_funcionarios (snapshot do Helder)
+-- DESACTIVADO ate snapshot repl_funcionarios estar disponivel
+-- ============================================================
 CREATE OR REPLACE TRIGGER trg_valida_transferencia
 BEFORE INSERT OR UPDATE ON TRANSFERENCIA
 FOR EACH ROW
@@ -176,8 +289,8 @@ BEGIN
     END IF;
 
     SELECT cod_biblioteca INTO v_biblioteca_material
-      FROM MATERIAL_BIBLIOGRAFICO
-     WHERE cod_material = :NEW.cod_material;
+    FROM MATERIAL_BIBLIOGRAFICO
+    WHERE cod_material = :NEW.cod_material;
 
     IF v_biblioteca_material != :NEW.cod_biblioteca_origem THEN
         RAISE_APPLICATION_ERROR(-20103,
@@ -185,8 +298,8 @@ BEGIN
     END IF;
 
     SELECT cod_biblioteca INTO v_biblioteca_solicitante
-      FROM FUNCIONARIO
-     WHERE cod_funcionario = :NEW.cod_funcionario_solicitante;
+    FROM repl_funcionarios
+    WHERE cod_funcionario = :NEW.cod_funcionario_solicitante;
 
     IF v_biblioteca_solicitante != :NEW.cod_biblioteca_origem THEN
         RAISE_APPLICATION_ERROR(-20104,
@@ -195,111 +308,17 @@ BEGIN
 
     IF :NEW.cod_funcionario_aprovador IS NOT NULL THEN
         SELECT cod_biblioteca INTO v_biblioteca_aprovador
-          FROM FUNCIONARIO
-         WHERE cod_funcionario = :NEW.cod_funcionario_aprovador;
+        FROM repl_funcionarios
+        WHERE cod_funcionario = :NEW.cod_funcionario_aprovador;
 
         IF v_biblioteca_aprovador != :NEW.cod_biblioteca_destino THEN
             RAISE_APPLICATION_ERROR(-20105,
                 'Transferencia invalida: funcionario aprovador nao trabalha na biblioteca de destino');
         END IF;
     END IF;
-END;
+END trg_valida_transferencia;
 /
 
--- TRIGGER: protege_ultimo_exemplar_insert
--- Bloqueia pedido de transferencia se for o unico exemplar disponivel na origem.
--- Usa emprestimo_activo (sinonimo para vw_emprestimos_activos@emprestimosdb)
-CREATE OR REPLACE TRIGGER protege_ultimo_exemplar_insert
-BEFORE INSERT ON TRANSFERENCIA
-FOR EACH ROW
-DECLARE
-    v_disponiveis NUMBER;
-    v_isbn        VARCHAR2(20);
-    v_titulo      VARCHAR2(200);
-BEGIN
-    IF :NEW.estado_transferencia <> 'Pendente' THEN
-        RETURN;
-    END IF;
-
-    SELECT ISBN, titulo INTO v_isbn, v_titulo
-      FROM MATERIAL_BIBLIOGRAFICO
-     WHERE cod_material = :NEW.cod_material;
-
-    IF v_isbn IS NOT NULL THEN
-        SELECT COUNT(m.cod_material) INTO v_disponiveis
-          FROM MATERIAL_BIBLIOGRAFICO m
-         WHERE m.ISBN = v_isbn
-           AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-           AND m.cod_material NOT IN (SELECT cod_material FROM emprestimo_activo)
-           AND m.cod_material NOT IN (
-               SELECT cod_material FROM TRANSFERENCIA
-                WHERE estado_transferencia IN ('Pendente', 'Aprovada')
-                  AND id_transferencia <> :NEW.id_transferencia);
-    ELSE
-        SELECT COUNT(m.cod_material) INTO v_disponiveis
-          FROM MATERIAL_BIBLIOGRAFICO m
-         WHERE normaliza_titulo(m.titulo) = normaliza_titulo(v_titulo)
-           AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-           AND m.cod_material NOT IN (SELECT cod_material FROM emprestimo_activo)
-           AND m.cod_material NOT IN (
-               SELECT cod_material FROM TRANSFERENCIA
-                WHERE estado_transferencia IN ('Pendente', 'Aprovada')
-                  AND id_transferencia <> :NEW.id_transferencia);
-    END IF;
-
-    IF v_disponiveis <= 1 THEN
-        RAISE_APPLICATION_ERROR(-20015,
-            'Transferencia bloqueada: ultimo exemplar disponivel de "' ||
-            v_titulo || '" na biblioteca de origem.');
-    END IF;
-END;
-/
-
--- TRIGGER: protege_ultimo_exemplar_update
--- Bloqueia aprovacao de transferencia se for o unico exemplar disponivel na origem.
-CREATE OR REPLACE TRIGGER protege_ultimo_exemplar_update
-BEFORE UPDATE ON TRANSFERENCIA
-FOR EACH ROW
-DECLARE
-    v_disponiveis NUMBER;
-    v_isbn        VARCHAR2(20);
-    v_titulo      VARCHAR2(200);
-BEGIN
-    IF NOT (:NEW.estado_transferencia = 'Aprovada' AND :OLD.estado_transferencia <> 'Aprovada') THEN
-        RETURN;
-    END IF;
-
-    SELECT ISBN, titulo INTO v_isbn, v_titulo
-      FROM MATERIAL_BIBLIOGRAFICO
-     WHERE cod_material = :NEW.cod_material;
-
-    IF v_isbn IS NOT NULL THEN
-        SELECT COUNT(m.cod_material) INTO v_disponiveis
-          FROM MATERIAL_BIBLIOGRAFICO m
-         WHERE m.ISBN = v_isbn
-           AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-           AND m.cod_material NOT IN (SELECT cod_material FROM emprestimo_activo)
-           AND m.cod_material NOT IN (
-               SELECT cod_material FROM TRANSFERENCIA
-                WHERE estado_transferencia IN ('Pendente', 'Aprovada')
-                  AND id_transferencia <> :NEW.id_transferencia);
-    ELSE
-        SELECT COUNT(m.cod_material) INTO v_disponiveis
-          FROM MATERIAL_BIBLIOGRAFICO m
-         WHERE normaliza_titulo(m.titulo) = normaliza_titulo(v_titulo)
-           AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-           AND m.cod_material NOT IN (SELECT cod_material FROM emprestimo_activo)
-           AND m.cod_material NOT IN (
-               SELECT cod_material FROM TRANSFERENCIA
-                WHERE estado_transferencia IN ('Pendente', 'Aprovada')
-                  AND id_transferencia <> :NEW.id_transferencia);
-    END IF;
-
-    IF v_disponiveis <= 1 THEN
-        RAISE_APPLICATION_ERROR(-20016,
-            'Aprovacao bloqueada: ultimo exemplar disponivel de "' ||
-            v_titulo || '" na biblioteca de origem.');
-    END IF;
-END;
-/
+-- Desactivado ate snapshot repl_funcionarios estar disponivel
+-- ALTER TRIGGER trg_valida_transferencia DISABLE;
 

@@ -107,7 +107,7 @@ CONNECT usr_materiaisdb/YM20240260
 -- ------------------------------------------------------------
 -- 15. Snapshots (so executar apos grants dos outros nos)
 -- ------------------------------------------------------------
--- @/root/No_MateriaisDB/MateriaisDB_Snapshots.sql
+@/root/No_MateriaisDB/MateriaisDB_Snapshots.sql
 
 
 -- ------------------------------------------------------------
