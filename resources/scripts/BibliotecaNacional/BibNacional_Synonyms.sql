@@ -87,6 +87,7 @@ CREATE OR REPLACE PUBLIC SYNONYM prc_apagar_leitor            FOR usr_NACIONALDB
 CREATE OR REPLACE PUBLIC SYNONYM prc_emitir_honorifico        FOR usr_NACIONALDB.prc_emitir_honorifico;
 CREATE OR REPLACE PUBLIC SYNONYM prc_atualizar_doacao_segura  FOR usr_NACIONALDB.prc_atualizar_doacao_segura;
 CREATE OR REPLACE PUBLIC SYNONYM prc_demo_2pc                 FOR usr_NACIONALDB.prc_demo_2pc;
+CREATE OR REPLACE PUBLIC SYNONYM prc_refresh_snapshots        FOR usr_NACIONALDB.prc_refresh_snapshots;
 
 -- ── EmpréstimosDB (Yannis) ──────────────────────────────────
 CREATE OR REPLACE PUBLIC SYNONYM emprestimo                 FOR emprestimo@emprestimosdb;

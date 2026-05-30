@@ -18,6 +18,7 @@ const programasRouter = require('./routes/programas');
 const bibliotecasRouter = require('./routes/bibliotecas');
 const suspensoesRouter  = require('./routes/suspensoes');
 const auditoriaRouter   = require('./routes/auditoria');
+const manutencaoRouter  = require('./routes/manutencao');
 const { inicializarNoOrigem } = require('./db');
 
 const app = express();
@@ -71,6 +72,7 @@ app.use('/api/programas',     programasRouter);
 app.use('/api/bibliotecas',   bibliotecasRouter);
 app.use('/api/suspensoes',    suspensoesRouter);
 app.use('/api/auditoria',    auditoriaRouter);
+app.use('/api/manutencao',   manutencaoRouter);
 
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use('/resources', express.static(path.join(__dirname, '..', 'resources')));

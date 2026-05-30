@@ -136,11 +136,11 @@ SELECT
         ELSE 0
     END AS multa_estimada
 FROM EMPRESTIMO e
-JOIN leitor               l  ON e.num_cartao  = l.num_cartao
-JOIN material_bibliografico mb ON e.cod_material = mb.cod_material
-JOIN biblioteca_snap      bs ON l.cod_biblioteca = bs.cod_biblioteca
-LEFT JOIN professor        pr ON e.num_cartao  = pr.num_cartao
-LEFT JOIN crianca          cr ON e.num_cartao  = cr.num_cartao
+JOIN snap_leitor           l  ON e.num_cartao  = l.num_cartao
+JOIN snap_material         mb ON e.cod_material = mb.cod_material
+JOIN biblioteca_snap       bs ON l.cod_biblioteca = bs.cod_biblioteca
+LEFT JOIN snap_professor   pr ON e.num_cartao  = pr.num_cartao
+LEFT JOIN snap_crianca     cr ON e.num_cartao  = cr.num_cartao
 WHERE e.data_devolucao IS NULL;
 
 -- vw_historico_emprestimos
@@ -186,14 +186,14 @@ SELECT
     bs.nome_biblioteca     AS biblioteca_nome,
     f.nome_funcionario     AS funcionario_nome
 FROM EMPRESTIMO e
-JOIN leitor                l  ON e.num_cartao      = l.num_cartao
-JOIN REPL_FUNCIONARIOS     f  ON e.cod_funcionario = f.cod_funcionario
-JOIN biblioteca_snap       bs ON f.cod_biblioteca  = bs.cod_biblioteca
-JOIN material_bibliografico mb ON e.cod_material    = mb.cod_material
-JOIN categoria             c  ON mb.cod_categoria  = c.id_categoria
-LEFT JOIN professor        p  ON l.num_cartao      = p.num_cartao
-LEFT JOIN adulto           a  ON l.num_cartao      = a.num_cartao
-LEFT JOIN crianca          cr ON l.num_cartao      = cr.num_cartao;
+JOIN snap_leitor           l  ON e.num_cartao      = l.num_cartao
+LEFT JOIN REPL_FUNCIONARIOS f  ON e.cod_funcionario = f.cod_funcionario
+LEFT JOIN biblioteca_snap  bs ON l.cod_biblioteca  = bs.cod_biblioteca
+JOIN snap_material         mb ON e.cod_material    = mb.cod_material
+JOIN snap_categoria        c  ON mb.cod_categoria  = c.id_categoria
+LEFT JOIN snap_professor   p  ON l.num_cartao      = p.num_cartao
+LEFT JOIN snap_adulto      a  ON l.num_cartao      = a.num_cartao
+LEFT JOIN snap_crianca     cr ON l.num_cartao      = cr.num_cartao;
 
 CREATE OR REPLACE VIEW vw_relatorio_programas AS
 SELECT p.cod_programa,

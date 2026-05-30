@@ -37,3 +37,19 @@ EXCEPTION
         RAISE;
 END insere_participacao_evento;
 /
+
+-- ============================================================
+-- prc_refresh_snapshots
+-- Forca REFRESH COMPLETE em todas as MVs locais deste no.
+-- Chamada pelo backend via POST /api/manutencao/refresh-snapshots.
+-- ============================================================
+CREATE OR REPLACE PROCEDURE prc_refresh_snapshots AS
+    v_falhas NUMBER := 0;
+BEGIN
+    DBMS_MVIEW.REFRESH_ALL_MVIEWS(v_falhas);
+    DBMS_OUTPUT.PUT_LINE(''Refresh concluido. Falhas: '' || v_falhas);
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20300, ''Erro no refresh de snapshots: '' || SQLERRM);
+END;
+/

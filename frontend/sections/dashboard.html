@@ -81,6 +81,19 @@
       </div>
     </div>
 
+    <!-- Painel de manutenção de snapshots — só Administrador -->
+    <div class="panel" style="margin-top:16px">
+      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Snapshots / Réplicas — nó actual</span>
+        <button id="btn-refresh-snapshots" class="btn btn-sm" onclick="refreshSnapshots()">
+          Actualizar Snapshots
+        </button>
+      </div>
+      <div id="dash-snapshots-lista" style="margin-top:8px">
+        <p style="color:var(--text-secondary);font-size:12px">A carregar...</p>
+      </div>
+    </div>
+
   </div>
 
 </section>

@@ -14,6 +14,41 @@ async function carregarDashboard() {
   }
 }
 
+async function refreshSnapshots() {
+  const btn = document.getElementById('btn-refresh-snapshots');
+  if (btn) { btn.disabled = true; btn.textContent = 'A actualizar...'; }
+  try {
+    const r = await post('/api/manutencao/refresh-snapshots', {});
+    toast(r.mensagem || 'Snapshots actualizados.', r.ok ? 'sucesso' : 'aviso');
+    if (r.ok) await carregarSnapshotsInfo();
+  } catch (err) {
+    toast('Erro ao actualizar snapshots: ' + (err.message || err), 'erro');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Actualizar Snapshots'; }
+  }
+}
+
+async function carregarSnapshotsInfo() {
+  const el = document.getElementById('dash-snapshots-lista');
+  if (!el) return;
+  try {
+    const lista = await get('/api/manutencao/snapshots');
+    if (!lista.length) { el.innerHTML = '<p style="color:var(--text-secondary);font-size:12px">Sem snapshots neste nó.</p>'; return; }
+    el.innerHTML = `<table class="tbl" style="font-size:11px">
+      <thead><tr><th>Snapshot</th><th>Modo</th><th>Último Refresh</th><th>Estado</th></tr></thead>
+      <tbody>${lista.map(s => `
+        <tr>
+          <td class="cod">${s.NOME}</td>
+          <td>${s.MODO || '—'}</td>
+          <td style="color:var(--text-secondary)">${s.ULTIMO_REFRESH ? new Date(s.ULTIMO_REFRESH).toLocaleString('pt-PT') : '—'}</td>
+          <td><span class="badge ${s.ESTADO === 'FRESH' ? 'badge-verde' : 'badge-laranja'}">${s.ESTADO || '—'}</span></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  } catch (_) {
+    el.innerHTML = '<p style="color:var(--text-secondary);font-size:12px">Não foi possível carregar snapshots.</p>';
+  }
+}
+
 async function carregarDashboardAdmin() {
   try {
     const stats = await get('/api/dashboard/rede').catch(() => ({}));
@@ -33,6 +68,7 @@ async function carregarDashboardAdmin() {
     _renderBibliotecasRede(Array.isArray(bibs) ? bibs : (bibs.bibliotecas || []));
     renderEmprestimosAtrasados('dash-atrasos-rede', atrasos || []);
     renderProximosEventos('dash-proximos-eventos-rede', proximosEv || []);
+    await carregarSnapshotsInfo();
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');
   }

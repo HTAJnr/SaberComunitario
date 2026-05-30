@@ -565,25 +565,12 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
     const { multaDano } = await calcularMultaDano(conn, emp.COD_MATERIAL, estadoRetorno);
     const multaTotal = multaAtraso + multaDano;
 
-    // Actualizar estado de conservação do material conforme condição de retorno
+    // Actualizar estado de conservação do material conforme condição de retorno.
+    // Destruido/Perdido: o trigger trg_aplica_suspensao chama atualizar_estado_material@materiaisdb
+    // após processar_devolucao — não duplicar aqui.
+    // Degradado/Bom: sem trigger dedicado, actualizado directamente via DB link.
     const estadoLower = estadoRetorno.toLowerCase();
-    if (estadoLower === 'destruido') {
-      await conn.execute(
-        `UPDATE MATERIAL_BIBLIOGRAFICO
-            SET ESTADO_MATERIAL_CONSERVACAO = 'Indisponivel',
-                MOTIVO_INDISPONIBILIDADE    = 'Destruído'
-          WHERE COD_MATERIAL = :id`,
-        { id: emp.COD_MATERIAL }
-      );
-    } else if (estadoLower === 'perdido') {
-      await conn.execute(
-        `UPDATE MATERIAL_BIBLIOGRAFICO
-            SET ESTADO_MATERIAL_CONSERVACAO = 'Indisponivel',
-                MOTIVO_INDISPONIBILIDADE    = 'Perdido em empréstimo'
-          WHERE COD_MATERIAL = :id`,
-        { id: emp.COD_MATERIAL }
-      );
-    } else if (estadoLower === 'degradado') {
+    if (estadoLower === 'degradado') {
       await conn.execute(
         `UPDATE MATERIAL_BIBLIOGRAFICO
             SET ESTADO_MATERIAL_CONSERVACAO = 'Degradado',
@@ -591,8 +578,7 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
           WHERE COD_MATERIAL = :id AND ESTADO_MATERIAL_CONSERVACAO = 'Bom'`,
         { id: emp.COD_MATERIAL }
       );
-    } else {
-      // 'Bom' — restaurar se estava Degradado (não altera se Indisponivel por outras razões)
+    } else if (estadoLower === 'bom') {
       await conn.execute(
         `UPDATE MATERIAL_BIBLIOGRAFICO
             SET ESTADO_MATERIAL_CONSERVACAO = 'Bom',

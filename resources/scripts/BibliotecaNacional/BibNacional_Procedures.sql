@@ -426,39 +426,22 @@ END;
 
 
 -- ============================================================
--- PROCEDURE 3: prc_sincronizar_funcionarios
--- Cross-node via sinónimo: repl_funcionarios (EmpréstimosDB).
+-- PROCEDURE 3: prc_refresh_snapshots
+-- BibliotecaNacionalDB nao tem snapshots locais — é a fonte dos dados.
+-- Esta procedure existe apenas para manter a interface uniforme:
+-- o backend chama prc_refresh_snapshots em qualquer nó e o Oracle
+-- faz REFRESH COMPLETE nas MVs locais. No NacionalDB não há MVs.
 -- ============================================================
-CREATE OR REPLACE PROCEDURE prc_sincronizar_funcionarios AS
-    v_linhas NUMBER := 0;
+CREATE OR REPLACE PROCEDURE prc_refresh_snapshots AS
+    v_falhas NUMBER := 0;
 BEGIN
-    -- Limpa a réplica anterior no nó remoto (sinónimo: repl_funcionarios)
-    EXECUTE IMMEDIATE 'DELETE FROM repl_funcionarios';
-
-    FOR r IN (
-        SELECT cod_funcionario, nome_funcionario, cod_biblioteca,
-               id_funcao, nivel_acesso, nome_funcao
-          FROM vw_replica_funcionarios
-    ) LOOP
-        EXECUTE IMMEDIATE
-            'INSERT INTO repl_funcionarios
-             (cod_funcionario, nome_funcionario, cod_biblioteca,
-              id_funcao, nivel_acesso, nome_funcao)
-             VALUES (:1, :2, :3, :4, :5, :6)'
-            USING r.cod_funcionario, r.nome_funcionario, r.cod_biblioteca,
-                  r.id_funcao, r.nivel_acesso, r.nome_funcao;
-
-        v_linhas := v_linhas + 1;
-    END LOOP;
-
-    COMMIT;
-
-    DBMS_OUTPUT.PUT_LINE('Sincronizacao concluida: ' || v_linhas || ' funcionario(s) replicado(s).');
-
+    -- NacionalDB é o nó fonte: não tem MVs locais para refrescar.
+    -- DBMS_MVIEW.REFRESH_ALL_MVIEWS chamado com 0 falhas esperadas.
+    DBMS_MVIEW.REFRESH_ALL_MVIEWS(v_falhas);
+    DBMS_OUTPUT.PUT_LINE('Refresh concluido. Falhas: ' || v_falhas);
 EXCEPTION
     WHEN OTHERS THEN
-        ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20200, 'Erro na sincronizacao de funcionarios: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20200, 'Erro no refresh de snapshots: ' || SQLERRM);
 END;
 /
 
