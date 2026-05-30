@@ -151,6 +151,9 @@ GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
 -- Replicação de funcionários (snapshot repl_funcionarios no nó do Yasin)
 GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;
 
+GRANT SELECT ON FUNCIONARIO                     TO app_materiaisdb;
+GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_materiaisdb;
+
 -- ── Gerson (app_eventosdb) ──────────────────────────────────
 
 -- Verificação de leitores antes de inscrever em eventos
