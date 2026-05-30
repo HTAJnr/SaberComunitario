@@ -4,6 +4,7 @@
 -- ============================================================
 
 -- Utilizador principal (dono dos objectos)
+DROP USER usr_emprestimosdb CASCADE;
 CREATE USER usr_emprestimosdb IDENTIFIED BY "YC20220156"
   DEFAULT TABLESPACE tbs_emprestimosdb
   TEMPORARY TABLESPACE TEMP
@@ -11,6 +12,7 @@ CREATE USER usr_emprestimosdb IDENTIFIED BY "YC20220156"
   QUOTA UNLIMITED ON tbs_emprestimosdb_idx;
 
 -- Utilizador de aplicacao (backend Node.js)
+DROP USER app_emprestimosdb CASCADE;
 CREATE USER app_emprestimosdb IDENTIFIED BY "YC20220156"
   DEFAULT TABLESPACE tbs_emprestimosdb
   TEMPORARY TABLESPACE TEMP;

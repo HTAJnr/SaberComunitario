@@ -4,7 +4,9 @@
 -- ============================================================
 
 -- Roles
+DROP ROLE role_emprestimosdb_read;
 CREATE ROLE role_emprestimosdb_read;
+DROP ROLE role_emprestimosdb_write;
 CREATE ROLE role_emprestimosdb_write;
 
 -- Privilegios de sessao

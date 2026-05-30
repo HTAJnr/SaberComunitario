@@ -46,7 +46,7 @@ sqlplus sys/"bd2.isctem" as sysdba @/root/TP/BibNacional_Main.sql
 **MateriaisDB** (VM do Yasin):
 ```bash
 export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
-sqlplus sys/bd2.isctem as sysdba @/root/No_MateriaisDB/MateriaisDB_Main.sql
+sqlplus sys/bd2.isctem as sysdba @/root/TP/MateriaisDB_Main.sql
 ```
 
 **EmpréstimosDB** (VM do Yannis):

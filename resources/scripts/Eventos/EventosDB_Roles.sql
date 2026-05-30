@@ -3,7 +3,9 @@
 -- Executar como SYSDBA
 -- ============================================
 
+DROP ROLE role_eventosdb_read;
 CREATE ROLE role_eventosdb_read;
+DROP ROLE role_eventosdb_write;
 CREATE ROLE role_eventosdb_write;
 
 -- Privil�gios de sess�o

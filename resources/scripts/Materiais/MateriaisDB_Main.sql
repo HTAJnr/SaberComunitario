@@ -1,122 +1,118 @@
 -- ============================================================
--- MateriaisDB_Main.sql — Script de instalacao completo
--- No MateriaisDB — Sistema de Gestao de Bibliotecas Comunitarias Distribuido
+-- MateriaisDB_Main.sql — Script de instalação completo
+-- MateriaisDB — Sistema de Gestão de Bibliotecas Comunitárias Distribuído
 --
 -- Executar como SYSDBA:
---   sqlplus sys/bd2.isctem as sysdba @/root/No_MateriaisDB/MateriaisDB_Main.sql
+--   sqlplus sys/"bd2.isctem" as sysdba @/root/TP/MateriaisDB_Main.sql
 --
--- IMPORTANTE: Definir charset antes de executar:
---   export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
---
--- PRE-REQUISITO (1 vez, antes do primeiro install):
+-- PRÉ-REQUISITO (1 vez, antes do primeiro install):
 --   ALTER SYSTEM SET audit_trail = 'DB' SCOPE = SPFILE;
 --   SHUTDOWN IMMEDIATE; STARTUP;
 -- ============================================================
 
 
--- ------------------------------------------------------------
--- 1. Tablespaces (SYS)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Tablespaces.sql
+-- ============================================================
+-- FASE 0A — LIMPEZA DE SINÓNIMOS PÚBLICOS (SYSDBA)
+-- ============================================================
 
+-- EmprestimosDB (Yannis)
+DROP PUBLIC SYNONYM emprestimo_activo;
 
--- ------------------------------------------------------------
--- 2. Utilizadores e Visitor Users (SYS)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Users.sql
+-- EventosBibliotecasDB (Gerson)
+DROP PUBLIC SYNONYM biblioteca_remota;
 
+-- BibliotecaNacionalDB (Helder)
+DROP PUBLIC SYNONYM leitor_remoto;
+DROP PUBLIC SYNONYM leitor_publico;
 
--- ------------------------------------------------------------
--- 3. Roles e permissoes (SYS)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Roles.sql
+-- Snapshots locais
+DROP PUBLIC SYNONYM funcionario;
+DROP PUBLIC SYNONYM funcao_funcionario;
+DROP PUBLIC SYNONYM biblioteca;
 
-
--- ------------------------------------------------------------
--- Passa para o schema owner
--- ------------------------------------------------------------
-CONNECT usr_materiaisdb/YM20240260
-
-
--- ------------------------------------------------------------
--- 4. Database Links (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Database_Links.sql
-
-
--- ------------------------------------------------------------
--- 5. Sinonimos publicos (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Synonyms.sql
-
-
--- ------------------------------------------------------------
--- 6. Tabelas e constraints (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Create.sql
-
-
--- ------------------------------------------------------------
--- 7. Sequencias (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Sequences.sql
-
-
--- ------------------------------------------------------------
--- 8. Vistas (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Views.sql
-
-
--- ------------------------------------------------------------
--- 9. Funcoes (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Functions.sql
-
-
--- ------------------------------------------------------------
--- 10. Procedures (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Procedures.sql
-
-
--- ------------------------------------------------------------
--- 11. Triggers (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Triggers.sql
-
-
--- ------------------------------------------------------------
--- 12. Indices (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Indexes.sql
-
-
--- ------------------------------------------------------------
--- 13. GRANTs (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Grants.sql
-
-
--- ------------------------------------------------------------
--- 14. Dados iniciais (usr_materiaisdb)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Intro.sql
-
-
--- ------------------------------------------------------------
--- 15. Snapshots (so executar apos grants dos outros nos)
--- ------------------------------------------------------------
-@/root/No_MateriaisDB/MateriaisDB_Snapshots.sql
-
-
--- ------------------------------------------------------------
--- 16. Auditoria Oracle nativa (requer SYSDBA)
--- ------------------------------------------------------------
-CONNECT sys/bd2.isctem as sysdba
-@/root/No_MateriaisDB/MateriaisDB_Auditoria.sql
+-- Objectos e views locais
+DROP PUBLIC SYNONYM CATEGORIA;
+DROP PUBLIC SYNONYM MATERIAL_BIBLIOGRAFICO;
+DROP PUBLIC SYNONYM LIVRO_FISICO;
+DROP PUBLIC SYNONYM EBOOK;
+DROP PUBLIC SYNONYM PERIODICO;
+DROP PUBLIC SYNONYM TRANSFERENCIA;
+DROP PUBLIC SYNONYM AUDITORIA_MATERIAIS;
+DROP PUBLIC SYNONYM VW_MAT_DISPONIVEL;
+DROP PUBLIC SYNONYM VW_MAT_GLOBAL;
+DROP PUBLIC SYNONYM VW_AUDITORIA;
 
 
 -- ============================================================
--- FIM DA INSTALACAO
+-- FASE 0B — LIMPEZA DE UTILIZADORES (SYSDBA)
 -- ============================================================
+DROP USER usr_materiaisdb CASCADE;
+DROP USER app_materiaisdb CASCADE;
+DROP USER app_nacionaldb CASCADE;
+DROP USER app_emprestimosdb CASCADE;
+DROP USER app_eventosdb CASCADE;
+
+
+-- ============================================================
+-- FASE 1 — INFRAESTRUTURA (SYSDBA)
+-- ============================================================
+
+-- 1. Tablespaces
+@/root/TP/MateriaisDB_Tablespaces.sql
+
+-- 2. Utilizadores e visitor users
+@/root/TP/MateriaisDB_Users.sql
+
+-- 3. Roles e privilégios
+@/root/TP/MateriaisDB_Roles.sql
+
+
+-- ============================================================
+-- FASE 2 — OBJECTOS DO SCHEMA (usr_materiaisdb)
+-- ============================================================
+CONNECT usr_materiaisdb/"YM20240260"
+
+-- 4. Database Links
+@/root/TP/MateriaisDB_Database_Links.sql
+
+-- 5. Snapshots (depende dos database links)
+@/root/TP/MateriaisDB_Snapshots.sql
+
+-- 6. Sinónimos (depende dos database links e snapshots)
+@/root/TP/MateriaisDB_Synonyms.sql
+
+-- 7. Tabelas e constraints
+@/root/TP/MateriaisDB_Create.sql
+
+-- 8. Sequências
+@/root/TP/MateriaisDB_Sequences.sql
+
+-- 9. Vistas
+@/root/TP/MateriaisDB_Views.sql
+
+-- 10. Funções
+@/root/TP/MateriaisDB_Functions.sql
+
+-- 11. Procedimentos
+@/root/TP/MateriaisDB_Procedures.sql
+
+-- 12. Triggers
+@/root/TP/MateriaisDB_Triggers.sql
+
+-- 13. Índices
+@/root/TP/MateriaisDB_Indexes.sql
+
+-- 14. Grants e permissões
+@/root/TP/MateriaisDB_Grants.sql
+
+-- 15. Dados iniciais
+@/root/TP/MateriaisDB_Intro.sql
+
+
+-- ============================================================
+-- FASE 3 — AUDITORIA (SYSDBA)
+-- ============================================================
+CONNECT sys/"bd2.isctem" as sysdba
+
+-- 16. Auditoria Oracle nativa
+@/root/TP/MateriaisDB_Auditoria.sql

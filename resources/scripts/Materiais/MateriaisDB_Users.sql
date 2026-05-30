@@ -4,6 +4,7 @@
 -- ============================================================
 
 -- Utilizador principal (dono dos objectos)
+DROP USER usr_materiaisdb CASCADE;
 CREATE USER usr_materiaisdb IDENTIFIED BY YM20240260
   DEFAULT TABLESPACE tbs_MATERIAISDB
   TEMPORARY TABLESPACE TEMP
@@ -11,6 +12,7 @@ CREATE USER usr_materiaisdb IDENTIFIED BY YM20240260
   QUOTA UNLIMITED ON tbs_MATERIAISDB_idx;
 
 -- Utilizador de aplicacao (acesso remoto via database link)
+DROP USER app_materiaisdb CASCADE;
 CREATE USER app_materiaisdb IDENTIFIED BY YM20240260
   DEFAULT TABLESPACE tbs_MATERIAISDB
   TEMPORARY TABLESPACE TEMP;
@@ -40,18 +42,21 @@ GRANT DROP PUBLIC SYNONYM   TO usr_materiaisdb;
 -- ============================================================
 
 -- Para o Helder (BibliotecaNacionalDB)
+DROP USER app_nacionaldb CASCADE;
 CREATE USER app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
   DEFAULT TABLESPACE tbs_MATERIAISDB
   TEMPORARY TABLESPACE TEMP;
 GRANT CREATE SESSION TO app_nacionaldb;
 
 -- Para o Yannis (EmprestimosDB)
+DROP USER app_emprestimosdb CASCADE;
 CREATE USER app_emprestimosdb IDENTIFIED BY "YC20220156"
   DEFAULT TABLESPACE tbs_MATERIAISDB
   TEMPORARY TABLESPACE TEMP;
 GRANT CREATE SESSION TO app_emprestimosdb;
 
 -- Para o Gerson (EventosBibliotecasDB)
+DROP USER app_eventosdb CASCADE;
 CREATE USER app_eventosdb IDENTIFIED BY "appev1234"
   DEFAULT TABLESPACE tbs_MATERIAISDB
   TEMPORARY TABLESPACE TEMP;

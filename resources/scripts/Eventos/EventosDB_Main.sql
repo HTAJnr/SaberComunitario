@@ -1,20 +1,19 @@
 -- ============================================================
--- EventosDB_Main.sql � Script de instalacao completo (v5)
--- No EventosBibliotecasDB � Sistema de Gestao de Bibliotecas Comunitarias Distribuido
+-- EventosDB_Main.sql — Script de instalação completo
+-- EventosBibliotecasDB — Sistema de Gestão de Bibliotecas Comunitárias Distribuído
 --
 -- Executar como SYSDBA:
---   sqlplus sys/bd2.isctem as sysdba @/root/TP/EventosDB_Main.sql
+--   sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EventosDB_Main.sql
 --
--- PRE-REQUISITO (1 vez, antes do primeiro install):
+-- PRÉ-REQUISITO (1 vez, antes do primeiro install):
 --   ALTER SYSTEM SET audit_trail = 'DB' SCOPE = SPFILE;
 --   SHUTDOWN IMMEDIATE; STARTUP;
 -- ============================================================
 
 
 -- ============================================================
--- FASE 0A � LIMPEZA DE SINONIMOS PUBLICOS (SYSDBA)
+-- FASE 0A — LIMPEZA DE SINÓNIMOS PÚBLICOS (SYSDBA)
 -- ============================================================
-
 DROP PUBLIC SYNONYM BIBLIOTECA;
 DROP PUBLIC SYNONYM HORARIO_BIBLIOTECA;
 DROP PUBLIC SYNONYM BIBLIOTECA_RESPONSAVEL;
@@ -42,85 +41,33 @@ DROP PUBLIC SYNONYM VW_EVENTOS_COMPLETOS;
 
 
 -- ============================================================
--- FASE 0B � LIMPEZA DO SCHEMA (como usr_eventosdb)
+-- FASE 0B — LIMPEZA DE UTILIZADORES (SYSDBA)
 -- ============================================================
-CONNECT usr_eventosdb/eventos1234
-
--- Materialized Views (snapshots)
-DROP MATERIALIZED VIEW repl_funcionarios;
-DROP MATERIALIZED VIEW snap_leitor;
-
--- Triggers
-DROP TRIGGER trg_valida_horario_evento;
-DROP TRIGGER trg_protege_delete_evento;
-DROP TRIGGER trg_avaliacao_id;
-DROP TRIGGER trg_recurso_id;
-
--- Procedures
-DROP PROCEDURE insere_participacao_evento;
-
--- Vistas (dependentes primeiro)
-DROP VIEW vw_frag_participacao_passado;
-DROP VIEW vw_frag_participacao_futuro;
-DROP VIEW vw_frag_evento_passado;
-DROP VIEW vw_frag_evento_futuro;
-DROP VIEW vw_eventos_completos;
-DROP VIEW vw_eventos_proximos;
-DROP VIEW v_evento_global;
-DROP VIEW frag_evento_norte;
-DROP VIEW frag_evento_centro;
-DROP VIEW frag_evento_sul;
-DROP VIEW v_programacao_eventos;
-DROP VIEW v_horarios_bibliotecas;
-DROP VIEW v_bibliotecas_activas;
-
--- Tabela placeholder do snapshot (se existir de instalacao anterior)
-DROP TABLE repl_funcionarios;
-DROP TABLE snap_leitor;
-
--- Tabelas de dados (filhas primeiro)
-DROP TABLE AUDITORIA_EVENTOS   CASCADE CONSTRAINTS PURGE;
-DROP TABLE AVALIACAO_EVENTO    CASCADE CONSTRAINTS PURGE;
-DROP TABLE PARTICIPACAO_EVENTO CASCADE CONSTRAINTS PURGE;
-DROP TABLE EVENTO_RECURSO      CASCADE CONSTRAINTS PURGE;
-DROP TABLE HORARIO_EVENTO      CASCADE CONSTRAINTS PURGE;
-DROP TABLE EVENTO              CASCADE CONSTRAINTS PURGE;
-DROP TABLE BIBLIOTECA_RESPONSAVEL CASCADE CONSTRAINTS PURGE;
-DROP TABLE HORARIO_BIBLIOTECA  CASCADE CONSTRAINTS PURGE;
-DROP TABLE BIBLIOTECA          CASCADE CONSTRAINTS PURGE;
-
--- Sequencias
-DROP SEQUENCE SEQ_AUDITORIA_EVT;
-DROP SEQUENCE SEQ_EVENTO;
-DROP SEQUENCE SEQ_HORARIO_EVENTO;
-DROP SEQUENCE SEQ_AVALIACAO;
-DROP SEQUENCE SEQ_RECURSO;
-
--- Database Links
-DROP DATABASE LINK link_nacionaldb;
-DROP DATABASE LINK link_materiaisdb;
-DROP DATABASE LINK link_emprestimosdb;
+DROP USER usr_eventosdb CASCADE;
+DROP USER app_eventosdb CASCADE;
+DROP USER app_nacionaldb CASCADE;
+DROP USER app_materiaisdb CASCADE;
+DROP USER app_emprestimosdb CASCADE;
 
 
 -- ============================================================
--- FASE 1 � INFRAESTRUTURA (SYSDBA)
+-- FASE 1 — INFRAESTRUTURA (SYSDBA)
 -- ============================================================
-CONNECT sys/bd2.isctem as sysdba
 
--- 1. Tablespaces (inclui DROP ... INCLUDING CONTENTS AND DATAFILES)
+-- 1. Tablespaces
 @/root/TP/EventosDB_Tablespaces.sql
 
--- 2. Utilizadores (inclui DROP USER CASCADE)
+-- 2. Utilizadores e visitor users
 @/root/TP/EventosDB_Users.sql
 
--- 3. Roles e privilegios DDL
+-- 3. Roles e privilégios
 @/root/TP/EventosDB_Roles.sql
 
 
 -- ============================================================
--- FASE 2 � OBJECTOS DO SCHEMA (usr_eventosdb)
+-- FASE 2 — OBJECTOS DO SCHEMA (usr_eventosdb)
 -- ============================================================
-CONNECT usr_eventosdb/eventos1234
+CONNECT usr_eventosdb/"eventos1234"
 
 -- 4. Database Links
 @/root/TP/EventosDB_Database_Links.sql
@@ -128,18 +75,12 @@ CONNECT usr_eventosdb/eventos1234
 -- 5. Tabelas e constraints
 @/root/TP/EventosDB_Create.sql
 
--- 6. Sequencias
+-- 6. Sequências
 @/root/TP/EventosDB_Sequences.sql
 
--- ------------------------------------------------------------
--- PLACEHOLDER: repl_funcionarios e snap_leitor
--- A vw_eventos_completos faz LEFT JOIN em repl_funcionarios.
--- O snapshot real so e criado na Fase 3 (requer Helder online).
--- Esta tabela local garante que a view compila sem erros agora.
--- Quando o snapshot for criado (Fase 3), o script faz DROP TABLE
--- antes do CREATE MATERIALIZED VIEW � o nome mantem-se e a view
--- continua a funcionar sem qualquer alteracao.
--- ------------------------------------------------------------
+-- Placeholders para repl_funcionarios e snap_leitor:
+-- vw_eventos_completos faz LEFT JOIN nestes nomes.
+-- O snapshot real (Fase 3) substitui estas tabelas com DROP TABLE antes do CREATE MV.
 CREATE TABLE repl_funcionarios (
     cod_funcionario  VARCHAR2(12),
     nome_funcionario VARCHAR2(100),
@@ -158,22 +99,22 @@ CREATE TABLE snap_leitor (
     distancia_biblioteca     NUMBER(6,2)
 ) TABLESPACE tbs_eventosdb;
 
--- 7. Vistas (fragmentacao + servico + backend)
+-- 7. Vistas
 @/root/TP/EventosDB_Views.sql
 
--- 8. Funcoes
+-- 8. Funções
 @/root/TP/EventosDB_Functions.sql
 
--- 9. Procedures
+-- 9. Procedimentos
 @/root/TP/EventosDB_Procedures.sql
 
 -- 10. Triggers
 @/root/TP/EventosDB_Triggers.sql
 
--- 11. Indices
+-- 11. Índices
 @/root/TP/EventosDB_Indexes.sql
 
--- 12. Grants (app_eventosdb + visitor users)
+-- 12. Grants e permissões
 @/root/TP/EventosDB_Grants.sql
 
 -- 13. Dados iniciais
@@ -181,26 +122,22 @@ CREATE TABLE snap_leitor (
 
 
 -- ============================================================
--- FASE 3 � SNAPSHOTS (usr_eventosdb)
--- Executar MANUALMENTE quando o Helder confirmar:
---   1. GRANT SELECT ON vw_replica_funcionarios TO app_eventosdb
---   2. GRANT SELECT ON vw_leitor_publico       TO app_eventosdb
---   3. Testar: SELECT SYSDATE FROM DUAL@link_nacionaldb;
---
--- O EventosDB_Snapshots.sql ja tem DROP TABLE repl_funcionarios
--- e DROP TABLE snap_leitor antes dos CREATE MATERIALIZED VIEW,
--- para substituir os placeholders criados na Fase 2.
+-- FASE 3 — SNAPSHOTS (usr_eventosdb)
+-- Executar MANUALMENTE após o Helder confirmar:
+--   GRANT SELECT ON vw_replica_funcionarios TO app_eventosdb
+--   GRANT SELECT ON vw_leitor_publico       TO app_eventosdb
+-- O EventosDB_Snapshots.sql já faz DROP TABLE antes do CREATE MV,
+-- substituindo os placeholders criados na Fase 2.
 -- ============================================================
-
 -- @/root/TP/EventosDB_Snapshots.sql
 
 
 -- ============================================================
--- FASE 4 � SINONIMOS E AUDITORIA (SYSDBA)
+-- FASE 4 — SINÓNIMOS E AUDITORIA (SYSDBA)
 -- ============================================================
-CONNECT sys/bd2.isctem as sysdba
+CONNECT sys/"bd2.isctem" as sysdba
 
--- 14. Sinonimos publicos
+-- 14. Sinónimos públicos
 @/root/TP/EventosDB_Synonyms.sql
 
 -- 15. Auditoria Oracle nativa
