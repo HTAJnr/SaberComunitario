@@ -4,7 +4,7 @@
 -- ============================================================
 
 CREATE DATABASE LINK nacionaldb
-  CONNECT TO app_emprestimosdb IDENTIFIED BY "HTAJnr#22041"
+  CONNECT TO app_emprestimosdb IDENTIFIED BY "YC20220156"
   USING 'NACIONALDB';
 
 CREATE DATABASE LINK materiaisdb

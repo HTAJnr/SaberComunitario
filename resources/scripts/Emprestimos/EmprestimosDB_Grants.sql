@@ -40,6 +40,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON REPL_FUNCIONARIOS TO app_nacionaldb;
 -- Vistas de servico
 GRANT SELECT ON vw_emprestimos_activos  TO app_nacionaldb;
 GRANT SELECT ON vw_suspensoes_activas   TO app_nacionaldb;
+GRANT SELECT ON vw_relatorio_programas  TO app_nacionaldb;
 GRANT SELECT ON frag_emp_activos_op     TO app_nacionaldb;
 GRANT SELECT ON VW_AUDITORIA            TO app_nacionaldb;
 

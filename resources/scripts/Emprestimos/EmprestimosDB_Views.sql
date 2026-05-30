@@ -194,3 +194,18 @@ JOIN categoria             c  ON mb.cod_categoria  = c.id_categoria
 LEFT JOIN professor        p  ON l.num_cartao      = p.num_cartao
 LEFT JOIN adulto           a  ON l.num_cartao      = a.num_cartao
 LEFT JOIN crianca          cr ON l.num_cartao      = cr.num_cartao;
+
+CREATE OR REPLACE VIEW vw_relatorio_programas AS
+SELECT p.cod_programa,
+       p.nome_programa,
+       p.cod_biblioteca,
+       p.estado_programa,
+       COUNT(pp.num_cartao)                                                         AS total_participantes,
+       SUM(CASE WHEN pp.estado_participacao = 'Concluido' THEN 1 ELSE 0 END)        AS concluidos,
+       SUM(CASE WHEN pp.estado_participacao = 'Activo'    THEN 1 ELSE 0 END)        AS em_curso,
+       SUM(CASE WHEN pp.estado_participacao = 'Desistiu'  THEN 1 ELSE 0 END)        AS desistencias,
+       MAX(np.ordem)                                                                 AS nivel_maximo_atingido
+  FROM PROGRAMA_ALFABETIZACAO p
+  LEFT JOIN PARTICIPACAO_PROGRAMA pp ON pp.cod_programa = p.cod_programa
+  LEFT JOIN NIVEL_PROGRESSAO np      ON np.id_nivel    = pp.id_nivel_atual
+ GROUP BY p.cod_programa, p.nome_programa, p.cod_biblioteca, p.estado_programa;

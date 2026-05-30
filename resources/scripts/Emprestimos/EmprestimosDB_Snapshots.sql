@@ -51,7 +51,7 @@ CREATE MATERIALIZED VIEW snap_leitor
 AS
 SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
-FROM vw_leitor_publico@nacionaldb;
+FROM leitor@nacionaldb;
 
 
 -- ============================================================

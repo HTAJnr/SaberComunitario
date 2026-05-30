@@ -1,5 +1,5 @@
 -- ============================================================
--- EmprestimosDB_Main.sql â€” Script de instalacao completo
+-- EmprestimosDB_Main.sql — Script de instalacao completo
 -- Executar como SYSDBA:
 --   sqlplus / as sysdba @/root/TP/EmprestimosDB_Main.sql
 -- ============================================================
@@ -13,7 +13,7 @@
 -- 3. Roles, privilegios e visitor users
 @/root/TP/EmprestimosDB_Roles.sql
 
--- Passa para o schema owner â€” o resto corre como usr_emprestimosdb
+-- Passa para o schema owner — o resto corre como usr_emprestimosdb
 CONNECT usr_emprestimosdb/YC20220156
 
 -- 4. Database Links
@@ -52,6 +52,6 @@ CONNECT usr_emprestimosdb/YC20220156
 -- 15. Dados iniciais
 @/root/TP/EmprestimosDB_Intro.sql
 
--- 16. Auditoria Oracle nativa (requer SYSDBA â€” volta a ligar como sys)
+-- 16. Auditoria Oracle nativa (requer SYSDBA — volta a ligar como sys)
 CONNECT sys/bd2.isctem as sysdba
 @/root/TP/EmprestimosDB_Auditoria.sql

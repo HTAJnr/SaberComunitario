@@ -20,79 +20,76 @@ DECLARE
     v_crianca NUMBER;
     v_faixa   VARCHAR2(30);
     v_sql     VARCHAR2(500);
+    v_erro    NUMBER := 0;
+    v_msg     VARCHAR2(300);
 BEGIN
-    -- 1. Status do leitor (BibliotecaNacionalDB via sinonimo leitor)
+    -- 1. Status do leitor
     BEGIN
         v_sql := 'SELECT status_leitor FROM leitor WHERE num_cartao = :1';
         EXECUTE IMMEDIATE v_sql INTO v_status USING :NEW.num_cartao;
-
         IF v_status != 'Activo' THEN
-            prc_registar_auditoria(
-                'CRIAR_EMPRESTIMO', :NEW.num_cartao, :NEW.cod_material, NULL,
-                'FALHA', 'Leitor nao activo. Status: ' || v_status,
-                'BibliotecaNacionalDB', NULL);
-            RAISE_APPLICATION_ERROR(-20001,
-                'Leitor nao pode emprestar. Status: ' || v_status);
+            v_erro := -20001;
+            v_msg  := 'Leitor nao pode emprestar. Status: ' || v_status;
         END IF;
     EXCEPTION
         WHEN OTHERS THEN NULL;
     END;
+
+    IF v_erro != 0 THEN
+        prc_registar_auditoria('CRIAR_EMPRESTIMO',:NEW.num_cartao,:NEW.cod_material,
+            NULL,'FALHA',v_msg,'BibliotecaNacionalDB',NULL);
+        RAISE_APPLICATION_ERROR(v_erro, v_msg);
+    END IF;
 
     -- 2. Limite de 1 emprestimo activo (local)
     SELECT COUNT(*) INTO v_count FROM EMPRESTIMO
     WHERE num_cartao = :NEW.num_cartao AND data_devolucao IS NULL;
 
     IF v_count >= 1 THEN
-        prc_registar_auditoria(
-            'CRIAR_EMPRESTIMO', :NEW.num_cartao, :NEW.cod_material, NULL,
-            'FALHA', 'Leitor ja tem emprestimo activo', 'Local', NULL);
+        prc_registar_auditoria('CRIAR_EMPRESTIMO',:NEW.num_cartao,:NEW.cod_material,
+            NULL,'FALHA','Leitor ja tem emprestimo activo','Local',NULL);
         RAISE_APPLICATION_ERROR(-20002, 'Leitor ja tem um emprestimo activo.');
     END IF;
 
-    -- 3. Funcionario reconhecido em repl_funcionarios (local)
+    -- 3. Funcionario reconhecido (local)
     SELECT COUNT(*) INTO v_func FROM REPL_FUNCIONARIOS
     WHERE cod_funcionario = :NEW.cod_funcionario;
 
     IF v_func = 0 THEN
-        prc_registar_auditoria(
-            'CRIAR_EMPRESTIMO', :NEW.num_cartao, :NEW.cod_material, NULL,
-            'FALHA', 'Funcionario nao reconhecido: ' || :NEW.cod_funcionario,
-            'Local', NULL);
+        prc_registar_auditoria('CRIAR_EMPRESTIMO',:NEW.num_cartao,:NEW.cod_material,
+            NULL,'FALHA','Funcionario nao reconhecido: '||:NEW.cod_funcionario,'Local',NULL);
         RAISE_APPLICATION_ERROR(-20004, 'Funcionario nao reconhecido neste no.');
     END IF;
 
     -- 4. Faixa etaria para criancas
-    --    Verifica crianca no BibliotecaNacionalDB e faixa no MateriaisDB
     BEGIN
         v_sql := 'SELECT COUNT(*) FROM crianca WHERE num_cartao = :1';
         EXECUTE IMMEDIATE v_sql INTO v_crianca USING :NEW.num_cartao;
-
-        IF v_crianca > 0 THEN
-            BEGIN
-                v_sql := 'SELECT c.faixa_etaria
-                          FROM material_bibliografico m
-                          JOIN categoria c ON m.cod_categoria = c.id_categoria
-                          WHERE m.cod_material = :1';
-                EXECUTE IMMEDIATE v_sql INTO v_faixa USING :NEW.cod_material;
-            EXCEPTION
-                WHEN OTHERS THEN v_faixa := 'Todas as Idades';
-            END;
-
-            IF v_faixa NOT IN ('Infantil','Todas as Idades') THEN
-                prc_registar_auditoria(
-                    'CRIAR_EMPRESTIMO', :NEW.num_cartao, :NEW.cod_material, NULL,
-                    'FALHA', 'Material inadequado para crianca. Faixa: ' || v_faixa,
-                    'BibliotecaNacionalDB, MateriaisDB', NULL);
-                RAISE_APPLICATION_ERROR(-20003,
-                    'Material nao permitido para criancas. Faixa: ' || v_faixa);
-            END IF;
-        END IF;
     EXCEPTION
-        WHEN OTHERS THEN NULL;
+        WHEN OTHERS THEN v_crianca := 0;
     END;
+
+    IF v_crianca > 0 THEN
+        BEGIN
+            v_sql := 'SELECT c.faixa_etaria
+                      FROM material_bibliografico m
+                      JOIN categoria c ON m.cod_categoria = c.id_categoria
+                      WHERE m.cod_material = :1';
+            EXECUTE IMMEDIATE v_sql INTO v_faixa USING :NEW.cod_material;
+        EXCEPTION
+            WHEN OTHERS THEN v_faixa := 'Todas as Idades';
+        END;
+
+        IF v_faixa NOT IN ('Infantil','Todas as Idades') THEN
+            prc_registar_auditoria('CRIAR_EMPRESTIMO',:NEW.num_cartao,:NEW.cod_material,
+                NULL,'FALHA','Material inadequado para crianca. Faixa: '||v_faixa,
+                'BibliotecaNacionalDB, MateriaisDB',NULL);
+            RAISE_APPLICATION_ERROR(-20003,
+                'Material nao permitido para criancas. Faixa: ' || v_faixa);
+        END IF;
+    END IF;
 END;
 /
-
 -- trg_aplica_suspensao
 -- Activa AFTER UPDATE OF data_devolucao em EMPRESTIMO
 -- So activa quando data_devolucao passa de NULL para um valor
