@@ -69,6 +69,10 @@ CREATE OR REPLACE PUBLIC SYNONYM vw_global_eventos_participacao  FOR usr_NACIONA
 -- Auditoria
 CREATE OR REPLACE PUBLIC SYNONYM vw_auditoria                 FOR usr_NACIONALDB.vw_auditoria;
 
+-- Dashboard (métricas)
+CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_sistema          FOR usr_NACIONALDB.vw_metricas_sistema;
+CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_por_biblioteca   FOR usr_NACIONALDB.vw_metricas_por_biblioteca;
+
 -- ── FUNCTION ────────────────────────────────────────────────
 
 CREATE OR REPLACE PUBLIC SYNONYM total_doacoes_doador         FOR usr_NACIONALDB.total_doacoes_doador;

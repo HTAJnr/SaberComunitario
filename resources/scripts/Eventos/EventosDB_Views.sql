@@ -114,17 +114,17 @@ GROUP BY
 -- A2: Fragmentacao derivada de PARTICIPACAO_EVENTO
 -- ============================================================
 
--- A1 � Fragmento de eventos futuros
+-- A1 � Fragmento de eventos futuros
 CREATE OR REPLACE VIEW vw_frag_evento_futuro AS
     SELECT * FROM EVENTO
     WHERE data_evento >= SYSDATE;
 
--- A1 � Fragmento de eventos passados
+-- A1 � Fragmento de eventos passados
 CREATE OR REPLACE VIEW vw_frag_evento_passado AS
     SELECT * FROM EVENTO
     WHERE data_evento < SYSDATE;
 
--- A2 � Fragmento derivado: participacoes em eventos futuros
+-- A2 � Fragmento derivado: participacoes em eventos futuros
 CREATE OR REPLACE VIEW vw_frag_participacao_futuro AS
     SELECT pe.*
     FROM PARTICIPACAO_EVENTO pe
@@ -134,7 +134,7 @@ CREATE OR REPLACE VIEW vw_frag_participacao_futuro AS
         WHERE ef.id_evento = pe.id_evento
     );
 
--- A2 � Fragmento derivado: participacoes em eventos passados
+-- A2 � Fragmento derivado: participacoes em eventos passados
 CREATE OR REPLACE VIEW vw_frag_participacao_passado AS
     SELECT pe.*
     FROM PARTICIPACAO_EVENTO pe
@@ -146,3 +146,58 @@ CREATE OR REPLACE VIEW vw_frag_participacao_passado AS
 
 -- Verificar
 SELECT VIEW_NAME FROM USER_VIEWS ORDER BY VIEW_NAME;
+
+-- ============================================================
+-- VISTAS PARA O BACKEND
+-- BIBLIOTECA e HORARIO_BIBLIOTECA sao locais neste no.
+-- FUNCIONARIO usa sinónimo → repl_funcionarios (MV local, resiliente).
+-- snap_leitor referenciado directamente (sem sinónimo LEITOR neste no).
+-- ============================================================
+
+-- Horários de abertura/fecho de cada biblioteca (100% local)
+CREATE OR REPLACE VIEW vw_horarios_biblioteca_semana AS
+SELECT
+    b.cod_biblioteca,
+    b.nome_biblioteca,
+    h.dia_semana,
+    h.hora_abertura,
+    h.hora_fecho
+FROM BIBLIOTECA b
+LEFT JOIN HORARIO_BIBLIOTECA h ON b.cod_biblioteca = h.cod_biblioteca;
+/
+
+-- Participações em eventos com dados do leitor (snap_leitor é MV local)
+CREATE OR REPLACE VIEW vw_participacoes_eventos AS
+SELECT
+    e.id_evento,
+    e.titulo_evento,
+    e.data_evento,
+    b.nome_biblioteca AS biblioteca_nome,
+    l.num_cartao,
+    l.nome_completo   AS nome_leitor,
+    p.data_inscricao,
+    p.presenca_confirmacao AS presenca_confirmada,
+    e.publico_alvo,
+    e.recorrente
+FROM PARTICIPACAO_EVENTO p
+JOIN EVENTO e ON p.id_evento = e.id_evento
+LEFT JOIN BIBLIOTECA b ON e.cod_biblioteca = b.cod_biblioteca
+LEFT JOIN snap_leitor l ON p.num_cartao = l.num_cartao;
+/
+
+-- Dados operacionais de cada biblioteca com coordenador responsável
+CREATE OR REPLACE VIEW vw_bibliotecas_operacionais AS
+SELECT
+    b.cod_biblioteca,
+    b.nome_biblioteca,
+    b.provincia,
+    b.endereco,
+    f.nome_funcionario AS coordenador_nome,
+    f.contacto         AS coordenador_contacto
+FROM BIBLIOTECA b
+LEFT JOIN BIBLIOTECA_RESPONSAVEL br
+    ON b.cod_biblioteca = br.cod_biblioteca
+   AND br.papel = 'Principal'
+   AND br.data_fim IS NULL
+LEFT JOIN FUNCIONARIO f ON br.cod_funcionario = f.cod_funcionario;
+/

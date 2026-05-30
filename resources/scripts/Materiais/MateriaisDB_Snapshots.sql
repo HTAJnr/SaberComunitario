@@ -18,17 +18,35 @@
 -- ============================================================
 DROP MATERIALIZED VIEW repl_funcionarios;
 
+-- Campos completos para autenticacao offline (inclui SENHA e EMAIL)
 CREATE MATERIALIZED VIEW repl_funcionarios
   BUILD IMMEDIATE
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
-SELECT f.cod_funcionario, f.nome_funcionario, f.cod_biblioteca,
-       fn.nivel_acesso
+SELECT f.cod_funcionario, f.nome_funcionario, f.email, f.contacto,
+       f.id_funcao, f.cod_biblioteca, fn.nivel_acesso, fn.nome_funcao, f.senha
 FROM funcionario@link_nacionaldb f,
      funcao_funcionario@link_nacionaldb fn
 WHERE f.id_funcao = fn.id_funcao AND f.data_demissao IS NULL;
+
+
+-- ============================================================
+-- SNAPSHOT 4 — repl_funcao_funcionario
+-- Replica funcoes do BibliotecaNacionalDB
+-- Necessario para: JOIN FUNCAO_FUNCIONARIO na query de login offline
+-- ============================================================
+DROP MATERIALIZED VIEW repl_funcao_funcionario;
+
+CREATE MATERIALIZED VIEW repl_funcao_funcionario
+  BUILD IMMEDIATE
+  REFRESH COMPLETE
+  START WITH SYSDATE
+  NEXT SYSDATE + 1/24
+AS
+SELECT id_funcao, nome_funcao, nivel_acesso
+FROM funcao_funcionario@link_nacionaldb;
 
 -- ============================================================
 -- SNAPSHOT 2 — biblioteca_snap

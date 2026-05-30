@@ -149,3 +149,41 @@ CREATE MATERIALIZED VIEW snap_categoria
 AS
 SELECT id_categoria, area_tematica, faixa_etaria, nivel_leitura
 FROM CATEGORIA@materiaisdb;
+
+
+-- ============================================================
+-- SNAPSHOT 8 — repl_funcionarios
+-- Replica funcionarios do BibliotecaNacionalDB (Helder)
+-- Necessario para: autenticacao offline quando NacionalDB indisponivel
+-- Inclui SENHA para que o login funcione apenas com dados locais
+-- ============================================================
+DROP MATERIALIZED VIEW repl_funcionarios;
+
+CREATE MATERIALIZED VIEW repl_funcionarios
+  BUILD IMMEDIATE
+  REFRESH COMPLETE
+  START WITH SYSDATE
+  NEXT SYSDATE + 1/24
+AS
+SELECT f.cod_funcionario, f.nome_funcionario, f.email, f.contacto,
+       f.id_funcao, f.cod_biblioteca, fn.nivel_acesso, fn.nome_funcao, f.senha
+FROM funcionario@nacionaldb f,
+     funcao_funcionario@nacionaldb fn
+WHERE f.id_funcao = fn.id_funcao AND f.data_demissao IS NULL;
+
+
+-- ============================================================
+-- SNAPSHOT 9 — repl_funcao_funcionario
+-- Replica funcoes do BibliotecaNacionalDB
+-- Necessario para: JOIN FUNCAO_FUNCIONARIO na query de login offline
+-- ============================================================
+DROP MATERIALIZED VIEW repl_funcao_funcionario;
+
+CREATE MATERIALIZED VIEW repl_funcao_funcionario
+  BUILD IMMEDIATE
+  REFRESH COMPLETE
+  START WITH SYSDATE
+  NEXT SYSDATE + 1/24
+AS
+SELECT id_funcao, nome_funcao, nivel_acesso
+FROM funcao_funcionario@nacionaldb;

@@ -27,11 +27,11 @@ CREATE OR REPLACE PUBLIC SYNONYM leitor_remoto
 CREATE OR REPLACE PUBLIC SYNONYM leitor_publico
     FOR USR_NACIONALDB.vw_leitor_publico@link_nacionaldb;
 
--- Necessario para autenticacao: query de login acede a FUNCIONARIO e FUNCAO_FUNCIONARIO
+-- Autenticacao usa snapshots locais — funciona mesmo com NacionalDB offline
 CREATE OR REPLACE PUBLIC SYNONYM funcionario
-    FOR USR_NACIONALDB.funcionario@link_nacionaldb;
+    FOR usr_materiaisdb.repl_funcionarios;
 CREATE OR REPLACE PUBLIC SYNONYM funcao_funcionario
-    FOR USR_NACIONALDB.funcao_funcionario@link_nacionaldb;
+    FOR usr_materiaisdb.repl_funcao_funcionario;
 -- Necessario para queries que referenciam BIBLIOTECA (replica local de EventosDB)
 CREATE OR REPLACE PUBLIC SYNONYM biblioteca
     FOR biblioteca_snap;

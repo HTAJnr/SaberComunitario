@@ -17,24 +17,39 @@
 
 -- OBJETIVO: Rastreabilidade completa de doações e certificados
 CREATE OR REPLACE VIEW vw_doacoes_detalhadas AS
+WITH BibliotecasPorDoacao AS (
+    SELECT
+        d.id_doacao,
+        RTRIM(
+            XMLAGG(XMLELEMENT(E, b.nome_biblioteca || ',') ORDER BY b.nome_biblioteca)
+            .EXTRACT('//text()').GETSTRINGVAL(),
+        ',') AS bibliotecas_beneficiadas
+    FROM DOACAO d
+    JOIN ITEM_DOACAO i ON d.id_doacao = i.id_doacao
+    JOIN BIBLIOTECA b ON i.cod_biblioteca = b.cod_biblioteca
+    GROUP BY d.id_doacao
+)
 SELECT
     d.id_doacao,
     d.data_doacao,
-    r.nome_doador,
-    r.tipo_doador,
-    r.contacto AS doador_contacto,
+    r.nome_doador AS doador_nome,
+    r.tipo_doador AS doador_tipo,
+    r.contacto    AS doador_contacto,
     COUNT(DISTINCT i.id_itemDoado) AS total_itens,
     NVL(SUM(i.valor_estimado * i.quantidade), 0) AS valor_total_doacao,
+    bp.bibliotecas_beneficiadas,
     c.num_certificado AS certificado_numero,
-    c.tipo_certificado,
-    c.data_emissao AS data_emissao_certificado
+    c.tipo_certificado AS certificado_tipo,
+    c.data_emissao    AS data_emissao_certificado
 FROM DOACAO d
 JOIN DOADOR r ON d.id_doador = r.id_doador
 LEFT JOIN ITEM_DOACAO i ON d.id_doacao = i.id_doacao
 LEFT JOIN CERTIFICADO_DOACAO c ON d.id_doacao = c.id_doacao
+LEFT JOIN BibliotecasPorDoacao bp ON d.id_doacao = bp.id_doacao
 GROUP BY
     d.id_doacao, d.data_doacao,
     r.nome_doador, r.tipo_doador, r.contacto,
+    bp.bibliotecas_beneficiadas,
     c.num_certificado, c.tipo_certificado, c.data_emissao;
 /
 
@@ -94,9 +109,11 @@ SELECT
     f.cod_biblioteca,
     f.data_contratacao,
     ff.nome_funcao,
-    ff.nivel_acesso
+    ff.nivel_acesso,
+    b.nome_biblioteca
 FROM FUNCIONARIO f
 JOIN FUNCAO_FUNCIONARIO ff ON f.id_funcao = ff.id_funcao
+LEFT JOIN BIBLIOTECA b ON f.cod_biblioteca = b.cod_biblioteca
 WHERE f.data_demissao IS NULL;
 /
 
@@ -107,9 +124,11 @@ SELECT
     f.email,
     fn.nome_funcao,
     fn.nivel_acesso AS oracle_role,
-    f.cod_biblioteca
+    f.cod_biblioteca,
+    b.nome_biblioteca
 FROM FUNCIONARIO f
 JOIN FUNCAO_FUNCIONARIO fn ON f.id_funcao = fn.id_funcao
+LEFT JOIN BIBLIOTECA b ON f.cod_biblioteca = b.cod_biblioteca
 WHERE f.data_demissao IS NULL;
 /
 
@@ -143,6 +162,7 @@ SELECT
     l.distancia_biblioteca,
     l.historico_pontualidade,
     l.cod_biblioteca,
+    b.nome_biblioteca,
     l.status_leitor,
     CASE
         WHEN pr.num_cartao IS NOT NULL THEN 'Professor'
@@ -158,6 +178,7 @@ SELECT
     cr.escola_frequenta,
     cr.classe
 FROM LEITOR l
+JOIN BIBLIOTECA b ON l.cod_biblioteca = b.cod_biblioteca
 LEFT JOIN ADULTO a    ON l.num_cartao = a.num_cartao
 LEFT JOIN PROFESSOR pr ON l.num_cartao = pr.num_cartao
 LEFT JOIN CRIANCA cr   ON l.num_cartao = cr.num_cartao;
@@ -295,4 +316,101 @@ SELECT
     objeto_afetado, resultado, motivo_falha, nos_afetados, observacoes,
     'NACIONAL' AS no_origem
 FROM AUDITORIA_OPERACOES;
+/
+
+-- ============================================================
+-- SECÇÃO 7: MÉTRICAS DO SISTEMA (DASHBOARD ADMIN)
+-- Usa sinónimos que resolvem para @emprestimosdb, @materiaisdb,
+-- @eventosdb — falha se qualquer nó estiver offline.
+-- LEITOR, DOACAO, ITEM_DOACAO são locais; BIBLIOTECA usa biblioteca_snap.
+-- ============================================================
+
+CREATE OR REPLACE VIEW vw_metricas_sistema AS
+SELECT
+    (SELECT COUNT(*) FROM BIBLIOTECA WHERE cod_biblioteca IS NOT NULL)     AS total_bibliotecas_ativas,
+    (SELECT COUNT(*) FROM LEITOR)                                           AS total_leitores_cadastrados,
+    (SELECT COUNT(*) FROM MATERIAL_BIBLIOGRAFICO)                           AS total_materiais_acervo,
+    (SELECT COUNT(*) FROM EMPRESTIMO WHERE data_devolucao IS NULL)          AS total_emprestimos_ativos,
+    ROUND(
+        (SELECT COUNT(*) FROM EMPRESTIMO e
+          WHERE e.data_devolucao IS NOT NULL
+            AND e.data_devolucao <= e.prazo_devolucao) /
+        NULLIF((SELECT COUNT(*) FROM EMPRESTIMO WHERE data_devolucao IS NOT NULL), 0) * 100,
+    2) AS taxa_devolucao_no_prazo,
+    (SELECT NVL(SUM(multa_valor), 0) FROM EMPRESTIMO WHERE multa_paga = 'N') AS valor_multas_pendentes,
+    (SELECT NVL(SUM(i.valor_estimado * i.quantidade), 0)
+       FROM DOACAO d
+       JOIN ITEM_DOACAO i ON d.id_doacao = i.id_doacao
+      WHERE EXTRACT(MONTH FROM d.data_doacao) = EXTRACT(MONTH FROM SYSDATE)
+        AND EXTRACT(YEAR  FROM d.data_doacao) = EXTRACT(YEAR  FROM SYSDATE)
+    ) AS total_doacoes_mes_atual,
+    (SELECT COUNT(*) FROM EVENTO WHERE data_evento BETWEEN SYSDATE AND SYSDATE + 30) AS eventos_proximos_30_dias,
+    (SELECT COUNT(*) FROM LEITOR WHERE status_leitor = 'Suspenso')          AS leitores_suspensos
+FROM dual;
+/
+
+-- ============================================================
+-- SECÇÃO 8: MÉTRICAS POR BIBLIOTECA (DASHBOARD BIBLIOTECÁRIO)
+-- Usa sinónimos para MATERIAL_BIBLIOGRAFICO (@materiaisdb),
+-- EMPRESTIMO (@emprestimosdb) e EVENTO (@eventosdb).
+-- LEITOR e FUNCIONARIO são locais; BIBLIOTECA usa biblioteca_snap.
+-- ============================================================
+
+CREATE OR REPLACE VIEW vw_metricas_por_biblioteca AS
+SELECT
+    b.cod_biblioteca,
+    b.nome_biblioteca,
+    b.provincia,
+    b.endereco,
+    (SELECT COUNT(*)
+       FROM LEITOR l
+      WHERE l.cod_biblioteca = b.cod_biblioteca) AS total_leitores,
+    (SELECT COUNT(*)
+       FROM MATERIAL_BIBLIOGRAFICO m
+      WHERE m.cod_biblioteca = b.cod_biblioteca) AS total_materiais,
+    (SELECT COUNT(*)
+       FROM MATERIAL_BIBLIOGRAFICO m
+      WHERE m.cod_biblioteca = b.cod_biblioteca
+        AND m.estado_material_conservacao != 'Indisponivel'
+        AND NOT EXISTS (
+            SELECT 1 FROM EMPRESTIMO e
+             WHERE e.cod_material = m.cod_material
+               AND e.data_devolucao IS NULL
+        )) AS materiais_disponiveis,
+    (SELECT COUNT(*)
+       FROM EMPRESTIMO e
+       JOIN MATERIAL_BIBLIOGRAFICO m ON e.cod_material = m.cod_material
+      WHERE m.cod_biblioteca = b.cod_biblioteca
+        AND e.data_devolucao IS NULL) AS emprestimos_ativos,
+    (SELECT COUNT(*)
+       FROM EMPRESTIMO e
+       JOIN FUNCIONARIO f ON e.cod_funcionario = f.cod_funcionario
+      WHERE f.cod_biblioteca = b.cod_biblioteca
+        AND TRUNC(e.data_retirada) = TRUNC(SYSDATE)) AS emprestimos_hoje,
+    (SELECT COUNT(*)
+       FROM EMPRESTIMO e
+       JOIN FUNCIONARIO f ON e.cod_funcionario = f.cod_funcionario
+      WHERE f.cod_biblioteca = b.cod_biblioteca
+        AND TRUNC(e.data_devolucao) = TRUNC(SYSDATE)) AS devolucoes_hoje,
+    (SELECT COUNT(*)
+       FROM EMPRESTIMO e
+       JOIN MATERIAL_BIBLIOGRAFICO m ON e.cod_material = m.cod_material
+      WHERE m.cod_biblioteca = b.cod_biblioteca
+        AND e.data_devolucao IS NULL
+        AND SYSDATE > e.prazo_devolucao + 7) AS emprestimos_muito_atrasados,
+    (SELECT COUNT(*)
+       FROM EVENTO ev
+      WHERE ev.cod_biblioteca = b.cod_biblioteca
+        AND ev.data_evento BETWEEN SYSDATE AND SYSDATE + 30) AS eventos_proximos,
+    (SELECT titulo_evento
+       FROM EVENTO ev
+      WHERE ev.cod_biblioteca = b.cod_biblioteca
+        AND TRUNC(ev.data_evento) = TRUNC(SYSDATE)
+        AND ROWNUM = 1) AS evento_hoje,
+    (SELECT NVL(SUM(e.multa_valor), 0)
+       FROM EMPRESTIMO e
+       JOIN FUNCIONARIO f ON e.cod_funcionario = f.cod_funcionario
+      WHERE f.cod_biblioteca = b.cod_biblioteca
+        AND e.multa_paga = 'N') AS multas_pendentes
+FROM BIBLIOTECA b;
 /

@@ -53,9 +53,8 @@ CREATE PUBLIC SYNONYM VW_FRAG_PARTICIPACAO_FUTURO
 CREATE PUBLIC SYNONYM VW_FRAG_PARTICIPACAO_PASSADO
     FOR usr_eventosdb.VW_FRAG_PARTICIPACAO_PASSADO;
 
--- Necessario para autenticacao: query de login acede a FUNCIONARIO e FUNCAO_FUNCIONARIO
--- BIBLIOTECA e local neste no (usr_eventosdb.BIBLIOTECA) — nao precisa de sinonimo remoto
+-- Autenticacao usa snapshots locais — funciona mesmo com NacionalDB offline
 CREATE PUBLIC SYNONYM FUNCIONARIO
-    FOR USR_NACIONALDB.FUNCIONARIO@link_nacionaldb;
+    FOR usr_eventosdb.repl_funcionarios;
 CREATE PUBLIC SYNONYM FUNCAO_FUNCIONARIO
-    FOR USR_NACIONALDB.FUNCAO_FUNCIONARIO@link_nacionaldb;
+    FOR usr_eventosdb.repl_funcao_funcionario;

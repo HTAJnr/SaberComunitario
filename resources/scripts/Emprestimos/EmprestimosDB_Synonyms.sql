@@ -18,11 +18,11 @@ CREATE OR REPLACE PUBLIC SYNONYM professor_disciplina
     FOR professor_disciplina@nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM crianca
     FOR crianca@nacionaldb;
+-- Autenticacao usa snapshots locais — funciona mesmo com NacionalDB offline
 CREATE OR REPLACE PUBLIC SYNONYM funcao_funcionario
-    FOR funcao_funcionario@nacionaldb;
--- Necessario para autenticacao: a query de login acede a FUNCIONARIO via dblink
+    FOR usr_emprestimosdb.repl_funcao_funcionario;
 CREATE OR REPLACE PUBLIC SYNONYM funcionario
-    FOR funcionario@nacionaldb;
+    FOR usr_emprestimosdb.repl_funcionarios;
 -- Necessario para queries que referenciam BIBLIOTECA (replica local de EventosDB)
 CREATE OR REPLACE PUBLIC SYNONYM biblioteca
     FOR biblioteca_snap;
