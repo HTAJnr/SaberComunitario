@@ -2,6 +2,11 @@
 -- TABLESPACES - EventosBibliotecasDB
 -- Executar como SYSDBA
 -- ============================================
+
+DROP TABLESPACE tbs_eventosdb
+    INCLUDING CONTENTS AND DATAFILES
+    CASCADE CONSTRAINTS;
+
 CREATE TABLESPACE tbs_eventosdb
     DATAFILE '/usr/lib/oracle/xe/oradata/XE/tbs_eventosdb.dbf'
     SIZE 100M
@@ -9,9 +14,18 @@ CREATE TABLESPACE tbs_eventosdb
     EXTENT MANAGEMENT LOCAL
     SEGMENT SPACE MANAGEMENT AUTO;
 
+DROP TABLESPACE tbs_eventosdb_idx
+    INCLUDING CONTENTS AND DATAFILES
+    CASCADE CONSTRAINTS;
+
 CREATE TABLESPACE tbs_eventosdb_idx
     DATAFILE '/usr/lib/oracle/xe/oradata/XE/tbs_eventosdb_idx.dbf'
     SIZE 50M
     AUTOEXTEND ON NEXT 5M MAXSIZE 200M
     EXTENT MANAGEMENT LOCAL
     SEGMENT SPACE MANAGEMENT AUTO;
+
+-- Verificar
+SELECT TABLESPACE_NAME, STATUS, BLOCK_SIZE
+FROM DBA_TABLESPACES
+WHERE TABLESPACE_NAME LIKE 'TBS_EVENTOSDB%';

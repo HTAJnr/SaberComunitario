@@ -59,14 +59,11 @@ CREATE VIEW v_bibliotecas_activas AS
     FROM BIBLIOTECA;
 
 -- ============================================================
--- VISTAS DE SERVICO PARA O BACKEND â€” ausentes no ficheiro original
--- Requerem sinonimo publico BIBLIOTECA (aponta para tabela local)
+-- VISTAS DE SERVICO PARA O BACKEND
 -- ============================================================
 
 -- vw_eventos_proximos
 -- Usada pelo backend: GET /api/eventos?proximos=1
--- SELECT ID_EVENTO, TITULO_EVENTO AS NOME, DATA_EVENTO AS DATA_INICIO,
---        BIBLIOTECA_NOME AS NOME_BIBLIOTECA FROM vw_eventos_proximos ORDER BY DATA_EVENTO
 CREATE OR REPLACE VIEW vw_eventos_proximos AS
 SELECT
     e.id_evento,
@@ -80,7 +77,10 @@ WHERE e.data_evento >= SYSDATE;
 
 -- vw_eventos_completos
 -- Usada pelo backend: GET /api/eventos/:id
--- SELECT * FROM vw_eventos_completos WHERE id_evento = :id
+-- NOTA: usa repl_funcionarios (snapshot local do BibliotecaNacionalDB)
+--       em vez de FUNCIONARIO (que e' cross-node e nao existe localmente).
+--       Se o snapshot ainda nao foi criado (Helder offline), o LEFT JOIN
+--       devolve NULL para cod_funcionario e nome_responsavel sem erros.
 CREATE OR REPLACE VIEW vw_eventos_completos AS
 SELECT
     e.id_evento,
@@ -100,30 +100,31 @@ SELECT
     ROUND(AVG(av.nota), 1) AS media_avaliacao
 FROM EVENTO e
 JOIN BIBLIOTECA b ON e.cod_biblioteca = b.cod_biblioteca
-LEFT JOIN FUNCIONARIO f ON e.cod_funcionario_responsavel = f.cod_funcionario
+LEFT JOIN repl_funcionarios f ON e.cod_funcionario_responsavel = f.cod_funcionario
 LEFT JOIN PARTICIPACAO_EVENTO pe ON e.id_evento = pe.id_evento
 LEFT JOIN AVALIACAO_EVENTO av ON e.id_evento = av.id_evento
 GROUP BY
     e.id_evento, e.titulo_evento, e.descricao_evento, e.local_evento,
     e.publico_alvo, e.data_evento, e.capacidade, e.status_evento, e.recorrente,
     b.cod_biblioteca, b.nome_biblioteca, f.cod_funcionario, f.nome_funcionario;
+
 -- ============================================================
 -- FRAGMENTACAO HORIZONTAL (A1 + A2)
 -- A1: Fragmento temporal de EVENTO (futuros vs passados)
 -- A2: Fragmentacao derivada de PARTICIPACAO_EVENTO
 -- ============================================================
 
--- A1 â€” Fragmento de eventos futuros
+-- A1 — Fragmento de eventos futuros
 CREATE OR REPLACE VIEW vw_frag_evento_futuro AS
     SELECT * FROM EVENTO
     WHERE data_evento >= SYSDATE;
 
--- A1 â€” Fragmento de eventos passados
+-- A1 — Fragmento de eventos passados
 CREATE OR REPLACE VIEW vw_frag_evento_passado AS
     SELECT * FROM EVENTO
     WHERE data_evento < SYSDATE;
 
--- A2 â€” Fragmento derivado: participacoes em eventos futuros
+-- A2 — Fragmento derivado: participacoes em eventos futuros
 CREATE OR REPLACE VIEW vw_frag_participacao_futuro AS
     SELECT pe.*
     FROM PARTICIPACAO_EVENTO pe
@@ -133,7 +134,7 @@ CREATE OR REPLACE VIEW vw_frag_participacao_futuro AS
         WHERE ef.id_evento = pe.id_evento
     );
 
--- A2 â€” Fragmento derivado: participacoes em eventos passados
+-- A2 — Fragmento derivado: participacoes em eventos passados
 CREATE OR REPLACE VIEW vw_frag_participacao_passado AS
     SELECT pe.*
     FROM PARTICIPACAO_EVENTO pe
@@ -142,3 +143,6 @@ CREATE OR REPLACE VIEW vw_frag_participacao_passado AS
         FROM vw_frag_evento_passado ep
         WHERE ep.id_evento = pe.id_evento
     );
+
+-- Verificar
+SELECT VIEW_NAME FROM USER_VIEWS ORDER BY VIEW_NAME;
