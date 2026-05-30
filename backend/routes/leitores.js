@@ -93,7 +93,8 @@ router.get('/', autenticar, async (req, res) => {
       `SELECT * FROM (
          SELECT t.*, ROWNUM AS RN FROM (
            SELECT lv.NUM_CARTAO, lv.NOME_COMPLETO, lv.TIPO_LEITOR, lv.STATUS_LEITOR,
-                  lv.HISTORICO_PONTUALIDADE, lv.CONTACTO, lv.COD_BIBLIOTECA, lv.NOME_BIBLIOTECA,
+                  lv.HISTORICO_PONTUALIDADE, lv.CONTACTO, lv.COD_BIBLIOTECA,
+                  (SELECT b.NOME_BIBLIOTECA FROM BIBLIOTECA b WHERE b.COD_BIBLIOTECA = lv.COD_BIBLIOTECA) AS NOME_BIBLIOTECA,
                   (SELECT CASE WHEN COUNT(*) > 0 THEN 'S' ELSE 'N' END
                      FROM EMPRESTIMO e
                     WHERE e.NUM_CARTAO = lv.NUM_CARTAO

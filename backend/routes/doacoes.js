@@ -85,10 +85,9 @@ router.get('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), as
       `SELECT * FROM (
          SELECT a.*, ROWNUM AS RN FROM (
            SELECT ID_DOACAO, DATA_DOACAO,
-                  DOADOR_NOME              AS NOME_DOADOR,
-                  DOADOR_TIPO              AS TIPO_DOADOR,
+                  NOME_DOADOR,
+                  TIPO_DOADOR,
                   VALOR_TOTAL_DOACAO       AS VALOR_TOTAL,
-                  BIBLIOTECAS_BENEFICIADAS AS NOME_BIBLIOTECA,
                   TOTAL_ITENS, CERTIFICADO_NUMERO
              FROM vw_doacoes_detalhadas ${where} ORDER BY DATA_DOACAO DESC
          ) a WHERE ROWNUM <= :max_row
@@ -132,7 +131,7 @@ router.get('/certificados', exigirNivel('Administrador', 'Coordenador', 'Bibliot
     const result = await conn.execute(
       `SELECT NUM_CERTIFICADO  AS ID_CERTIFICADO,
               NUM_CERTIFICADO  AS NUMERO_SERIE,
-              DOADOR_NOME      AS NOME_DOADOR,
+              NOME_DOADOR,
               DATA_EMISSAO,
               TIPO_CERTIFICADO, VALOR_DOACAO
        FROM vw_certificados_emitidos ORDER BY DATA_EMISSAO DESC`,

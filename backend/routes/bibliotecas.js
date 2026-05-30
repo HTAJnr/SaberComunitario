@@ -84,7 +84,7 @@ router.get('/minha', autenticar, async (req, res) => {
            FROM DUAL`,
         { cod },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      )
+      ).catch(() => ({ rows: [{ TOTAL_MATERIAIS: null, TOTAL_LEITORES: null, EMPRESTIMOS_ACTIVOS: null }] }))
     ]);
     const bib        = bibRes.rows[0];
     bib.HORARIOS     = horariosRes.rows;
@@ -201,7 +201,7 @@ router.get('/:cod_biblioteca', exigirNivel('Administrador', 'Coordenador'), asyn
            FROM DUAL`,
         { cod },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      )
+      ).catch(() => ({ rows: [{ TOTAL_MATERIAIS: null, TOTAL_LEITORES: null, EMPRESTIMOS_ACTIVOS: null }] }))
     ]);
 
     const bib        = bibRes.rows[0];
