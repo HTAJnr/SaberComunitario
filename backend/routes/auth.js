@@ -36,10 +36,9 @@ router.post('/login', async (req, res) => {
       `SELECT f.COD_FUNCIONARIO, f.NOME_FUNCIONARIO, f.EMAIL, f.CONTACTO, f.ID_FUNCAO,
               f.SENHA,
               ff.NOME_FUNCAO AS FUNCAO, ff.NIVEL_ACESSO,
-              f.COD_BIBLIOTECA, b.NOME_BIBLIOTECA, b.PROVINCIA
+              f.COD_BIBLIOTECA
          FROM FUNCIONARIO f
          LEFT JOIN FUNCAO_FUNCIONARIO ff ON ff.ID_FUNCAO = f.ID_FUNCAO
-         LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = f.COD_BIBLIOTECA
         WHERE LOWER(f.EMAIL) = LOWER(:email)
           AND f.DATA_DEMISSAO IS NULL`,
       { email },

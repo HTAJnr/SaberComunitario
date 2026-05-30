@@ -185,9 +185,19 @@ function calcularTema(provincia) {
   return 'theme-' + regiaoDeProvinccia(provincia).toLowerCase();
 }
 
+async function enrichWithBiblioteca() {
+  if (!utilizadorActual.COD_BIBLIOTECA) return;
+  try {
+    const bib = await get('/api/bibliotecas/minha');
+    utilizadorActual.NOME_BIBLIOTECA = bib.NOME_BIBLIOTECA;
+    utilizadorActual.PROVINCIA       = bib.PROVINCIA;
+  } catch { /* biblioteca não acessível — manter fallbacks */ }
+}
+
 async function init() {
   try {
     utilizadorActual = await get('/api/auth/me');
+    await enrichWithBiblioteca();
     const tema = calcularTema(utilizadorActual.PROVINCIA || 'Maputo Cidade');
     document.documentElement.className = tema;
     mostrarApp();
@@ -257,6 +267,7 @@ function bindEventos() {
     try {
       const data = await post('/api/auth/login', { email, senha });
       utilizadorActual = data.funcionario;
+      await enrichWithBiblioteca();
       const tema = calcularTema(utilizadorActual.PROVINCIA || 'Maputo Cidade');
       document.documentElement.className = tema;
       mostrarApp();

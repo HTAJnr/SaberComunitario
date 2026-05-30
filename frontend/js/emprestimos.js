@@ -153,6 +153,20 @@ async function abrirDrawerEmp(id) {
   try {
     _drawerEmp = await get(`/api/emprestimos/${id}`);
     _renderizarDrawerEmp();
+    if (!_drawerEmp.DATA_DEVOLUCAO && (_drawerEmp.DIAS_ATRASO || 0) > 0) {
+      get(`/api/emprestimos/${id}/multa`).then(r => {
+        const el = document.getElementById('drawer-emp-multa-corrente');
+        if (!el) return;
+        if ((r.multa || 0) > 0) {
+          el.innerHTML = `<span style="font-weight:600">Multa a correr:</span> ${fmtMoeda(r.multa)} <span style="opacity:.7">(${r.dias_atraso} dias × taxa diária)</span>`;
+        } else {
+          el.remove();
+        }
+      }).catch(() => {
+        const el = document.getElementById('drawer-emp-multa-corrente');
+        if (el) el.remove();
+      });
+    }
   } catch (err) {
     document.getElementById('drawer-emp-conteudo').innerHTML =
       `<p style="color:#f85149;font-size:12px;padding:8px">${err.message}</p>`;
@@ -207,6 +221,7 @@ function _renderizarDrawerEmp() {
       ? campo('Devolvido', fmtData(e.DATA_DEVOLUCAO), 'color:var(--theme-accent-text)')
       : atrasado
         ? campo('Atraso', `${e.DIAS_ATRASO} dias`, 'color:#f85149') : ''}
+    ${!e.DATA_DEVOLUCAO && atrasado ? `<div id="drawer-emp-multa-corrente" style="margin-top:6px;padding:8px 10px;border-radius:7px;border:0.5px solid #e07820;background:#fffbf5;font-size:12px;color:#e07820">A calcular multa…</div>` : ''}
 
     ${secao('Estado Material')}
     ${campo('Saída',   e.ESTADO_MATERIAL_SAIDA   || '—')}

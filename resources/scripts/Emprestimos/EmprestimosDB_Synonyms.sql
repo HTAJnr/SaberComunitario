@@ -5,7 +5,7 @@
 --   GRANT CREATE PUBLIC SYNONYM TO usr_emprestimosdb;
 -- ============================================================
 
--- SINONIMOS PUBLICOS — BibliotecaNacionalDB (Helder)
+-- SINONIMOS PUBLICOS ï¿½ BibliotecaNacionalDB (Helder)
 CREATE OR REPLACE PUBLIC SYNONYM leitor
     FOR leitor@nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM adulto
@@ -20,8 +20,14 @@ CREATE OR REPLACE PUBLIC SYNONYM crianca
     FOR crianca@nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM funcao_funcionario
     FOR funcao_funcionario@nacionaldb;
+-- Necessario para autenticacao: a query de login acede a FUNCIONARIO via dblink
+CREATE OR REPLACE PUBLIC SYNONYM funcionario
+    FOR funcionario@nacionaldb;
+-- Necessario para queries que referenciam BIBLIOTECA (replica local de EventosDB)
+CREATE OR REPLACE PUBLIC SYNONYM biblioteca
+    FOR biblioteca_snap;
 
--- SINONIMOS PUBLICOS — MateriaisDB (Yasin)
+-- SINONIMOS PUBLICOS ï¿½ MateriaisDB (Yasin)
 CREATE OR REPLACE PUBLIC SYNONYM material_bibliografico
     FOR material_bibliografico@materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM categoria
@@ -29,7 +35,7 @@ CREATE OR REPLACE PUBLIC SYNONYM categoria
 CREATE OR REPLACE PUBLIC SYNONYM transferencia
     FOR transferencia@materiaisdb;
 
--- SINONIMOS PUBLICOS — Objectos locais (usr_emprestimosdb)
+-- SINONIMOS PUBLICOS ï¿½ Objectos locais (usr_emprestimosdb)
 CREATE OR REPLACE PUBLIC SYNONYM emprestimo
     FOR usr_emprestimosdb.emprestimo;
 CREATE OR REPLACE PUBLIC SYNONYM suspensao

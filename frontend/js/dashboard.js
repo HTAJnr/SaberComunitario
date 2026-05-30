@@ -25,8 +25,14 @@ async function carregarDashboardAdmin() {
       { label: 'Materiais no acervo',         valor: stats.materiais_acervo            ?? '—' },
     ];
     document.getElementById('dash-rede-stats').innerHTML = cards.map(renderStatCard).join('');
-    const bibs = await get('/api/bibliotecas').catch(() => []);
+    const [bibs, atrasos, proximosEv] = await Promise.all([
+      get('/api/bibliotecas').catch(() => []),
+      get('/api/dashboard/emprestimos-ativos').catch(() => []),
+      get('/api/dashboard/eventos-proximos').catch(() => []),
+    ]);
     _renderBibliotecasRede(Array.isArray(bibs) ? bibs : (bibs.bibliotecas || []));
+    renderEmprestimosAtrasados('dash-atrasos-rede', atrasos || []);
+    renderProximosEventos('dash-proximos-eventos-rede', proximosEv || []);
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');
   }
@@ -37,11 +43,13 @@ async function carregarDashboardBib(nivel) {
   const isBibliotecario = nivel === 'Bibliotecario';
   const podeVerTransf  = !isAssistente && !isBibliotecario;
   try {
-    const [stats, devHoje, leitores, transferencias] = await Promise.all([
+    const [stats, devHoje, leitores, transferencias, atrasos, proximosEv] = await Promise.all([
       get('/api/dashboard/biblioteca').catch(() => ({})),
       get('/api/dashboard/devolucoes-hoje').catch(() => []),
       get('/api/dashboard/leitores-recentes').catch(() => []),
       podeVerTransf ? get('/api/dashboard/transferencias-recentes').catch(() => []) : Promise.resolve([]),
+      get('/api/dashboard/emprestimos-ativos').catch(() => []),
+      get('/api/dashboard/eventos-proximos').catch(() => []),
     ]);
 
     const allCards = [
@@ -76,9 +84,53 @@ async function carregarDashboardBib(nivel) {
     } else {
       if (panelTransf) panelTransf.style.display = 'none';
     }
+    renderEmprestimosAtrasados('dash-atrasos', atrasos || []);
+    renderProximosEventos('dash-proximos-eventos', proximosEv || []);
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');
   }
+}
+
+function renderEmprestimosAtrasados(elId, lista) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!lista.length) {
+    el.innerHTML = emptyState('○', 'Sem empréstimos em atraso');
+    return;
+  }
+  el.innerHTML = `<div style="overflow-x:auto"><table class="tbl" style="font-size:11px">
+    <thead><tr><th>ID</th><th>Leitor</th><th>Material</th><th>Prazo</th><th>Atraso</th></tr></thead>
+    <tbody>
+      ${lista.map(r => `
+        <tr>
+          <td class="cod">${r.ID_EMPRESTIMO}</td>
+          <td>${r.NOME_LEITOR || '—'}</td>
+          <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.TITULO || '—'}</td>
+          <td style="color:var(--text-secondary)">${fmtData(r.DATA_DEVOLUCAO_PREV)}</td>
+          <td><span class="bdg bdg-bloqueado">${r.DIAS_ATRASO}d</span></td>
+        </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+function renderProximosEventos(elId, lista) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!lista.length) {
+    el.innerHTML = emptyState('○', 'Sem eventos próximos');
+    return;
+  }
+  el.innerHTML = lista.map(ev => `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border-soft)">
+      <div style="min-width:38px;text-align:center;background:var(--theme-accent-soft);border-radius:6px;padding:3px 6px">
+        <div style="font-size:16px;font-weight:700;color:var(--theme-accent-text);line-height:1">${new Date(ev.DATA_INICIO).getDate()}</div>
+        <div style="font-size:9px;color:var(--theme-accent-text);text-transform:uppercase">${new Date(ev.DATA_INICIO).toLocaleString('pt-MZ',{month:'short'})}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.NOME || '—'}</div>
+        <div style="font-size:10px;color:var(--text-muted)">${ev.NOME_BIBLIOTECA || ''}</div>
+      </div>
+    </div>`).join('');
 }
 
 function renderStatCard({ label, valor, alerta }) {

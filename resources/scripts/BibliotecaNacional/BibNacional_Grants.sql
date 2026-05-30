@@ -32,6 +32,11 @@ GRANT SELECT ON ITEM_DOACAO             TO role_NACIONALDB_read;
 GRANT SELECT ON CERTIFICADO_DOACAO      TO role_NACIONALDB_read;
 GRANT SELECT ON AUDITORIA_OPERACOES     TO role_NACIONALDB_read;
 
+-- Snapshots (MVs locais) — leitura
+-- biblioteca_snap replica BIBLIOTECA do EventosDB; sem este grant app_NACIONALDB
+-- obtém ORA-00942 em qualquer query que referencie o sinónimo BIBLIOTECA
+GRANT SELECT ON biblioteca_snap                 TO role_NACIONALDB_read;
+
 -- Vistas — leitura
 GRANT SELECT ON vw_doacoes_detalhadas           TO role_NACIONALDB_read;
 GRANT SELECT ON vw_doadores_ranking             TO role_NACIONALDB_read;
