@@ -108,7 +108,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       return res.status(409).json({ erro: 'Biblioteca de origem e destino são iguais.' });
     }
 
-    const insResult = await conn.execute(
+    await conn.execute(
       `INSERT INTO TRANSFERENCIA (
          id_transferencia, data_solicitacao, estado_transferencia,
          motivo, cod_material, cod_biblioteca_origem,
@@ -116,22 +116,26 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
        ) VALUES (
          SEQ_TRANSFERENCIA.NEXTVAL, SYSDATE, 'Pendente',
          :motivo, :cod_mat, :cod_orig, :cod_dest, :cod_func
-       ) RETURNING id_transferencia INTO :id_out`,
+       )`,
       {
         motivo:   motivo || null,
         cod_mat:  cod_material,
         cod_orig: cod_biblioteca_origem,
         cod_dest: cod_biblioteca_destino,
-        cod_func: cod_funcionario,
-        id_out:   { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+        cod_func: cod_funcionario
       }
     );
+    const curResult = await conn.execute(
+      `SELECT SEQ_TRANSFERENCIA.CURRVAL AS ID FROM DUAL`,
+      [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    const newId = curResult.rows[0].ID;
 
     await conn.commit();
 
     res.status(201).json({
       ok: true,
-      id_transferencia: insResult.outBinds.id_out[0]
+      id_transferencia: newId
     });
   } catch (err) {
     if (conn) await conn.rollback();

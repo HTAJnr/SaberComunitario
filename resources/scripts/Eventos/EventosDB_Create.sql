@@ -15,6 +15,8 @@ CREATE TABLE BIBLIOTECA (
     infraestrutura      VARCHAR2(500),
     servicos            VARCHAR2(500),
     provincia           VARCHAR2(17),
+    estado              VARCHAR2(10) DEFAULT 'Activo'
+        CONSTRAINT chk_bib_estado CHECK (estado IN ('Activo','Inactivo')),
     CONSTRAINT pk_biblioteca PRIMARY KEY (cod_biblioteca),
     CONSTRAINT uq_nome_biblioteca UNIQUE (nome_biblioteca)
 ) TABLESPACE tbs_eventosdb;

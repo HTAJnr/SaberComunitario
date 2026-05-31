@@ -42,16 +42,18 @@ doadoresRouter.post('/', exigirNivel('Administrador', 'Coordenador'), async (req
   let conn;
   try {
     conn = await getConnection();
-    const result = await conn.execute(
+    await conn.execute(
       `INSERT INTO DOADOR (ID_DOADOR, NOME_DOADOR, TIPO_DOADOR, CONTACTO, ENDERECO, OBSERVACOES)
-       VALUES (SEQ_DOADOR.NEXTVAL, :nome, :tipo, :contacto, :endereco, :obs)
-       RETURNING ID_DOADOR INTO :id_out`,
+       VALUES (SEQ_DOADOR.NEXTVAL, :nome, :tipo, :contacto, :endereco, :obs)`,
       { nome: nome_doador, tipo: tipo_doador,
-        contacto: contacto || null, endereco: endereco || null, obs: observacoes || null,
-        id_out: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } }
+        contacto: contacto || null, endereco: endereco || null, obs: observacoes || null }
+    );
+    const curDoador = await conn.execute(
+      `SELECT SEQ_DOADOR.CURRVAL AS ID FROM DUAL`,
+      [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
     await conn.commit();
-    res.status(201).json({ ok: true, id_doador: result.outBinds.id_out[0] });
+    res.status(201).json({ ok: true, id_doador: curDoador.rows[0].ID });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('\x1b[31m[DOADORES POST /] ERRO ao criar doador\x1b[0m');
@@ -219,15 +221,16 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
   try {
     conn = await getConnection();
 
-    const doacaoResult = await conn.execute(
+    await conn.execute(
       `INSERT INTO DOACAO (ID_DOACAO, ID_DOADOR, DATA_DOACAO)
-       VALUES (SEQ_DOACAO.NEXTVAL, :id_doador, NVL(TO_DATE(:data,'YYYY-MM-DD'), SYSDATE))
-       RETURNING ID_DOACAO INTO :id_out`,
-      { id_doador: idDoadorBD,
-        data: data_doacao || null,
-        id_out: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } }
+       VALUES (SEQ_DOACAO.NEXTVAL, :id_doador, NVL(TO_DATE(:data,'YYYY-MM-DD'), SYSDATE))`,
+      { id_doador: idDoadorBD, data: data_doacao || null }
     );
-    const idDoacao = doacaoResult.outBinds.id_out[0];
+    const curDoacao = await conn.execute(
+      `SELECT SEQ_DOACAO.CURRVAL AS ID FROM DUAL`,
+      [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    const idDoacao = curDoacao.rows[0].ID;
 
     for (const item of itens) {
       await conn.execute(
