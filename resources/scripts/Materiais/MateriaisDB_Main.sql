@@ -45,12 +45,37 @@ DROP PUBLIC SYNONYM VW_AUDITORIA;
 
 -- ============================================================
 -- FASE 0B — LIMPEZA DE UTILIZADORES (SYSDBA)
+-- Mata sessoes activas antes de DROP para evitar ORA-01940.
+-- Ignora ORA-01918 (utilizador inexistente) em re-installs.
 -- ============================================================
-DROP USER usr_materiaisdb CASCADE;
-DROP USER app_materiaisdb CASCADE;
-DROP USER app_nacionaldb CASCADE;
-DROP USER app_emprestimosdb CASCADE;
-DROP USER app_eventosdb CASCADE;
+DECLARE
+  PROCEDURE kill_sessions(p_user IN VARCHAR2) IS
+  BEGIN
+    FOR s IN (SELECT sid, serial# FROM v$session
+              WHERE username = UPPER(p_user)
+                AND sid != SYS_CONTEXT('USERENV','SID')) LOOP
+      BEGIN
+        EXECUTE IMMEDIATE 'ALTER SYSTEM KILL SESSION ''' || s.sid || ',' || s.serial# || ''' IMMEDIATE';
+      EXCEPTION WHEN OTHERS THEN NULL;
+      END;
+    END LOOP;
+  END;
+  PROCEDURE drop_user_safe(p_user IN VARCHAR2) IS
+  BEGIN
+    IF UPPER(p_user) = USER THEN RETURN; END IF;
+    kill_sessions(p_user);
+    EXECUTE IMMEDIATE 'DROP USER ' || p_user || ' CASCADE';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -1918 THEN RAISE; END IF;
+  END;
+BEGIN
+  drop_user_safe('usr_materiaisdb');
+  drop_user_safe('app_materiaisdb');
+  drop_user_safe('app_nacionaldb');
+  drop_user_safe('app_emprestimosdb');
+  drop_user_safe('app_eventosdb');
+END;
+/
 
 
 -- ============================================================

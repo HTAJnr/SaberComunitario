@@ -2,12 +2,28 @@
 // DASHBOARD
 // ════════════════════════════════════════════════
 function switchDashTab(tab) {
-  const isRede    = tab === 'rede';
-  document.getElementById('dash-tab-rede').classList.toggle('hidden', !isRede);
-  document.getElementById('dash-tab-sistema').classList.toggle('hidden', isRede);
-  document.getElementById('tab-dash-rede').classList.toggle('tab-active', isRede);
-  document.getElementById('tab-dash-sistema').classList.toggle('tab-active', !isRede);
-  if (!isRede) carregarSnapshotsInfo();
+  const tabs = ['rede', 'biblioteca', 'sistema'];
+  tabs.forEach(t => {
+    const panel = document.getElementById(`dash-tab-${t}`);
+    const btn   = document.getElementById(`tab-dash-${t}`);
+    if (panel) panel.classList.toggle('hidden', t !== tab);
+    if (btn)   btn.classList.toggle('tab-active', t === tab);
+  });
+  if (tab === 'sistema') carregarSnapshotsInfo();
+  if (tab === 'biblioteca') carregarDashboardBibAdmin();
+}
+
+// Admin: renderiza o painel de biblioteca dentro do tab "Biblioteca" reutilizando o HTML existente
+async function carregarDashboardBibAdmin() {
+  const tabPanel = document.getElementById('dash-tab-biblioteca');
+  const bibView  = document.getElementById('dash-bib-view');
+  if (!tabPanel || !bibView) return;
+  // Move o DOM do dash-bib-view para dentro do tab (apenas na primeira vez)
+  if (!tabPanel.contains(bibView)) {
+    bibView.classList.remove('hidden');
+    tabPanel.appendChild(bibView);
+  }
+  await carregarDashboardBib(utilizadorActual?.NIVEL_ACESSO);
 }
 
 async function carregarDashboard() {

@@ -343,22 +343,39 @@ router.patch('/:cod_biblioteca/desactivar', exigirNivel('Administrador'), async 
   try {
     conn = await getConnection();
 
-    const check = await conn.execute(
-      `SELECT
-         (SELECT COUNT(*) FROM MATERIAL_BIBLIOGRAFICO WHERE COD_BIBLIOTECA = :cod AND ESTADO != 'Inactivo') AS MAT_ACTIVOS,
-         (SELECT COUNT(*) FROM EMPRESTIMO WHERE COD_BIBLIOTECA = :cod AND ESTADO = 'Activo') AS EMP_ACTIVOS
-       FROM DUAL`,
-      { cod },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-    const row = check.rows[0];
-    if (row.MAT_ACTIVOS > 0)
+    // Checks cross-DB — usam snapshots locais (resilientes a nós offline)
+    let matActivos = 0;
+    let empActivos = 0;
+    try {
+      const matRes = await conn.execute(
+        `SELECT COUNT(*) AS N FROM snap_material_basico
+          WHERE COD_BIBLIOTECA = :cod
+            AND (ESTADO_MATERIAL_CONSERVACAO IS NULL OR ESTADO_MATERIAL_CONSERVACAO != 'Indisponivel')`,
+        { cod },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      matActivos = matRes.rows[0]?.N || 0;
+    } catch { /* snapshot indisponível — assumir 0 */ }
+    try {
+      const empRes = await conn.execute(
+        `SELECT COUNT(*) AS N
+           FROM snap_emp_activos E, snap_material_basico M
+          WHERE E.COD_MATERIAL = M.COD_MATERIAL
+            AND M.COD_BIBLIOTECA = :cod`,
+        { cod },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      empActivos = empRes.rows[0]?.N || 0;
+    } catch { /* snapshot indisponível — assumir 0 */ }
+
+    if (matActivos > 0)
       return res.status(409).json({ erro: 'Existem materiais activos associados a esta biblioteca.' });
-    if (row.EMP_ACTIVOS > 0)
+    if (empActivos > 0)
       return res.status(409).json({ erro: 'Existem empréstimos activos nesta biblioteca.' });
 
+    // BIBLIOTECA no NacionalDB é MV read-only; UPDATE tem de ir ao nó remoto
     const result = await conn.execute(
-      `UPDATE BIBLIOTECA SET ESTADO = 'Inactivo' WHERE COD_BIBLIOTECA = :cod`,
+      `UPDATE BIBLIOTECA@eventosdb SET ESTADO = 'Inactivo' WHERE COD_BIBLIOTECA = :cod`,
       { cod }
     );
     if (result.rowsAffected === 0)

@@ -651,7 +651,6 @@ async function abrirModalAlterarStatus(numCartao, statusActual) {
       <label class="form-label">Novo estado *</label>
       <select id="st-status" class="input-field">
         <option value="Activo"    ${statusActual==='Activo'?'selected':''}>Activo</option>
-        <option value="Suspenso"  ${statusActual==='Suspenso'?'selected':''}>Suspenso</option>
         <option value="Bloqueado" ${statusActual==='Bloqueado'?'selected':''}>Bloqueado</option>
       </select>
     </div>

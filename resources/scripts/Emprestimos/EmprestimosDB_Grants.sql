@@ -91,7 +91,6 @@ GRANT SELECT ON SUSPENSAO                TO app_materiaisdb;
 GRANT UPDATE ON SUSPENSAO                TO app_materiaisdb;
 GRANT INSERT ON EMPRESTIMO               TO app_materiaisdb;
 GRANT UPDATE ON EMPRESTIMO               TO app_materiaisdb;
-GRANT INSERT ON MULTA                    TO app_materiaisdb;
 GRANT SELECT ON PARTICIPACAO_PROGRAMA    TO app_materiaisdb;
 GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_materiaisdb;
 
@@ -123,9 +122,8 @@ GRANT SELECT ON VW_AUDITORIA             TO app_nacionaldb;
 GRANT UPDATE ON SUSPENSAO                TO app_nacionaldb;
 -- POST /emprestimos: criar emprestimo
 GRANT INSERT ON EMPRESTIMO               TO app_nacionaldb;
--- PATCH /emprestimos/:id/devolver: registar devolucao + multa
+-- PATCH /emprestimos/:id/devolver: registar devolucao + multa (multa = colunas no EMPRESTIMO)
 GRANT UPDATE ON EMPRESTIMO               TO app_nacionaldb;
-GRANT INSERT ON MULTA                    TO app_nacionaldb;
 -- PATCH /programas/:cod/participantes: actualizar participante
 GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_nacionaldb;
 
@@ -150,5 +148,4 @@ GRANT SELECT ON VW_AUDITORIA             TO app_eventosdb;
 GRANT UPDATE ON SUSPENSAO                TO app_eventosdb;
 GRANT INSERT ON EMPRESTIMO               TO app_eventosdb;
 GRANT UPDATE ON EMPRESTIMO               TO app_eventosdb;
-GRANT INSERT ON MULTA                    TO app_eventosdb;
 GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_eventosdb;

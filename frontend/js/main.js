@@ -15,48 +15,20 @@ function _noEh(nomeNo) {
   return (noActual?.no_nome || 'BibliotecaNacionalDB') === nomeNo;
 }
 
-// Botão activo ou disabled+tooltip consoante o nó activo
+// Botão sempre activo — restrições reais aplicam-se na BD via GRANTS.
+// Se faltar permissão, o handler api() apanha ORA-01031 e mostra toast adequado.
 function _btnNo(nomeNo, classes, iconeHtml, label, onclickStr) {
-  if (_noEh(nomeNo)) {
-    return `<button class="${classes}" onclick="${onclickStr}">${iconeHtml}${label}</button>`;
-  }
-  return `<button class="${classes}" disabled style="opacity:.45;cursor:not-allowed"
-    title="Só disponível no nó ${nomeNo}">${iconeHtml}${label}</button>`;
+  return `<button class="${classes}" onclick="${onclickStr}">${iconeHtml}${label}</button>`;
 }
 
-// Item de ctx-menu activo ou desabilitado consoante o nó activo
+// Item de ctx-menu sempre activo — restrições por GRANTS.
 function _ctxItemNo(nomeNo, icone, label, onclickStr, extraClass = '') {
-  if (_noEh(nomeNo)) {
-    return `<div class="ctx-menu-item ${extraClass}" onclick="${onclickStr}">
-      <i class="fa-solid ${icone}" style="width:14px"></i> ${label}</div>`;
-  }
-  return `<div class="ctx-menu-item" style="opacity:.4;cursor:not-allowed"
-    title="Só disponível no nó ${nomeNo}">
-    <i class="fa-solid ${icone}" style="width:14px"></i> ${label}
-    <i class="fa-solid fa-circle-info" style="font-size:9px;margin-left:4px;color:var(--text-muted)"></i>
-  </div>`;
+  return `<div class="ctx-menu-item ${extraClass}" onclick="${onclickStr}">
+    <i class="fa-solid ${icone}" style="width:14px"></i> ${label}</div>`;
 }
 
-// Aplica restrições de nó a botões estáticos do HTML (chamado uma vez após noActual ser carregado)
-function _aplicarRestricoesNo() {
-  const restricoes = [
-    { id: 'btn-novo-emprestimo',  no: 'EmpréstimosProgramasDB' },
-    { id: 'btn-novo-evento',      no: 'EventosBibliotecasDB' },
-    { id: 'btn-solicitar-transf', no: 'MateriaisDB' },
-    { id: 'btn-registar-doacao',  no: 'BibliotecaNacionalDB' },
-    { id: 'btn-adicionar-mat',    no: 'MateriaisDB' },
-    { id: 'btn-adicionar-bib',    no: 'EventosBibliotecasDB' },
-    { id: 'btn-novo-prog',        no: 'EmpréstimosProgramasDB' },
-  ];
-  restricoes.forEach(({ id, no }) => {
-    const btn = document.getElementById(id);
-    if (!btn || _noEh(no)) return;
-    btn.disabled = true;
-    btn.style.opacity = '.45';
-    btn.style.cursor  = 'not-allowed';
-    btn.title = `Só disponível no nó ${no}`;
-  });
-}
+// Restrições por nó já não são aplicadas no frontend — a BD (GRANTS) é a autoridade.
+function _aplicarRestricoesNo() { /* no-op: ver _btnNo / _ctxItemNo */ }
 
 // ── Helpers HTTP ──────────────────────────────
 async function api(path, opts = {}) {
@@ -70,10 +42,12 @@ async function api(path, opts = {}) {
   if (!res.ok) {
     const msgErro = data.erro || data.mensagem || '';
     if (typeof msgErro === 'string' &&
-        (msgErro.includes('ORA-01031') || msgErro.includes('ORA-01732'))) {
-      toast('Sem permissão para esta operação neste nó da rede.', 'erro');
+        (msgErro.includes('ORA-01031') || msgErro.includes('ORA-01732') ||
+         msgErro.includes('ORA-02063'))) {
+      console.warn('[BD] Operação bloqueada por privilégios insuficientes:', msgErro);
+      toast('Não tem permissão para realizar esta operação.', 'erro');
       try { fecharModal(); } catch {}
-      throw new Error('Sem permissão neste nó.');
+      throw new Error('Sem permissão.');
     }
     throw new Error(data.erro || `Erro ${res.status}`);
   }
@@ -367,7 +341,7 @@ function configurarNavPorRole() {
     if (labelGestao) labelGestao.style.display = 'none';
   } else if (nivel === 'Coordenador') {
     hide('permissoes');
-    hide('biblioteca');
+    // biblioteca permanece visível para Coord — vê e gere a sua própria biblioteca
   }
 }
 

@@ -8,7 +8,7 @@
 --
 -- Referências cross-node (sem FK DDL — restrição lógica):
 --   FUNCIONARIO.cod_biblioteca → BIBLIOTECA@eventosdb
---   ITEM_DOACAO.cod_biblioteca → BIBLIOTECA@eventosdb
+--   DOACAO.cod_biblioteca      → BIBLIOTECA@eventosdb
 --   LEITOR.cod_biblioteca      → BIBLIOTECA@eventosdb
 --
 -- ACENTOS: execute com NLS_LANG=AMERICAN_AMERICA.AL32UTF8

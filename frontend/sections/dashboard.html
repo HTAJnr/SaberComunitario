@@ -63,15 +63,21 @@
   <!-- ── Vista Rede (só Administrador) ── -->
   <div id="dash-rede-view" class="hidden">
 
-    <!-- Tabs: Rede | Sistema -->
+    <!-- Tabs: Rede | Biblioteca | Sistema -->
     <div style="display:flex;gap:6px;margin-bottom:12px">
       <button id="tab-dash-rede"    class="tab-btn tab-active" onclick="switchDashTab('rede')">
         <i class="fa-solid fa-network-wired" style="margin-right:4px"></i>Rede
+      </button>
+      <button id="tab-dash-biblioteca" class="tab-btn" onclick="switchDashTab('biblioteca')">
+        <i class="fa-solid fa-building-columns" style="margin-right:4px"></i>Biblioteca
       </button>
       <button id="tab-dash-sistema" class="tab-btn" onclick="switchDashTab('sistema')">
         <i class="fa-solid fa-database" style="margin-right:4px"></i>Sistema
       </button>
     </div>
+
+    <!-- Tab Biblioteca (Admin vê a sua própria biblioteca) -->
+    <div id="dash-tab-biblioteca" class="hidden"></div>
 
     <!-- Tab Rede -->
     <div id="dash-tab-rede">

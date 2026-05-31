@@ -831,7 +831,7 @@ function reemitirCertificado(id) {
       toast('Certificado reemitido com sucesso.', 'sucesso');
       carregarCertificados();
     } catch (err) {
-      toast(err.message, 'erro');
+      toast(err.message || 'Operação falhou.', 'erro');
     }
   }, { labelOk: 'Reemitir', danger: false });
 }

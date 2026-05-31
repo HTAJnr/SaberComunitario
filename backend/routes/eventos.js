@@ -110,10 +110,10 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
          (ID_EVENTO, TITULO_EVENTO, DESCRICAO_EVENTO, LOCAL_EVENTO, DATA_EVENTO,
           PUBLICO_ALVO, CAPACIDADE, STATUS_EVENTO, RECORRENTE, COD_BIBLIOTECA)
        VALUES
-         (SEQ_EVENTO.NEXTVAL, :titulo, :desc, :local, TO_DATE(:data,'YYYY-MM-DD'),
+         (SEQ_EVENTO.NEXTVAL, :titulo, :descricao, :local, TO_DATE(:data,'YYYY-MM-DD'),
           :pub_alvo, :cap, 'Planeado', NVL(:rec,'N'), :cod_bib)`,
       {
-        titulo: titulo_evento, desc: descricao_evento || null, local: local_evento || null,
+        titulo: titulo_evento, descricao: descricao_evento || null, local: local_evento || null,
         data: data_evento, pub_alvo: publico_alvo, cap: capacidade || null,
         rec: recorrente || 'N', cod_bib: cod_biblioteca
       }
@@ -184,7 +184,7 @@ router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
     await conn.execute(
       `UPDATE EVENTO SET
          TITULO_EVENTO    = NVL(:titulo, TITULO_EVENTO),
-         DESCRICAO_EVENTO = NVL(:desc, DESCRICAO_EVENTO),
+         DESCRICAO_EVENTO = NVL(:descricao, DESCRICAO_EVENTO),
          LOCAL_EVENTO     = NVL(:local, LOCAL_EVENTO),
          DATA_EVENTO      = NVL(TO_DATE(:data,'YYYY-MM-DD'), DATA_EVENTO),
          PUBLICO_ALVO     = NVL(:pub_alvo, PUBLICO_ALVO),
@@ -192,7 +192,7 @@ router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
          RECORRENTE       = NVL(:rec, RECORRENTE),
          COD_BIBLIOTECA   = NVL(:cod_bib, COD_BIBLIOTECA)
        WHERE ID_EVENTO = :id`,
-      { titulo: titulo_evento || null, desc: descricao_evento || null, local: local_evento || null,
+      { titulo: titulo_evento || null, descricao: descricao_evento || null, local: local_evento || null,
         data: data_evento || null, pub_alvo: publico_alvo || null, cap: capacidade || null,
         rec: recorrente !== undefined ? recorrente : null,
         cod_bib: cod_biblioteca || null, id: req.params.id }

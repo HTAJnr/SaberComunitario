@@ -249,7 +249,7 @@ router.get('/biblioteca', autenticar, async (req, res) => {
       `SELECT COUNT(DISTINCT D.ID_DOACAO) AS TOTAL
        FROM DOACAO D
        JOIN ITEM_DOACAO I ON D.ID_DOACAO = I.ID_DOACAO
-       WHERE I.COD_BIBLIOTECA = :bib
+       WHERE D.COD_BIBLIOTECA = :bib
          AND EXTRACT(MONTH FROM D.DATA_DOACAO) = EXTRACT(MONTH FROM SYSDATE)
          AND EXTRACT(YEAR  FROM D.DATA_DOACAO) = EXTRACT(YEAR  FROM SYSDATE)`,
       { bib: codBib },

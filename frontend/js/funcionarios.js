@@ -221,7 +221,7 @@ async function _desactivarFunc(cod) {
       toast('Funcionário desactivado.');
       carregarFuncionarios();
     } catch (err) {
-      toast(err.message, 'erro');
+      toast(err.message || 'Operação falhou.', 'erro');
     }
   });
 }

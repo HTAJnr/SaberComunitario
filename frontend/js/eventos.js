@@ -314,7 +314,7 @@ async function _inscreverLeitorEvento(id) {
     toast('Leitor inscrito com sucesso.', 'sucesso');
     await _renderizarDrawerParticipantesEvento(id);
   } catch (err) {
-    toast(err.message, 'erro');
+    toast(err.message || 'Operação falhou.', 'erro');
   }
 }
 
@@ -325,7 +325,7 @@ function _removerParticipanteEvento(id, nc) {
       toast('Inscrição removida.');
       await _renderizarDrawerParticipantesEvento(id);
     } catch (err) {
-      toast(err.message, 'erro');
+      toast(err.message || 'Operação falhou.', 'erro');
     }
   });
 }
@@ -338,7 +338,7 @@ async function _confirmarPresenca(id, nc, novoEstado) {
     toast(novoEstado === 'S' ? 'Presença confirmada.' : 'Presença anulada.');
     await _renderizarDrawerParticipantesEvento(id);
   } catch (err) {
-    toast(err.message, 'erro');
+    toast(err.message || 'Operação falhou.', 'erro');
   }
 }
 
@@ -647,7 +647,7 @@ function eliminarEvento(id) {
       toast('Evento eliminado.');
       carregarEventos(_evTab);
     } catch (err) {
-      toast(err.message, 'erro');
+      toast(err.message || 'Operação falhou.', 'erro');
     }
   }, { labelOk: 'Apagar', danger: true });
 }

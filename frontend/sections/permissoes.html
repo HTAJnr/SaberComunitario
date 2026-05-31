@@ -1,16 +1,20 @@
 <section id="section-permissoes" class="section hidden">
 
-  <!-- Tabs -->
-  <div class="panel" style="margin-bottom:14px;display:flex;gap:8px;padding:8px">
-    <button id="tab-perm-cargos-btn" class="tab tab-active"
+  <!-- Tabs — segmented control compacto -->
+  <div style="display:inline-flex;gap:0;margin-bottom:16px;background:var(--surface-raised);
+              border:0.5px solid var(--border);border-radius:8px;padding:3px">
+    <button id="tab-perm-cargos-btn" class="tab-btn tab-active"
+            style="padding:5px 12px;font-size:11px"
             onclick="switchTabPermissoes('cargos')">
       <i class="fa-solid fa-briefcase" style="margin-right:5px"></i>Cargos
     </button>
-    <button id="tab-perm-matriz-btn" class="tab"
+    <button id="tab-perm-matriz-btn" class="tab-btn"
+            style="padding:5px 12px;font-size:11px"
             onclick="switchTabPermissoes('matriz')">
       <i class="fa-solid fa-shield-halved" style="margin-right:5px"></i>Permissões por Cargo
     </button>
-    <button id="tab-perm-funcs-btn" class="tab"
+    <button id="tab-perm-funcs-btn" class="tab-btn"
+            style="padding:5px 12px;font-size:11px"
             onclick="switchTabPermissoes('funcs')">
       <i class="fa-solid fa-users" style="margin-right:5px"></i>Funcionários
     </button>
@@ -18,12 +22,17 @@
 
   <!-- Sub-painel: Cargos -->
   <div id="sub-perm-cargos" class="panel" style="margin-bottom:24px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Cargos do Sistema</span>
-      <button id="btn-novo-cargo" class="btn-primary btn-sm hidden"
-              onclick="abrirModalCargo()">
-        <i class="fa-solid fa-plus" style="margin-right:5px"></i>Novo Cargo
-      </button>
+    <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:0.5px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <h3 style="margin:0;font-size:14px;font-weight:600;color:var(--text-primary)">Cargos do Sistema</h3>
+          <p style="margin:3px 0 0;font-size:11px;color:var(--text-muted)">Define os cargos disponíveis e o nível de acesso associado a cada um.</p>
+        </div>
+        <button id="btn-novo-cargo" class="btn-primary btn-sm hidden"
+                onclick="abrirModalCargo()">
+          <i class="fa-solid fa-plus" style="margin-right:5px"></i>Novo Cargo
+        </button>
+      </div>
     </div>
     <table class="tbl">
       <thead>
@@ -42,8 +51,11 @@
 
   <!-- Sub-painel: Matriz de Permissões por Cargo -->
   <div id="sub-perm-matriz" class="panel" style="margin-bottom:24px;display:none">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
-      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Permissões por Cargo</span>
+    <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:0.5px solid var(--border)">
+      <h3 style="margin:0;font-size:14px;font-weight:600;color:var(--text-primary)">Permissões por Cargo</h3>
+      <p style="margin:3px 0 0;font-size:11px;color:var(--text-muted)">Define que módulos e acções cada cargo pode executar. Marca/desmarca e guarda.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
       <select id="sel-cargo-matriz" class="input-field" style="font-size:12px;max-width:300px"
               onchange="carregarMatrizCargo(this.value)">
         <option value="">— Seleccionar cargo —</option>
@@ -58,8 +70,9 @@
 
   <!-- Sub-painel: Funcionários (vista original) -->
   <div id="sub-perm-funcs" class="panel" style="margin-bottom:24px;display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Funcionários e Níveis de Acesso</span>
+    <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:0.5px solid var(--border)">
+      <h3 style="margin:0;font-size:14px;font-weight:600;color:var(--text-primary)">Funcionários e Níveis de Acesso</h3>
+      <p style="margin:3px 0 0;font-size:11px;color:var(--text-muted)">Lista de funcionários e o cargo actualmente atribuído. Clica em "Gerir" para alterar.</p>
     </div>
     <table class="tbl">
       <thead>

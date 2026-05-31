@@ -719,6 +719,6 @@ function eliminarEmprestimo(id) {
       await del(`/api/emprestimos/${id}`);
       toast('Empréstimo eliminado.');
       carregarEmprestimos(tabEmprestimosActual);
-    } catch (err) { toast(err.message, 'erro'); }
+    } catch (err) { toast(err.message || 'Operação falhou.', 'erro'); }
   });
 }
