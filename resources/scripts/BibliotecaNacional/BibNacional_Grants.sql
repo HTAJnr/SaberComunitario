@@ -232,3 +232,13 @@ GRANT EXECUTE ON prc_demo_2pc                   TO app_NACIONALDB;
 GRANT EXECUTE ON prc_emitir_honorifico          TO app_NACIONALDB;
 GRANT EXECUTE ON total_doacoes_doador           TO app_NACIONALDB;
 GRANT EXECUTE ON prc_atualizar_doacao_segura    TO app_NACIONALDB;
+-- Sequencias: grants directos (roles nao sao activados em todos os
+-- contextos de sessao no Oracle 10g — ORA-02289 sem estes grants)
+GRANT SELECT ON SEQ_FUNCIONARIO          TO app_NACIONALDB;
+GRANT SELECT ON SEQ_HORARIO_FUNC         TO app_NACIONALDB;
+GRANT SELECT ON SEQ_DOADOR               TO app_NACIONALDB;
+GRANT SELECT ON SEQ_DOACAO               TO app_NACIONALDB;
+GRANT SELECT ON SEQ_ITEMDOADO            TO app_NACIONALDB;
+GRANT SELECT ON SEQ_CERTIFICADO          TO app_NACIONALDB;
+GRANT SELECT ON SEQ_AUDITORIA            TO app_NACIONALDB;
+GRANT SELECT ON SEQ_FUNCAO               TO app_NACIONALDB;

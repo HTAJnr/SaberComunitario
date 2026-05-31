@@ -49,10 +49,17 @@ GRANT SELECT ON SEQ_HORARIO_EVENTO          TO app_eventosdb;
 
 -- Procedimentos
 GRANT EXECUTE ON INSERE_PARTICIPACAO_EVENTO TO app_eventosdb;
--- Snapshots locais — acesso directo pelo app_eventosdb
-GRANT SELECT ON snap_leitor             TO app_eventosdb;
-GRANT SELECT ON repl_funcionarios       TO app_eventosdb;
-GRANT SELECT ON repl_funcao_funcionario TO app_eventosdb;
+-- Snapshots locais — criados em EventosDB_Snapshots.sql (depois deste script).
+-- Usa nome qualificado para evitar ORA-01775 (loop de sinónimos).
+-- Bloco tolerante a ORA-00942 caso os snapshots ainda nao existam.
+BEGIN
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_eventosdb.snap_leitor             TO app_eventosdb';
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_eventosdb.repl_funcionarios       TO app_eventosdb';
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_eventosdb.repl_funcao_funcionario TO app_eventosdb';
+EXCEPTION WHEN OTHERS THEN
+  DBMS_OUTPUT.PUT_LINE('AVISO: snapshots ainda nao criados — re-correr apos EventosDB_Snapshots.sql. ORA: ' || SQLERRM);
+END;
+/
 
 
 -- ============================================================

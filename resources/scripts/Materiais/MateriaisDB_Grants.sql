@@ -27,7 +27,13 @@ GRANT SELECT  ON SEQ_AUDITORIA_MAT         TO app_materiaisdb;
 GRANT SELECT  ON REPL_FUNCIONARIOS         TO app_materiaisdb;
 GRANT SELECT  ON REPL_FUNCAO_FUNCIONARIO   TO app_materiaisdb;
 GRANT SELECT  ON BIBLIOTECA_SNAP           TO app_materiaisdb;
-GRANT SELECT  ON SNAP_LEITOR_PUBLICO       TO app_materiaisdb;
+-- snap_leitor_publico: criado em MateriaisDB_Snapshots.sql — tolerante a ORA-00942
+BEGIN
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_materiaisdb.snap_leitor_publico TO app_materiaisdb';
+EXCEPTION WHEN OTHERS THEN
+  DBMS_OUTPUT.PUT_LINE('AVISO: snap_leitor_publico ainda nao existe — re-correr apos Snapshots. ORA: ' || SQLERRM);
+END;
+/
 
 
 -- ============================================================

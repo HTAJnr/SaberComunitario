@@ -26,14 +26,21 @@ GRANT SELECT ON frag_emp_activos_det    TO app_emprestimosdb;
 GRANT SELECT ON frag_emp_historico_op   TO app_emprestimosdb;
 GRANT SELECT ON frag_emp_historico_det  TO app_emprestimosdb;
 GRANT SELECT ON VW_AUDITORIA            TO app_emprestimosdb;
--- Snapshots locais — acesso directo pelo app_emprestimosdb
-GRANT SELECT ON snap_leitor             TO app_emprestimosdb;
-GRANT SELECT ON snap_material           TO app_emprestimosdb;
-GRANT SELECT ON snap_adulto             TO app_emprestimosdb;
-GRANT SELECT ON snap_crianca            TO app_emprestimosdb;
-GRANT SELECT ON snap_professor          TO app_emprestimosdb;
-GRANT SELECT ON snap_categoria          TO app_emprestimosdb;
-GRANT SELECT ON biblioteca_snap         TO app_emprestimosdb;
+-- Snapshots locais — criados em EmprestimosDB_Snapshots.sql (depois deste script).
+-- Usa nome qualificado para evitar ORA-01775 (loop de sinónimos).
+-- Bloco tolerante a ORA-00942 caso os snapshots ainda nao existam.
+BEGIN
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.snap_leitor     TO app_emprestimosdb';
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.snap_material   TO app_emprestimosdb';
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.snap_adulto     TO app_emprestimosdb';
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.snap_crianca    TO app_emprestimosdb';
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.snap_professor  TO app_emprestimosdb';
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.snap_categoria  TO app_emprestimosdb';
+  EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.biblioteca_snap TO app_emprestimosdb';
+EXCEPTION WHEN OTHERS THEN
+  DBMS_OUTPUT.PUT_LINE('AVISO: snapshots ainda nao criados — re-correr apos EmprestimosDB_Snapshots.sql. ORA: ' || SQLERRM);
+END;
+/
 
 
 -- ============================================================
@@ -79,6 +86,14 @@ GRANT SELECT ON VW_AUDITORIA            TO role_emp_programas;
 GRANT SELECT ON EMPRESTIMO             TO app_materiaisdb;
 GRANT SELECT ON vw_emprestimos_activos TO app_materiaisdb;
 GRANT SELECT ON frag_emp_activos_op    TO app_materiaisdb;
+-- DML: endpoints de emprestimos/programas (mesmo backend nos 4 nos)
+GRANT SELECT ON SUSPENSAO                TO app_materiaisdb;
+GRANT UPDATE ON SUSPENSAO                TO app_materiaisdb;
+GRANT INSERT ON EMPRESTIMO               TO app_materiaisdb;
+GRANT UPDATE ON EMPRESTIMO               TO app_materiaisdb;
+GRANT INSERT ON MULTA                    TO app_materiaisdb;
+GRANT SELECT ON PARTICIPACAO_PROGRAMA    TO app_materiaisdb;
+GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_materiaisdb;
 
 -- ── Helder (app_nacionaldb) ─────────────────────────────────
 -- Emprestimos e suspensoes para vistas globais
@@ -104,6 +119,15 @@ GRANT SELECT ON vw_suspensoes_activas    TO app_nacionaldb;
 GRANT SELECT ON vw_relatorio_programas   TO app_nacionaldb;
 GRANT SELECT ON frag_emp_activos_op      TO app_nacionaldb;
 GRANT SELECT ON VW_AUDITORIA             TO app_nacionaldb;
+-- GET /validar-leitor: auto-liberta suspensoes expiradas
+GRANT UPDATE ON SUSPENSAO                TO app_nacionaldb;
+-- POST /emprestimos: criar emprestimo
+GRANT INSERT ON EMPRESTIMO               TO app_nacionaldb;
+-- PATCH /emprestimos/:id/devolver: registar devolucao + multa
+GRANT UPDATE ON EMPRESTIMO               TO app_nacionaldb;
+GRANT INSERT ON MULTA                    TO app_nacionaldb;
+-- PATCH /programas/:cod/participantes: actualizar participante
+GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_nacionaldb;
 
 -- ── Gerson (app_eventosdb) ──────────────────────────────────
 -- Backend correndo no EventosDB precisa de acesso a emprestimos
@@ -122,3 +146,9 @@ GRANT SELECT ON PROGRAMA_MATERIAL        TO app_eventosdb;
 GRANT SELECT ON PROGRAMA_FUNCIONARIO     TO app_eventosdb;
 GRANT SELECT ON REPL_FUNCIONARIOS        TO app_eventosdb;
 GRANT SELECT ON VW_AUDITORIA             TO app_eventosdb;
+-- DML: mesmos endpoints de emprestimos/programas que app_nacionaldb
+GRANT UPDATE ON SUSPENSAO                TO app_eventosdb;
+GRANT INSERT ON EMPRESTIMO               TO app_eventosdb;
+GRANT UPDATE ON EMPRESTIMO               TO app_eventosdb;
+GRANT INSERT ON MULTA                    TO app_eventosdb;
+GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_eventosdb;
