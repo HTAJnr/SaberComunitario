@@ -95,7 +95,28 @@ router.get('/me', (req, res) => {
   res.json(req.session.funcionario);
 });
 
-router.post('/logout', (req, res) => {
+router.post('/logout', async (req, res) => {
+  const func = req.session.funcionario;
+  const codFunc = req.session.cod_funcionario;
+
+  if (func && codFunc !== 0) {
+    let conn;
+    try {
+      conn = await getConnection();
+      await registar(conn, {
+        cod_func: String(codFunc),
+        operacao: 'LOGOUT',
+        objeto: func.EMAIL || '',
+        resultado: 'SUCESSO',
+      });
+      await conn.commit();
+    } catch (err) {
+      console.warn('[AUTH logout] auditoria falhou:', err.message);
+    } finally {
+      if (conn) await conn.close();
+    }
+  }
+
   req.session.destroy(() => res.json({ ok: true }));
 });
 

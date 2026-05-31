@@ -21,6 +21,7 @@ const auditoriaRouter   = require('./routes/auditoria');
 const manutencaoRouter  = require('./routes/manutencao');
 const permissoesRouter  = require('./routes/permissoes');
 const { inicializarNoOrigem } = require('./db');
+const { registarBackground } = require('./middleware/auditoria');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,40 @@ app.use((req, res, next) => {
     const ms = Date.now() - inicio;
     const cor = res.statusCode >= 500 ? '\x1b[31m' : res.statusCode >= 400 ? '\x1b[33m' : '\x1b[32m';
     console.log(`${cor}[REQUEST]\x1b[0m ${req.method} ${req.path} → ${res.statusCode} (${ms}ms)`);
+  });
+  next();
+});
+
+// Auditoria automática de todas as operações de escrita (POST/PUT/PATCH/DELETE)
+const METODO_OPERACAO = { POST: 'CRIAR', PUT: 'ACTUALIZAR', PATCH: 'ACTUALIZAR', DELETE: 'ELIMINAR' };
+app.use((req, res, next) => {
+  if (req.method === 'GET') return next();
+  if (req.path.startsWith('/api/auth/')) return next(); // auth.js audita login/logout directamente
+
+  // Intercepta res.json para capturar o body antes do finish
+  let corpoResposta = null;
+  const jsonOriginal = res.json.bind(res);
+  res.json = (body) => { corpoResposta = body; return jsonOriginal(body); };
+
+  res.on('finish', () => {
+    const codFunc = req.session?.cod_funcionario;
+    if (!codFunc || codFunc === 0) return; // não autenticado ou demo
+    if (res.statusCode === 403) return;    // exigirNivel já registou ACESSO_NEGADO
+
+    const isOra01031 = res.statusCode === 500 &&
+      typeof corpoResposta?.erro === 'string' &&
+      corpoResposta.erro.includes('ORA-01031');
+
+    const resultado = res.statusCode < 400 ? 'SUCESSO' : 'FALHA';
+    registarBackground({
+      cod_func: String(codFunc),
+      operacao: isOra01031 ? 'ACESSO_NEGADO' : (METODO_OPERACAO[req.method] || req.method),
+      objeto: req.path,
+      resultado,
+      motivo: isOra01031
+        ? 'ORA-01031: privilégios insuficientes na base de dados'
+        : (resultado === 'FALHA' ? `HTTP ${res.statusCode}` : null),
+    });
   });
   next();
 });

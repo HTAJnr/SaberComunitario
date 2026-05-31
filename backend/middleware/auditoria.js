@@ -1,4 +1,4 @@
-const { oracledb } = require('../db');
+const { getConnection } = require('../db');
 
 async function registar(conn, { cod_func, operacao, objeto, resultado, motivo = null, nos = 'NACIONAL' }) {
   try {
@@ -13,4 +13,18 @@ async function registar(conn, { cod_func, operacao, objeto, resultado, motivo = 
   }
 }
 
-module.exports = { registar };
+// Abre a própria ligação — usar quando não há conn disponível (middlewares, background tasks)
+function registarBackground({ cod_func, operacao, objeto, resultado, motivo = null, nos = 'NACIONAL' }) {
+  getConnection().then(async conn => {
+    try {
+      await registar(conn, { cod_func, operacao, objeto, resultado, motivo, nos });
+      await conn.commit();
+    } catch (e) {
+      console.warn('[AUDITORIA BG]', e.message);
+    } finally {
+      await conn.close().catch(() => {});
+    }
+  }).catch(e => console.warn('[AUDITORIA BG conn]', e.message));
+}
+
+module.exports = { registar, registarBackground };
