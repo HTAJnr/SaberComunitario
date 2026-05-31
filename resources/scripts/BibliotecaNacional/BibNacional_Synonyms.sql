@@ -79,6 +79,23 @@ CREATE OR REPLACE PUBLIC SYNONYM snap_material_basico         FOR usr_NACIONALDB
 CREATE OR REPLACE PUBLIC SYNONYM snap_eventos                 FOR usr_NACIONALDB.snap_eventos;
 CREATE OR REPLACE PUBLIC SYNONYM snap_transferencias          FOR usr_NACIONALDB.snap_transferencias;
 
+-- ── SEQUÊNCIAS LOCAIS ────────────────────────────────────────
+-- Necessário para app_NACIONALDB usar SEQ_*.NEXTVAL/CURRVAL sem prefixar o schema.
+
+CREATE OR REPLACE PUBLIC SYNONYM seq_doador         FOR usr_NACIONALDB.seq_doador;
+CREATE OR REPLACE PUBLIC SYNONYM seq_doacao         FOR usr_NACIONALDB.seq_doacao;
+CREATE OR REPLACE PUBLIC SYNONYM seq_itemdoado      FOR usr_NACIONALDB.seq_itemdoado;
+CREATE OR REPLACE PUBLIC SYNONYM seq_certificado    FOR usr_NACIONALDB.seq_certificado;
+CREATE OR REPLACE PUBLIC SYNONYM seq_auditoria      FOR usr_NACIONALDB.seq_auditoria;
+CREATE OR REPLACE PUBLIC SYNONYM seq_funcao         FOR usr_NACIONALDB.seq_funcao;
+CREATE OR REPLACE PUBLIC SYNONYM seq_funcionario    FOR usr_NACIONALDB.seq_funcionario;
+CREATE OR REPLACE PUBLIC SYNONYM seq_horario_func   FOR usr_NACIONALDB.seq_horario_func;
+CREATE OR REPLACE PUBLIC SYNONYM seq_permissao      FOR usr_NACIONALDB.seq_permissao;
+
+-- ── TABELAS LOCAIS EM FALTA ───────────────────────────────────
+
+CREATE OR REPLACE PUBLIC SYNONYM permissao_cargo    FOR usr_NACIONALDB.permissao_cargo;
+
 -- ── FUNCTION ────────────────────────────────────────────────
 
 CREATE OR REPLACE PUBLIC SYNONYM total_doacoes_doador         FOR usr_NACIONALDB.total_doacoes_doador;

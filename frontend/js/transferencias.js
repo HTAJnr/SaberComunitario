@@ -10,6 +10,7 @@ let _drawerTransf   = null;
 
 let _transfMatSel = null;
 let _transfMatRes = [];
+let _transfMatBib = null;
 
 // ── 05-A Lista ─────────────────────────────────
 
@@ -211,6 +212,7 @@ function fecharDrawerTransf() {
 function abrirModalSolicitarTransf() {
   _transfMatSel = null;
   _transfMatRes = [];
+  _transfMatBib = null;
 
   document.getElementById('modal-transf-titulo').textContent = 'Solicitar Transferência';
   document.getElementById('modal-transf-erro').classList.add('hidden');
@@ -268,7 +270,7 @@ async function _pesquisarMaterialTransf() {
     }
     lista.innerHTML = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:2px">
       ${_transfMatRes.map(m => `
-        <div onclick="_selecionarMaterialTransf('${m.COD_MATERIAL}','${(m.TITULO || '').replace(/'/g,"\\'")}','${(m.BIBLIOTECA_NOME || '').replace(/'/g,"\\'")}' )"
+        <div onclick="_selecionarMaterialTransf('${m.COD_MATERIAL}','${(m.TITULO || '').replace(/'/g,"\\'")}','${(m.BIBLIOTECA_NOME || '').replace(/'/g,"\\'")}','${m.COD_BIBLIOTECA || ''}' )"
              style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border-soft);
                     display:flex;justify-content:space-between;align-items:center"
              onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
@@ -281,12 +283,14 @@ async function _pesquisarMaterialTransf() {
   }
 }
 
-function _selecionarMaterialTransf(cod, titulo, bib) {
+function _selecionarMaterialTransf(cod, titulo, bib, codBib) {
   _transfMatSel = cod;
+  _transfMatBib = codBib || null;
   document.getElementById('transf-mat-lista').innerHTML = '';
   document.getElementById('transf-mat-sel-label').innerHTML =
     `<i class="fa-solid fa-circle-check" style="margin-right:4px"></i>
      <strong class="mono">${cod}</strong> — ${titulo} <span style="color:var(--text-muted)">(${bib})</span>`;
+  _carregarBibliotecasTransf();
 }
 
 async function _carregarBibliotecasTransf() {
@@ -294,8 +298,8 @@ async function _carregarBibliotecasTransf() {
   if (!sel) return;
   try {
     const lista = await get('/api/bibliotecas');
-    const propria = utilizadorActual?.COD_BIBLIOTECA || '';
-    const outras  = lista.filter(b => b.COD_BIBLIOTECA !== propria);
+    const excluir = new Set([utilizadorActual?.COD_BIBLIOTECA || '', _transfMatBib || ''].filter(Boolean));
+    const outras  = lista.filter(b => !excluir.has(b.COD_BIBLIOTECA));
     sel.innerHTML = `<option value="">Seleccionar…</option>` +
       outras.map(b => `<option value="${b.COD_BIBLIOTECA}">${b.NOME_BIBLIOTECA}</option>`).join('');
   } catch {
@@ -408,6 +412,7 @@ function fecharModalTransf(evt) {
   document.getElementById('modal-transf-overlay').classList.add('hidden');
   _transfMatSel = null;
   _transfMatRes = [];
+  _transfMatBib = null;
 }
 
 function _mostrarErroModalTransf(msg) {

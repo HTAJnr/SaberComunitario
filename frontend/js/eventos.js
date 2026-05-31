@@ -275,32 +275,73 @@ async function _renderizarDrawerParticipantesEvento(id) {
   }
 }
 
+function _estrelas(n) {
+  return '★'.repeat(n) + '☆'.repeat(5 - n);
+}
+
 async function _renderizarDrawerAvaliacoesEvento(id) {
   const conteudo = document.getElementById('drawer-ev-conteudo');
   conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
   try {
     const rows = await get(`/api/eventos/${id}/avaliacoes`);
-    if (!rows.length) {
-      conteudo.innerHTML = emptyState('⭐', 'Sem avaliações ainda');
-      return;
-    }
-    function estrelas(n) {
-      return '★'.repeat(n) + '☆'.repeat(5 - n);
-    }
+    const lista = rows.length
+      ? `<div style="font-size:12px">
+          ${rows.map(a => `
+            <div style="padding:8px 0;border-bottom:0.5px solid var(--border-soft)">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-weight:500">${a.NOME_LEITOR || a.NUM_CARTAO}</span>
+                <span style="color:#d29922;font-size:14px">${_estrelas(a.NOTA || 0)}</span>
+              </div>
+              ${a.COMENTARIO ? `<div style="color:var(--text-secondary);margin-top:3px;line-height:1.4">${a.COMENTARIO}</div>` : ''}
+              <div style="color:var(--text-muted);font-size:11px;margin-top:2px">${a.DATA_AVALIACAO || ''}</div>
+            </div>`).join('')}
+        </div>`
+      : emptyState('⭐', 'Sem avaliações ainda');
+
     conteudo.innerHTML = `
-      <div style="font-size:12px">
-        ${rows.map(a => `
-          <div style="padding:8px 0;border-bottom:0.5px solid var(--border-soft)">
-            <div style="display:flex;justify-content:space-between;align-items:baseline">
-              <span style="font-weight:500">${a.NOME_LEITOR || a.NUM_CARTAO}</span>
-              <span style="color:#d29922;font-size:14px">${estrelas(a.NOTA || 0)}</span>
+      <div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border-soft)">
+        <div id="av-form-ev-${id}">
+          <div style="display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap">
+            <div style="flex:1;min-width:110px">
+              <label class="form-label" style="font-size:11px">Cartão do leitor</label>
+              <input id="av-nc-${id}" class="input-field" style="font-size:12px" placeholder="Nº cartão…"/>
             </div>
-            ${a.COMENTARIO ? `<div style="color:var(--text-secondary);margin-top:3px;line-height:1.4">${a.COMENTARIO}</div>` : ''}
-            <div style="color:var(--text-muted);font-size:11px;margin-top:2px">${a.DATA_AVALIACAO || ''}</div>
-          </div>`).join('')}
-      </div>`;
+            <div style="width:80px">
+              <label class="form-label" style="font-size:11px">Nota (1-5)</label>
+              <select id="av-nota-${id}" class="input-field" style="font-size:12px">
+                ${[1,2,3,4,5].map(n => `<option value="${n}">${_estrelas(n)}</option>`).join('')}
+              </select>
+            </div>
+            <div style="flex:2;min-width:120px">
+              <label class="form-label" style="font-size:11px">Comentário</label>
+              <input id="av-coment-${id}" class="input-field" style="font-size:12px" placeholder="Opcional…"/>
+            </div>
+            <button class="btn-primary btn-sm" style="white-space:nowrap"
+                    onclick="_submeterAvaliacaoEvento(${id})">Registar</button>
+          </div>
+          <div id="av-erro-${id}" style="color:#f85149;font-size:11px;margin-top:4px;display:none"></div>
+        </div>
+      </div>
+      ${lista}`;
   } catch (err) {
     conteudo.innerHTML = `<p style="color:#f85149;font-size:12px;padding:12px">Erro: ${err.message}</p>`;
+  }
+}
+
+async function _submeterAvaliacaoEvento(id) {
+  const nc     = (document.getElementById(`av-nc-${id}`)?.value || '').trim();
+  const nota   = parseInt(document.getElementById(`av-nota-${id}`)?.value || '3');
+  const coment = (document.getElementById(`av-coment-${id}`)?.value || '').trim();
+  const erroEl = document.getElementById(`av-erro-${id}`);
+  erroEl.style.display = 'none';
+  if (!nc) { erroEl.textContent = 'Cartão do leitor obrigatório.'; erroEl.style.display = ''; return; }
+  try {
+    await post(`/api/eventos/${id}/avaliacoes`, { num_cartao: nc, nota, comentario: coment || null });
+    toast('Avaliação registada.', 'sucesso');
+    await _renderizarDrawerAvaliacoesEvento(id);
+  } catch (err) {
+    erroEl.textContent = err.message || 'Erro ao registar avaliação.';
+    erroEl.style.display = '';
   }
 }
 

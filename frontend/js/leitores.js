@@ -156,7 +156,7 @@ function _renderizarWizardStep() {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="form-group">
-          <label class="form-label">Data de nascimento *</label>
+          <label class="form-label">Data de nascimento * <small style="color:var(--text-muted);font-weight:400">(dd/mm/aaaa)</small></label>
           <input id="wz-data-nasc" type="date" lang="pt-PT" class="input-field" value="${_wizardDados.data_nasc || ''}"/>
         </div>
         <div class="form-group">
@@ -488,7 +488,7 @@ async function abrirModalEditarLeitor(numCartao) {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="form-group">
-        <label class="form-label">Data nascimento</label>
+        <label class="form-label">Data nascimento <small style="color:var(--text-muted);font-weight:400">(dd/mm/aaaa)</small></label>
         <input id="ef-data-nasc" type="date" lang="pt-PT" class="input-field" value="${leitor.DATA_NASC ? leitor.DATA_NASC.slice(0,10) : ''}"/>
       </div>
       <div class="form-group">

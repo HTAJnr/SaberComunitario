@@ -496,27 +496,33 @@ router.post('/', autenticar, async (req, res) => {
     const { prazo } = calcularPrazo(leitor.DISTANCIA_BIBLIOTECA, leitor.TIPO_LEITOR, leitor.HISTORICO_PONTUALIDADE);
     const prazoStr = prazo.toISOString().slice(0, 10);
 
-    const empResult = await conn.execute(
+    // RETURNING INTO não funciona em tabelas remotas (dblink) — obtém NEXTVAL primeiro
+    const seqR = await conn.execute(
+      `SELECT SEQ_EMPRESTIMO.NEXTVAL AS ID FROM DUAL`,
+      [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    const idEmp = seqR.rows[0].ID;
+
+    await conn.execute(
       `INSERT INTO EMPRESTIMO
          (ID_EMPRESTIMO, NUM_CARTAO, COD_MATERIAL, DATA_RETIRADA, PRAZO_DEVOLUCAO,
           ESTADO_MATERIAL_SAIDA, MULTA_PAGA, COD_FUNCIONARIO)
        VALUES
-         (SEQ_EMPRESTIMO.NEXTVAL, :nc, :id_mat, SYSDATE,
-          TO_DATE(:prazo, 'YYYY-MM-DD'), :estado_saida, 'N', :id_func)
-       RETURNING ID_EMPRESTIMO INTO :id_out`,
+         (:id_emp, :nc, :id_mat, SYSDATE,
+          TO_DATE(:prazo, 'YYYY-MM-DD'), :estado_saida, 'N', :id_func)`,
       {
+        id_emp:      idEmp,
         nc:          num_cartao,
         id_mat:      cod_material,
         prazo:       prazoStr,
         estado_saida: estado_material_saida || 'Bom',
-        id_func:     cod_funcionario || req.session.cod_funcionario || null,
-        id_out:      { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+        id_func:     cod_funcionario || req.session.cod_funcionario || null
       }
     );
     await registar(conn, {
       cod_func: req.session.cod_funcionario,
       operacao: 'CRIAR',
-      objeto: 'EMPRESTIMO:' + empResult.outBinds.id_out[0],
+      objeto: 'EMPRESTIMO:' + idEmp,
       resultado: 'OK',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
@@ -524,7 +530,7 @@ router.post('/', autenticar, async (req, res) => {
 
     res.status(201).json({
       ok: true,
-      id_emprestimo: empResult.outBinds.id_out[0],
+      id_emprestimo: idEmp,
       prazo_devolucao: prazoStr,
       aviso_nivel_leitura: avisoNivelLeitura
     });

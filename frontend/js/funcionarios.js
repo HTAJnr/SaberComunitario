@@ -388,7 +388,7 @@ async function abrirModalEditarFunc(cod) {
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Data de Nascimento</label>
+        <label class="form-label">Data de Nascimento <small style="color:var(--text-muted);font-weight:400">(dd/mm/aaaa)</small></label>
         <input id="ef-data-nasc" type="date" lang="pt-PT" class="input-field"
                value="${dados?.DATA_NASC ? dados.DATA_NASC.toString().slice(0,10) : ''}"/>
       </div>
@@ -546,6 +546,13 @@ async function _submeterModalFunc() {
     await carregarFuncionarios();
     const codAtualizado = resp?.cod_funcionario || _editFuncCod;
     if (_funcDrawerCod === _editFuncCod) abrirDrawerFunc(codAtualizado);
+    if (_editFuncCod === utilizadorActual?.COD_FUNCIONARIO && nome) {
+      utilizadorActual.NOME_FUNCIONARIO = nome;
+      const elNome = document.getElementById('sidebar-user-name');
+      const elAvatar = document.getElementById('sidebar-avatar');
+      if (elNome) elNome.textContent = nome;
+      if (elAvatar) elAvatar.textContent = iniciais(nome);
+    }
   } catch (err) {
     _mostrarErroFunc('modal-func-erro', 'modal-func-erro-msg', err.message);
   }
