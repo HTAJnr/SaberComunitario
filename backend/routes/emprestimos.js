@@ -523,7 +523,7 @@ router.post('/', autenticar, async (req, res) => {
       cod_func: req.session.cod_funcionario,
       operacao: 'CRIAR',
       objeto: 'EMPRESTIMO:' + idEmp,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();
@@ -639,7 +639,7 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
       cod_func: req.session.cod_funcionario,
       operacao: 'DEVOLVER',
       objeto: 'EMPRESTIMO:' + req.params.id,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     try { await conn.commit(); } catch (_) {}

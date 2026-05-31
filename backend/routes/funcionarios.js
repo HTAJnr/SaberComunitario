@@ -366,7 +366,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       cod_func: req.session.cod_funcionario,
       operacao: 'CRIAR',
       objeto: 'FUNCIONARIO',
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();
@@ -470,7 +470,7 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, re
       cod_func: req.session.cod_funcionario,
       operacao: 'EDITAR',
       objeto: 'FUNCIONARIO:' + req.params.id,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();
@@ -502,7 +502,7 @@ router.delete('/:id', exigirNivel('Administrador'), exigirNo('BibliotecaNacional
       cod_func: req.session.cod_funcionario,
       operacao: 'ELIMINAR',
       objeto: 'FUNCIONARIO:' + req.params.id,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();
@@ -541,7 +541,7 @@ router.patch('/:id/acesso', exigirNivel('Administrador'), exigirNo('BibliotecaNa
       cod_func: req.session.cod_funcionario,
       operacao: 'ALTERAR_PERMISSAO',
       objeto: 'FUNCIONARIO:' + req.params.id,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();

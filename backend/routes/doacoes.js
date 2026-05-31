@@ -270,7 +270,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       cod_func: req.session.cod_funcionario,
       operacao: 'CRIAR',
       objeto: 'DOACAO:' + idDoacao,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();
@@ -331,7 +331,7 @@ router.post('/:id/certificado', exigirNivel('Administrador', 'Coordenador'), asy
       cod_func: req.session.cod_funcionario,
       operacao: 'EMITIR_CERTIFICADO',
       objeto: 'DOACAO:' + req.params.id,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();

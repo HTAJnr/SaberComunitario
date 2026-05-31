@@ -160,7 +160,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
       cod_func: req.session.cod_funcionario,
       operacao: 'CRIAR',
       objeto: 'EVENTO:' + idEvento,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();
@@ -201,7 +201,7 @@ router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
       cod_func: req.session.cod_funcionario,
       operacao: 'EDITAR',
       objeto: 'EVENTO:' + req.params.id,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();
@@ -236,7 +236,7 @@ router.patch('/:id/status', exigirNivel('Administrador', 'Coordenador', 'Bibliot
       cod_func: req.session.cod_funcionario,
       operacao: status_evento === 'Cancelado' ? 'CANCELAR' : 'ALTERAR_STATUS',
       objeto: 'EVENTO:' + req.params.id,
-      resultado: 'OK',
+      resultado: 'SUCESSO',
       nos: req.session.cod_biblioteca || 'NACIONAL'
     });
     await conn.commit();
