@@ -85,6 +85,10 @@ GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_materiaisdb;
 -- Emprestimos e suspensoes para vistas globais
 GRANT SELECT ON EMPRESTIMO               TO app_nacionaldb;
 GRANT SELECT ON SUSPENSAO                TO app_nacionaldb;
+-- Procedure chamada via dblink (PATCH /emprestimos/:id/devolver)
+GRANT EXECUTE ON processar_devolucao     TO app_nacionaldb;
+-- Sequencia necessaria para INSERT EMPRESTIMO via synonym (SEQ.NEXTVAL inline)
+GRANT SELECT ON SEQ_EMPRESTIMO           TO app_nacionaldb;
 -- Programas de alfabetizacao para MV mv_relatorio_programas
 GRANT SELECT ON PROGRAMA_ALFABETIZACAO   TO app_nacionaldb;
 GRANT SELECT ON PARTICIPACAO_PROGRAMA    TO app_nacionaldb;
@@ -117,6 +121,7 @@ GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_nacionaldb;
 -- ── Gerson (app_eventosdb) ──────────────────────────────────
 -- Backend correndo no EventosDB precisa de acesso a emprestimos
 -- e programas para o mesmo conjunto de endpoints dos outros nos.
+-- Transparencia: mesmos grants que app_nacionaldb e app_materiaisdb.
 GRANT SELECT ON EMPRESTIMO               TO app_eventosdb;
 GRANT SELECT ON SUSPENSAO                TO app_eventosdb;
 GRANT SELECT ON vw_emprestimos_ativos    TO app_eventosdb;
@@ -132,7 +137,15 @@ GRANT SELECT ON PROGRAMA_FUNCIONARIO     TO app_eventosdb;
 GRANT SELECT ON REPL_FUNCIONARIOS        TO app_eventosdb;
 GRANT SELECT ON VW_AUDITORIA             TO app_eventosdb;
 -- DML: mesmos endpoints de emprestimos/programas que app_nacionaldb
-GRANT UPDATE ON SUSPENSAO                TO app_eventosdb;
-GRANT INSERT ON EMPRESTIMO               TO app_eventosdb;
-GRANT UPDATE ON EMPRESTIMO               TO app_eventosdb;
+GRANT UPDATE ON SUSPENSAO                    TO app_eventosdb;
+GRANT INSERT ON EMPRESTIMO                   TO app_eventosdb;
+GRANT UPDATE ON EMPRESTIMO                   TO app_eventosdb;
 GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_eventosdb;
+-- Transparencia: sequencia + procedure necessarias para qualquer no logado
+GRANT SELECT  ON SEQ_EMPRESTIMO              TO app_eventosdb;
+GRANT EXECUTE ON processar_devolucao         TO app_eventosdb;
+
+-- ── Yasin (app_materiaisdb) — acrescentar ao que ja existe ────
+-- Transparencia: sequencia + procedure para paridade com outros nos
+GRANT SELECT  ON SEQ_EMPRESTIMO              TO app_materiaisdb;
+GRANT EXECUTE ON processar_devolucao         TO app_materiaisdb;

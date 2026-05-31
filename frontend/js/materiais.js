@@ -319,7 +319,7 @@ async function abrirModalEditarMat(cod) {
   let subtipoHtml = '';
   if (m.TIPO === 'Ebook') {
     subtipoHtml = `
-      <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #e2e8f0">
+      <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #30363d">
         <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Ebook</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div>
@@ -340,7 +340,7 @@ async function abrirModalEditarMat(cod) {
       </div>`;
   } else if (m.TIPO === 'Periodico') {
     subtipoHtml = `
-      <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #e2e8f0">
+      <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #30363d">
         <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Periódico</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div>
@@ -581,7 +581,7 @@ function _renderizarWzMatStep(step) {
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
         ${['Livro','Ebook','Periodico'].map(t => `
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;
-                        background:${tipo===t?'#818cf820':'#f8fafc'};border:1.5px solid ${tipo===t?'#818cf8':'#e2e8f0'};
+                        background:${tipo===t?'#818cf820':'#1c2128'};border:1.5px solid ${tipo===t?'#818cf8':'#30363d'};
                         border-radius:8px;padding:8px 14px">
             <input type="radio" name="wz-tipo" value="${t}" ${tipo===t?'checked':''} onchange="_wzMatToggleTipo()" style="accent-color:#a78bfa"/>
             ${t==='Livro'?'Livro Físico':t==='Periodico'?'Periódico':t}
@@ -602,7 +602,7 @@ function _renderizarWzMatStep(step) {
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           ${['Comprado','Doado','Transferido'].map(o => `
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;
-                          background:${origem===o?'#818cf820':'#f8fafc'};border:1.5px solid ${origem===o?'#818cf8':'#e2e8f0'};
+                          background:${origem===o?'#818cf820':'#1c2128'};border:1.5px solid ${origem===o?'#818cf8':'#30363d'};
                           border-radius:8px;padding:8px 14px">
               <input type="radio" name="wz-origem" value="${o}" ${origem===o?'checked':''} onchange="_wzMatToggleOrigem()" style="accent-color:#a78bfa"/>
               ${o}
@@ -685,7 +685,7 @@ function _renderizarCamposOrigem(origem) {
   const el = document.getElementById('wz-origem-campos');
   if (!el) return;
   if (origem === 'Doado') {
-    el.innerHTML = `<div style="background:#f8fafc;border-radius:8px;padding:10px;font-size:12px;color:var(--text-muted);text-align:center">
+    el.innerHTML = `<div style="background:#1c2128;border-radius:8px;padding:10px;font-size:12px;color:var(--text-muted);text-align:center">
       <i class="fa-solid fa-spinner fa-spin"></i> A carregar doações…
     </div>`;
     _wzMatCarregarDoacoes();

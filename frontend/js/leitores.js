@@ -695,7 +695,7 @@ async function abrirModalSuspensoes(numCartao) {
 
   document.getElementById('modal-leitor-conteudo').innerHTML = suspensoes.map(s => {
     const isActiva = s.ESTADO_SUSPENSAO === 'Activa';
-    return `<div style="background:${isActiva?'#fff4e0':'#f8f9fa'};border:1px solid ${isActiva?'#ffe08a':'#e9ecef'};border-radius:8px;padding:12px 14px;margin-bottom:10px">
+    return `<div style="background:${isActiva?'#2a1e00':'#1c2128'};border:1px solid ${isActiva?'#6a5000':'#30363d'};border-radius:8px;padding:12px 14px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span style="font-size:12px;font-weight:600">${fmtData(s.DATA_INICIO)} → ${fmtData(s.DATA_FIM)}</span>
         ${bdgEstado(s.ESTADO_SUSPENSAO)}
@@ -878,7 +878,7 @@ function _renderizarDrawerConteudo() {
       el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">Sem suspensões activas.</div>';
     } else {
       el.innerHTML = susps.map(s => `
-        <div style="background:${s.ESTADO_SUSPENSAO==='Activa'?'#fff4e0':'#f8f9fa'};border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px">
+        <div style="background:${s.ESTADO_SUSPENSAO==='Activa'?'#2a1e00':'#1c2128'};border:1px solid #30363d;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <span>${fmtData(s.DATA_INICIO)} → ${fmtData(s.DATA_FIM)}</span>${bdgEstado(s.ESTADO_SUSPENSAO)}
           </div>

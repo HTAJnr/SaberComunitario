@@ -49,7 +49,7 @@ router.get('/snapshots', exigirNivel('Administrador'), async (req, res) => {
               REFRESH_METHOD   AS metodo,
               LAST_REFRESH_DATE AS ultimo_refresh,
               STALENESS        AS estado
-         FROM USER_MVIEWS
+         FROM ALL_MVIEWS
         ORDER BY MVIEW_NAME`,
       [],
       { outFormat: oracledb.OUT_FORMAT_OBJECT }

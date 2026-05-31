@@ -40,7 +40,7 @@ async function api(path, opts = {}) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const msgErro = data.erro || data.mensagem || '';
+    const msgErro = (data.erro === true ? data.mensagem : data.erro) || data.mensagem || '';
     if (typeof msgErro === 'string' &&
         (msgErro.includes('ORA-01031') || msgErro.includes('ORA-01732') ||
          msgErro.includes('ORA-02063'))) {
@@ -49,7 +49,7 @@ async function api(path, opts = {}) {
       try { fecharModal(); } catch {}
       throw new Error('Sem permissão.');
     }
-    throw new Error(data.erro || `Erro ${res.status}`);
+    throw new Error(msgErro || `Erro ${res.status}`);
   }
   return data;
 }

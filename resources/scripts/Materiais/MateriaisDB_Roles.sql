@@ -8,10 +8,6 @@ BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_materiaisdb_read';  EXCEPTION WHEN OTHER
 /
 BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_materiaisdb_write'; EXCEPTION WHEN OTHERS THEN NULL; END;
 /
-BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_mat_leitura';  EXCEPTION WHEN OTHERS THEN NULL; END;
-/
-BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_mat_completo'; EXCEPTION WHEN OTHERS THEN NULL; END;
-/
 
 -- Roles locais do no (sessao directa — nao transitam por dblink)
 CREATE ROLE role_materiaisdb_read;

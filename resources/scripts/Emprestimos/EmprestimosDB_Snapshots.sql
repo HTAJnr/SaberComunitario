@@ -187,3 +187,10 @@ CREATE MATERIALIZED VIEW repl_funcao_funcionario
 AS
 SELECT id_funcao, nome_funcao, nivel_acesso
 FROM funcao_funcionario@nacionaldb;
+
+-- ============================================================
+-- Recompilar objectos dependentes das MVs
+-- ============================================================
+ALTER TRIGGER trg_valida_emprestimo COMPILE;
+ALTER VIEW vw_emprestimos_ativos COMPILE;
+ALTER VIEW vw_historico_emprestimos COMPILE;

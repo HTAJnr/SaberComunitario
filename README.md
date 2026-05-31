@@ -84,24 +84,9 @@ sqlplus usr_emprestimosdb/"YC20220156" @/root/TP/EmprestimosDB_Snapshots.sql
 
 Este script recria as materialized views `SNAP_MATERIAL`, `SNAP_CATEGORIA` e `BIBLIOTECA_SNAP` que dependem do BibliotecaNacionalDB e do MateriaisDB. A primeira execução no Passo 1 falhou porque os nós dependentes ainda não existiam — esta segunda execução resolve isso.
 
-**Passo 5 — recompilar objectos inválidos** (se necessário após reinstalação):
-
-Após reinstalação em sistema existente, podem existir views, triggers ou procedures em estado `INVALID` por dependências transitórias. Verificar e recompilar em cada nó afectado:
-
-```sql
--- Verificar objectos inválidos
-SELECT object_type, object_name, status
-FROM dba_objects
-WHERE owner = 'USR_EVENTOSDB'   -- substituir pelo schema do nó
-  AND status = 'INVALID';
-
--- Recompilar (exemplos)
-ALTER VIEW usr_eventosdb.nome_da_view COMPILE;
-ALTER TRIGGER usr_eventosdb.nome_do_trigger COMPILE;
-ALTER PROCEDURE usr_eventosdb.nome_do_proc COMPILE;
-```
-
 O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
+
+Os scripts `EventosDB_Snapshots.sql` e `EmprestimosDB_Snapshots.sql` incluem um bloco de recompilação automática no fim — views e triggers dependentes das MVs são recompilados sem necessidade de intervenção manual.
 
 ---
 

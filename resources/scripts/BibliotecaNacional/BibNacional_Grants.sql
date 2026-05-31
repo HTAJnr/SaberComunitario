@@ -62,6 +62,17 @@ GRANT INSERT, UPDATE, DELETE ON PERMISSAO_CARGO        TO role_NACIONALDB_write;
 --    snapshots quando o backend corre noutro no.
 -- ============================================================
 
+-- ── AUDITORIA CROSS-NODE ─────────────────────────────────────
+-- O middleware registar() insere em AUDITORIA_OPERACOES + usa SEQ_AUDITORIA
+-- independentemente do no logado. Os visitor users precisam de acesso directo
+-- (roles nao transitam por dblink — ORA-02289 sem estes grants).
+GRANT INSERT ON AUDITORIA_OPERACOES TO app_emprestimosdb;
+GRANT INSERT ON AUDITORIA_OPERACOES TO app_eventosdb;
+GRANT INSERT ON AUDITORIA_OPERACOES TO app_materiaisdb;
+GRANT SELECT ON SEQ_AUDITORIA       TO app_emprestimosdb;
+GRANT SELECT ON SEQ_AUDITORIA       TO app_eventosdb;
+GRANT SELECT ON SEQ_AUDITORIA       TO app_materiaisdb;
+
 -- ── Yannis (app_emprestimosdb) ──────────────────────────────
 
 -- Doacoes — DML cross-node (modulo acessivel de qualquer no)

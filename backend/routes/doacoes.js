@@ -323,8 +323,8 @@ router.post('/:id/certificado', exigirNivel('Administrador', 'Coordenador'), asy
     await conn.execute(
       `INSERT INTO CERTIFICADO_DOACAO
          (ID_CERTIFICADO, NUM_CERTIFICADO, ID_DOACAO, TIPO_CERTIFICADO, DATA_EMISSAO, OBSERVACOES)
-       VALUES (SEQ_CERTIFICADO.NEXTVAL, :num_cert, :id_doacao, :tipo, SYSDATE, :obs)`,
-      { num_cert: numCertificado, id_doacao: parseInt(req.params.id),
+       VALUES (:id_cert, :num_cert, :id_doacao, :tipo, SYSDATE, :obs)`,
+      { id_cert: seq, num_cert: numCertificado, id_doacao: parseInt(req.params.id),
         tipo: tipo_certificado, obs: observacoes || null }
     );
     await registar(conn, {

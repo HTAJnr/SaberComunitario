@@ -1,10 +1,7 @@
 
--- Apagar tabelas placeholder se existirem (criadas pelo Main para compilacao offline)
-DROP TABLE repl_funcionarios;
-DROP TABLE snap_leitor;
-
 -- ============================================================
 -- Campos completos para autenticacao offline (inclui SENHA e EMAIL)
+DROP TABLE repl_funcionarios;
 DROP MATERIALIZED VIEW repl_funcionarios;
 
 CREATE MATERIALIZED VIEW repl_funcionarios
@@ -35,6 +32,9 @@ SELECT id_funcao, nome_funcao, nivel_acesso
 FROM funcao_funcionario@link_nacionaldb;
 
 -- ============================================================
+DROP TABLE snap_leitor;
+DROP MATERIALIZED VIEW snap_leitor;
+
 CREATE MATERIALIZED VIEW snap_leitor
     BUILD IMMEDIATE
     REFRESH COMPLETE
@@ -44,3 +44,10 @@ AS
 SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
 FROM leitor@link_nacionaldb;
+
+-- ============================================================
+-- Recompilar objectos dependentes das MVs
+-- ============================================================
+ALTER VIEW vw_bibliotecas_operacionais COMPILE;
+ALTER VIEW vw_eventos_completos COMPILE;
+ALTER VIEW vw_participacoes_eventos COMPILE;

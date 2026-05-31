@@ -8,10 +8,6 @@ BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_emprestimosdb_read';  EXCEPTION WHEN OTH
 /
 BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_emprestimosdb_write'; EXCEPTION WHEN OTHERS THEN NULL; END;
 /
-BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_emp_visitante'; EXCEPTION WHEN OTHERS THEN NULL; END;
-/
-BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_emp_programas'; EXCEPTION WHEN OTHERS THEN NULL; END;
-/
 
 -- Roles locais do no (sessao directa — nao transitam por dblink)
 CREATE ROLE role_emprestimosdb_read;

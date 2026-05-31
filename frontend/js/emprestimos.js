@@ -221,7 +221,7 @@ function _renderizarDrawerEmp() {
       ? campo('Devolvido', fmtData(e.DATA_DEVOLUCAO), 'color:var(--theme-accent-text)')
       : atrasado
         ? campo('Atraso', `${e.DIAS_ATRASO} dias`, 'color:#f85149') : ''}
-    ${!e.DATA_DEVOLUCAO && atrasado ? `<div id="drawer-emp-multa-corrente" style="margin-top:6px;padding:8px 10px;border-radius:7px;border:0.5px solid #e07820;background:#fffbf5;font-size:12px;color:#e07820">A calcular multa…</div>` : ''}
+    ${!e.DATA_DEVOLUCAO && atrasado ? `<div id="drawer-emp-multa-corrente" style="margin-top:6px;padding:8px 10px;border-radius:7px;border:0.5px solid #e07820;background:#2a1500;font-size:12px;color:#e07820">A calcular multa…</div>` : ''}
 
     ${secao('Estado Material')}
     ${campo('Saída',   e.ESTADO_MATERIAL_SAIDA   || '—')}
@@ -233,8 +233,8 @@ function _renderizarDrawerEmp() {
 
     ${multa > 0 ? `
     <div style="margin-top:14px;padding:12px;
-                background:${e.MULTA_PAGA === 'S' ? '#f3faf5' : '#fef7f5'};
-                border-radius:8px;border:0.5px solid ${e.MULTA_PAGA === 'S' ? '#d1e8d6' : '#f5c6c6'}">
+                background:${e.MULTA_PAGA === 'S' ? '#0d2820' : '#2a1500'};
+                border-radius:8px;border:0.5px solid ${e.MULTA_PAGA === 'S' ? '#1a5a4a' : '#6a2020'}">
       ${secao('Multa').replace('margin:14px 0 6px', 'margin:0 0 6px')}
       ${campo('Valor',   fmtMoeda(multa), 'color:#e07820')}
       ${campo('Paga',    e.MULTA_PAGA === 'S' ? 'Sim' : 'Não',
@@ -369,8 +369,8 @@ async function _wzEmpValidarLeitor() {
     const nome = _wzEmpLeitor.NOME_COMPLETO || _wzEmpLeitor.NOME_LEITOR || val;
 
     card.innerHTML = `
-      <div style="border:0.5px solid ${pode ? '#d1e8d6' : '#f5c6c6'};border-radius:8px;
-                  padding:12px;background:${pode ? '#f3faf5' : '#fef2f2'}">
+      <div style="border:0.5px solid ${pode ? '#1a5a4a' : '#6a2020'};border-radius:8px;
+                  padding:12px;background:${pode ? '#0d2820' : '#2a0a0a'}">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
           <div class="avatar-initials" style="width:36px;height:36px;font-size:13px">${iniciais(nome)}</div>
           <div>
@@ -386,17 +386,17 @@ async function _wzEmpValidarLeitor() {
             ? ` · ${_wzEmpLeitor.DISTANCIA_BIBLIOTECA} km da biblioteca` : ''}
         </div>` : ''}
         ${!pode
-          ? `<div style="padding:7px 10px;background:#fcebeb;border-radius:5px;font-size:12px;color:#f85149">
+          ? `<div style="padding:7px 10px;background:#2a0a0a;border-radius:5px;font-size:12px;color:#f85149">
                <i class="fa-solid fa-circle-xmark" style="margin-right:5px"></i>${validacao.motivo || 'Leitor não pode realizar empréstimo.'}
              </div>`
-          : `<div style="padding:7px 10px;background:#e1f5ee;border-radius:5px;font-size:12px;color:var(--theme-accent-text)">
+          : `<div style="padding:7px 10px;background:#0d2820;border-radius:5px;font-size:12px;color:var(--theme-accent-text)">
                <i class="fa-solid fa-circle-check" style="margin-right:5px"></i>Leitor disponível para empréstimo.
              </div>`}
       </div>`;
 
     if (btnProximo) btnProximo.disabled = !pode;
   } catch (err) {
-    card.innerHTML = `<div style="padding:8px 10px;background:#fcebeb;border-radius:6px;font-size:12px;color:#f85149">
+    card.innerHTML = `<div style="padding:8px 10px;background:#2a0a0a;border-radius:6px;font-size:12px;color:#f85149">
       ${err.message}
     </div>`;
     _wzEmpLeitor = null;
@@ -431,7 +431,7 @@ async function _wzEmpPesquisarMaterial() {
           </div>
         </div>`).join('') + `</div>`;
   } catch (err) {
-    lista.innerHTML = `<div style="padding:8px;background:#fcebeb;border-radius:6px;font-size:12px;color:#f85149">${err.message}</div>`;
+    lista.innerHTML = `<div style="padding:8px;background:#2a0a0a;border-radius:6px;font-size:12px;color:#f85149">${err.message}</div>`;
   }
 }
 
@@ -518,7 +518,7 @@ async function _wzEmpCarregarStep3() {
       </div>`;
   } catch (err) {
     document.getElementById('wzc-conteudo').innerHTML =
-      `<div style="padding:8px;background:#fcebeb;border-radius:6px;font-size:12px;color:#f85149">${err.message}</div>`;
+      `<div style="padding:8px;background:#2a0a0a;border-radius:6px;font-size:12px;color:#f85149">${err.message}</div>`;
   }
 }
 
@@ -640,8 +640,8 @@ async function _previewDevolucaoEmp() {
     const temMulta = (res.multa_total || 0) > 0;
     const grave    = estado === 'Destruído' || estado === 'Perdido';
     prev.innerHTML = `
-      <div style="border:0.5px solid ${temMulta ? '#e07820' : '#d1e8d6'};border-radius:8px;
-                  padding:12px;background:${temMulta ? '#fffbf5' : '#f3faf5'}">
+      <div style="border:0.5px solid ${temMulta ? '#e07820' : '#1a5a4a'};border-radius:8px;
+                  padding:12px;background:${temMulta ? '#2a1500' : '#0d2820'}">
         <div style="font-size:10px;font-weight:500;color:var(--text-muted);text-transform:uppercase;
                     letter-spacing:.06em;margin-bottom:8px">Preview da Multa</div>
         <div style="font-size:12px;display:flex;justify-content:space-between;margin-bottom:4px">

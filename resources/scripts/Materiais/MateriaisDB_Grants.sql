@@ -74,6 +74,15 @@ GRANT SELECT  ON VW_MAT_DISPONIVEL          TO app_emprestimosdb;
 GRANT SELECT  ON VW_MAT_CATALOGO_PUBLICO    TO app_emprestimosdb;
 -- NAO tem UPDATE directo — usa procedure
 GRANT EXECUTE ON atualizar_estado_material  TO app_emprestimosdb;
+-- Transparencia: criar/editar materiais e solicitar transferencias de qualquer no
+GRANT SELECT, INSERT, UPDATE, DELETE ON MATERIAL_BIBLIOGRAFICO TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON LIVRO_FISICO           TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON EBOOK                  TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PERIODICO              TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE ON TRANSFERENCIA                  TO app_emprestimosdb;
+GRANT SELECT ON SEQ_MATERIAL                                   TO app_emprestimosdb;
+GRANT SELECT ON SEQ_CATEGORIA                                  TO app_emprestimosdb;
+GRANT SELECT ON SEQ_TRANSFERENCIA                              TO app_emprestimosdb;
 
 -- ── Helder (app_nacionaldb) ─────────────────────────────────
 -- Supervisao: visao global do catalogo + actualizacao para demo 2PC
@@ -91,10 +100,27 @@ GRANT SELECT ON SEQ_TRANSFERENCIA            TO app_nacionaldb;
 -- DML directo para demo 2PC
 GRANT UPDATE ON MATERIAL_BIBLIOGRAFICO       TO app_nacionaldb;
 GRANT EXECUTE ON atualizar_estado_material   TO app_nacionaldb;
+-- Transparencia: criar/editar materiais e transferencias de qualquer no
+GRANT INSERT, DELETE ON MATERIAL_BIBLIOGRAFICO TO app_nacionaldb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON LIVRO_FISICO  TO app_nacionaldb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON EBOOK         TO app_nacionaldb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PERIODICO     TO app_nacionaldb;
+GRANT INSERT, UPDATE ON TRANSFERENCIA                 TO app_nacionaldb;
+GRANT SELECT ON SEQ_MATERIAL                          TO app_nacionaldb;
+GRANT SELECT ON SEQ_CATEGORIA                         TO app_nacionaldb;
 
 -- ── Gerson (app_eventosdb) ──────────────────────────────────
 -- Planeamento de eventos: catalogo publico e disponibilidade
--- NAO tem acesso directo a MATERIAL_BIBLIOGRAFICO
 GRANT SELECT ON CATEGORIA               TO app_eventosdb;
 GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO TO app_eventosdb;
 GRANT SELECT ON VW_MAT_DISPONIVEL       TO app_eventosdb;
+-- Transparencia: criar/editar materiais e solicitar transferencias de qualquer no
+GRANT SELECT, INSERT, UPDATE, DELETE ON MATERIAL_BIBLIOGRAFICO TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON LIVRO_FISICO           TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON EBOOK                  TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PERIODICO              TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE ON TRANSFERENCIA                  TO app_eventosdb;
+GRANT EXECUTE ON atualizar_estado_material                     TO app_eventosdb;
+GRANT SELECT ON SEQ_MATERIAL                                   TO app_eventosdb;
+GRANT SELECT ON SEQ_CATEGORIA                                  TO app_eventosdb;
+GRANT SELECT ON SEQ_TRANSFERENCIA                              TO app_eventosdb;

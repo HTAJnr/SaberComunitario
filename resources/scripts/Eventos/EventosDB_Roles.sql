@@ -8,8 +8,6 @@ BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_eventosdb_read';  EXCEPTION WHEN OTHERS 
 /
 BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_eventosdb_write'; EXCEPTION WHEN OTHERS THEN NULL; END;
 /
-BEGIN EXECUTE IMMEDIATE 'DROP ROLE role_evt_visitante'; EXCEPTION WHEN OTHERS THEN NULL; END;
-/
 
 -- Roles locais do no (sessao directa — nao transitam por dblink)
 CREATE ROLE role_eventosdb_read;
