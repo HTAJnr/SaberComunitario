@@ -40,6 +40,14 @@ CREATE OR REPLACE PUBLIC SYNONYM SEQ_CERTIFICADO    FOR usr_NACIONALDB.SEQ_CERTI
 CREATE OR REPLACE PUBLIC SYNONYM PERMISSAO_CARGO    FOR usr_NACIONALDB.PERMISSAO_CARGO@link_nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM SEQ_PERMISSAO      FOR usr_NACIONALDB.SEQ_PERMISSAO@link_nacionaldb;
 
+-- Subtipos de leitor do NacionalDB (acedidos via dblink)
+CREATE OR REPLACE PUBLIC SYNONYM leitor              FOR usr_NACIONALDB.leitor@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM adulto              FOR usr_NACIONALDB.adulto@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM adulto_interesse    FOR usr_NACIONALDB.adulto_interesse@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM professor           FOR usr_NACIONALDB.professor@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM professor_disciplina FOR usr_NACIONALDB.professor_disciplina@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM crianca             FOR usr_NACIONALDB.crianca@link_nacionaldb;
+
 -- Autenticacao usa snapshots locais — funciona mesmo com NacionalDB offline
 CREATE OR REPLACE PUBLIC SYNONYM funcionario
     FOR usr_materiaisdb.repl_funcionarios;

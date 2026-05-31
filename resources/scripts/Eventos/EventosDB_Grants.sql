@@ -36,7 +36,7 @@ GRANT SELECT, INSERT ON HORARIO_EVENTO      TO app_eventosdb;
 GRANT SELECT ON EVENTO_RECURSO              TO app_eventosdb;
 GRANT SELECT, INSERT, DELETE ON PARTICIPACAO_EVENTO TO app_eventosdb;
 GRANT SELECT, INSERT, DELETE ON AVALIACAO_EVENTO    TO app_eventosdb;
-GRANT SELECT ON AUDITORIA_EVENTOS           TO app_eventosdb;
+GRANT SELECT, INSERT ON AUDITORIA_EVENTOS   TO app_eventosdb;
 
 -- Vistas de servico
 GRANT SELECT ON v_programacao_eventos       TO app_eventosdb;
