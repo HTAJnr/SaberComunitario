@@ -5,7 +5,27 @@
 
 
 -- ============================================================
--- SECÇÃO 1: UTILIZADOR LOCAL — app_emprestimosdb
+-- SECÇÃO 1: GRANTS AOS ROLES LOCAIS
+-- ============================================================
+
+GRANT SELECT ON EMPRESTIMO             TO role_emprestimosdb_read;
+GRANT SELECT ON SUSPENSAO              TO role_emprestimosdb_read;
+GRANT SELECT ON PROGRAMA_ALFABETIZACAO TO role_emprestimosdb_read;
+GRANT SELECT ON PARTICIPACAO_PROGRAMA  TO role_emprestimosdb_read;
+GRANT SELECT ON NIVEL_PROGRESSAO       TO role_emprestimosdb_read;
+GRANT SELECT ON PROGRAMA_MATERIAL      TO role_emprestimosdb_read;
+GRANT SELECT ON PROGRAMA_FUNCIONARIO   TO role_emprestimosdb_read;
+GRANT SELECT ON REPL_FUNCIONARIOS      TO role_emprestimosdb_read;
+GRANT SELECT ON AUDITORIA_EMPRESTIMOS  TO role_emprestimosdb_read;
+
+GRANT INSERT, UPDATE ON EMPRESTIMO            TO role_emprestimosdb_write;
+GRANT INSERT, UPDATE ON SUSPENSAO             TO role_emprestimosdb_write;
+GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO role_emprestimosdb_write;
+GRANT INSERT         ON AUDITORIA_EMPRESTIMOS TO role_emprestimosdb_write;
+
+
+-- ============================================================
+-- SECÇÃO 2: UTILIZADOR LOCAL — app_emprestimosdb
 -- ============================================================
 GRANT SELECT ON EMPRESTIMO              TO app_emprestimosdb;
 GRANT SELECT ON SUSPENSAO               TO app_emprestimosdb;
@@ -44,40 +64,7 @@ END;
 
 
 -- ============================================================
--- SECÇÃO 2: ROLES PARA VISITOR USERS
--- NOTA: roles nao transitam por dblink — grants directos
--- na Secção 3 sao obrigatorios para acesso cross-node.
--- ============================================================
-
--- role_emp_visitante — acesso minimo para verificacao de emprestimos
--- Destinatarios: todos os nos visitantes
--- (role criado em EmprestimosDB_Roles.sql como SYSDBA)
-GRANT SELECT ON EMPRESTIMO             TO role_emp_visitante;
-GRANT SELECT ON vw_emprestimos_activos TO role_emp_visitante;
-GRANT SELECT ON frag_emp_activos_op    TO role_emp_visitante;
-
--- role_emp_programas — acesso completo para gestao de programas e auditoria
--- Destinatarios: app_nacionaldb, app_eventosdb
-GRANT SELECT ON EMPRESTIMO              TO role_emp_programas;
-GRANT SELECT ON SUSPENSAO               TO role_emp_programas;
-GRANT SELECT ON PROGRAMA_ALFABETIZACAO  TO role_emp_programas;
-GRANT SELECT ON PARTICIPACAO_PROGRAMA   TO role_emp_programas;
-GRANT SELECT ON NIVEL_PROGRESSAO        TO role_emp_programas;
-GRANT SELECT ON PROGRAMA_MATERIAL       TO role_emp_programas;
-GRANT SELECT ON PROGRAMA_FUNCIONARIO    TO role_emp_programas;
-GRANT SELECT ON REPL_FUNCIONARIOS       TO role_emp_programas;
-GRANT SELECT ON vw_emprestimos_activos  TO role_emp_programas;
-GRANT SELECT ON vw_emprestimos_ativos   TO role_emp_programas;
-GRANT SELECT ON vw_historico_emprestimos TO role_emp_programas;
-GRANT SELECT ON vw_suspensoes_activas   TO role_emp_programas;
-GRANT SELECT ON frag_emp_activos_op     TO role_emp_programas;
-GRANT SELECT ON VW_AUDITORIA            TO role_emp_programas;
-
--- (atribuicao de roles feita em EmprestimosDB_Roles.sql como SYSDBA)
-
-
--- ============================================================
--- SECÇÃO 3: GRANTS DIRECTOS AOS VISITOR USERS
+-- SECÇÃO 2: GRANTS DIRECTOS AOS VISITOR USERS
 -- Obrigatorios para acesso via dblink + DML exclusivo por no.
 -- ============================================================
 

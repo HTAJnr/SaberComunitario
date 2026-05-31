@@ -7,7 +7,30 @@
 
 
 -- ============================================================
--- SECÇÃO 1: UTILIZADOR LOCAL — app_materiaisdb
+-- SECÇÃO 1: GRANTS AOS ROLES LOCAIS
+-- ============================================================
+
+GRANT SELECT ON CATEGORIA              TO role_materiaisdb_read;
+GRANT SELECT ON MATERIAL_BIBLIOGRAFICO TO role_materiaisdb_read;
+GRANT SELECT ON LIVRO_FISICO           TO role_materiaisdb_read;
+GRANT SELECT ON EBOOK                  TO role_materiaisdb_read;
+GRANT SELECT ON PERIODICO              TO role_materiaisdb_read;
+GRANT SELECT ON TRANSFERENCIA          TO role_materiaisdb_read;
+GRANT SELECT ON AUDITORIA_MATERIAIS    TO role_materiaisdb_read;
+GRANT SELECT ON VW_MAT_DISPONIVEL      TO role_materiaisdb_read;
+GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO TO role_materiaisdb_read;
+
+GRANT INSERT, UPDATE, DELETE ON MATERIAL_BIBLIOGRAFICO TO role_materiaisdb_write;
+GRANT INSERT, UPDATE, DELETE ON LIVRO_FISICO           TO role_materiaisdb_write;
+GRANT INSERT, UPDATE, DELETE ON EBOOK                  TO role_materiaisdb_write;
+GRANT INSERT, UPDATE, DELETE ON PERIODICO              TO role_materiaisdb_write;
+GRANT INSERT, UPDATE, DELETE ON TRANSFERENCIA          TO role_materiaisdb_write;
+GRANT INSERT, UPDATE, DELETE ON CATEGORIA              TO role_materiaisdb_write;
+GRANT INSERT                 ON AUDITORIA_MATERIAIS    TO role_materiaisdb_write;
+
+
+-- ============================================================
+-- SECÇÃO 2: UTILIZADOR LOCAL — app_materiaisdb
 -- ============================================================
 GRANT SELECT, INSERT, UPDATE, DELETE ON CATEGORIA               TO app_materiaisdb;
 GRANT SELECT, INSERT, UPDATE, DELETE ON MATERIAL_BIBLIOGRAFICO  TO app_materiaisdb;
@@ -37,39 +60,7 @@ END;
 
 
 -- ============================================================
--- SECÇÃO 2: ROLES PARA VISITOR USERS
--- Roles simplificam a gestao: adicionar um no = atribuir o role,
--- em vez de repetir dezenas de grants.
--- NOTA: roles funcionam para acesso local; para acesso via dblink
--- os grants directos da Secção 3 sao obrigatorios (limitacao Oracle).
--- ============================================================
-
--- role_mat_leitura — catalogo publico e disponibilidade
--- Destinatarios: todos os nos visitantes
--- (role criado em MateriaisDB_Roles.sql como SYSDBA)
-GRANT SELECT ON CATEGORIA               TO role_mat_leitura;
-GRANT SELECT ON VW_MAT_DISPONIVEL       TO role_mat_leitura;
-GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO TO role_mat_leitura;
-
--- role_mat_completo — visao detalhada para supervisao nacional
--- Destinatario: app_nacionaldb (dashboard e demo 2PC)
-GRANT SELECT ON CATEGORIA                    TO role_mat_completo;
-GRANT SELECT ON MATERIAL_BIBLIOGRAFICO       TO role_mat_completo;
-GRANT SELECT ON LIVRO_FISICO                 TO role_mat_completo;
-GRANT SELECT ON EBOOK                        TO role_mat_completo;
-GRANT SELECT ON PERIODICO                    TO role_mat_completo;
-GRANT SELECT ON TRANSFERENCIA                TO role_mat_completo;
-GRANT SELECT ON VW_MAT_DISPONIVEL            TO role_mat_completo;
-GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO      TO role_mat_completo;
-GRANT SELECT ON vw_materiais_completos       TO role_mat_completo;
-GRANT SELECT ON vw_transferencias_detalhadas TO role_mat_completo;
-GRANT SELECT ON SEQ_TRANSFERENCIA            TO role_mat_completo;
-
--- (atribuicao de roles feita em MateriaisDB_Roles.sql como SYSDBA)
-
-
--- ============================================================
--- SECÇÃO 3: GRANTS DIRECTOS AOS VISITOR USERS
+-- SECÇÃO 2: GRANTS DIRECTOS AOS VISITOR USERS
 -- Obrigatorios para acesso via dblink (roles nao transitam
 -- por dblink no Oracle — ORA-01031 sem grant directo).
 -- Tambem cobre DML e EXECUTE que os roles nao incluem.

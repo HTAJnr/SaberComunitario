@@ -5,7 +5,26 @@
 
 
 -- ============================================================
--- SECÇÃO 1: UTILIZADOR LOCAL — app_eventosdb
+-- SECÇÃO 1: GRANTS AOS ROLES LOCAIS
+-- ============================================================
+
+GRANT SELECT ON BIBLIOTECA         TO role_eventosdb_read;
+GRANT SELECT ON HORARIO_BIBLIOTECA TO role_eventosdb_read;
+GRANT SELECT ON EVENTO             TO role_eventosdb_read;
+GRANT SELECT ON HORARIO_EVENTO     TO role_eventosdb_read;
+GRANT SELECT ON PARTICIPACAO_EVENTO TO role_eventosdb_read;
+GRANT SELECT ON AVALIACAO_EVENTO   TO role_eventosdb_read;
+GRANT SELECT ON AUDITORIA_EVENTOS  TO role_eventosdb_read;
+
+GRANT INSERT, UPDATE        ON EVENTO             TO role_eventosdb_write;
+GRANT INSERT, UPDATE        ON HORARIO_EVENTO     TO role_eventosdb_write;
+GRANT INSERT, DELETE        ON PARTICIPACAO_EVENTO TO role_eventosdb_write;
+GRANT INSERT, DELETE        ON AVALIACAO_EVENTO   TO role_eventosdb_write;
+GRANT INSERT                ON AUDITORIA_EVENTOS  TO role_eventosdb_write;
+
+
+-- ============================================================
+-- SECÇÃO 2: UTILIZADOR LOCAL — app_eventosdb
 -- ============================================================
 
 -- Tabelas
@@ -63,29 +82,7 @@ END;
 
 
 -- ============================================================
--- SECÇÃO 2: ROLES PARA VISITOR USERS
--- NOTA: roles nao transitam por dblink — grants directos
--- na Secção 3 sao obrigatorios para acesso cross-node.
--- ============================================================
-
--- role_evt_visitante — acesso a eventos, bibliotecas e horarios
--- Destinatarios: todos os nos visitantes
--- (role criado em EventosDB_Roles.sql como SYSDBA)
-GRANT SELECT ON BIBLIOTECA                   TO role_evt_visitante;
-GRANT SELECT ON EVENTO                       TO role_evt_visitante;
-GRANT SELECT ON PARTICIPACAO_EVENTO          TO role_evt_visitante;
-GRANT SELECT ON HORARIO_BIBLIOTECA           TO role_evt_visitante;
-GRANT SELECT ON v_bibliotecas_activas        TO role_evt_visitante;
-GRANT SELECT ON v_programacao_eventos        TO role_evt_visitante;
-GRANT SELECT ON v_horarios_bibliotecas       TO role_evt_visitante;
-GRANT SELECT ON vw_eventos_proximos          TO role_evt_visitante;
-GRANT SELECT ON vw_eventos_completos         TO role_evt_visitante;
-
--- (atribuicao de roles feita em EventosDB_Roles.sql como SYSDBA)
-
-
--- ============================================================
--- SECÇÃO 3: GRANTS DIRECTOS AOS VISITOR USERS
+-- SECÇÃO 2: GRANTS DIRECTOS AOS VISITOR USERS
 -- Obrigatorios para acesso via dblink + DML exclusivo por no.
 -- ============================================================
 

@@ -87,7 +87,6 @@ CREATE OR REPLACE PUBLIC SYNONYM total_doacoes_doador         FOR usr_NACIONALDB
 
 CREATE OR REPLACE PUBLIC SYNONYM registrar_doacao_completa    FOR usr_NACIONALDB.registrar_doacao_completa;
 CREATE OR REPLACE PUBLIC SYNONYM reemitir_certificado         FOR usr_NACIONALDB.reemitir_certificado;
-CREATE OR REPLACE PUBLIC SYNONYM proc_gerir_acesso_bd         FOR usr_NACIONALDB.proc_gerir_acesso_bd;
 CREATE OR REPLACE PUBLIC SYNONYM prc_registar_auditoria       FOR usr_NACIONALDB.prc_registar_auditoria;
 CREATE OR REPLACE PUBLIC SYNONYM prc_apagar_leitor            FOR usr_NACIONALDB.prc_apagar_leitor;
 CREATE OR REPLACE PUBLIC SYNONYM prc_emitir_honorifico        FOR usr_NACIONALDB.prc_emitir_honorifico;

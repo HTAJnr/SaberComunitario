@@ -101,7 +101,6 @@ CREATE OR REPLACE VIEW vw_mat_disponivel AS
            END AS disponivel_emprestimo
     FROM MATERIAL_BIBLIOGRAFICO;
 
-GRANT SELECT ON vw_mat_disponivel TO role_materiaisdb_read;
 
 
 -- ============================================================

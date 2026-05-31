@@ -6,7 +6,7 @@ const { registar } = require('../middleware/auditoria');
 
 function refreshSnapshotsBackground() {
   getConnection().then(c =>
-    c.execute(`BEGIN DBMS_MVIEW.REFRESH('snap_emp_activos,snap_transferencias,snap_eventos,snap_material_basico,biblioteca_snap','C'); END;`)
+    c.execute(`BEGIN prc_refresh_snapshots; END;`)
      .catch(e => console.warn('[SNAPSHOT REFRESH]', e.message))
      .finally(() => c.close().catch(() => {}))
   ).catch(e => console.warn('[SNAPSHOT REFRESH]', e.message));
