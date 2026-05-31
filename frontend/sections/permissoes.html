@@ -21,32 +21,25 @@
   </div>
 
   <!-- Sub-painel: Cargos -->
-  <div id="sub-perm-cargos" class="panel" style="margin-bottom:24px">
-    <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:0.5px solid var(--border)">
+  <div id="sub-perm-cargos" style="margin-bottom:24px">
+
+    <!-- Header -->
+    <div class="panel" style="margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <h3 style="margin:0;font-size:14px;font-weight:600;color:var(--text-primary)">Cargos do Sistema</h3>
-          <p style="margin:3px 0 0;font-size:11px;color:var(--text-muted)">Define os cargos disponíveis e o nível de acesso associado a cada um.</p>
+          <p style="margin:3px 0 0;font-size:11px;color:var(--text-muted)">Cargos registados e o nível de acesso associado a cada um.</p>
         </div>
-        <button id="btn-novo-cargo" class="btn-primary btn-sm hidden"
-                onclick="abrirModalCargo()">
+        <button id="btn-novo-cargo" class="btn-primary btn-sm hidden" onclick="abrirModalCargo()">
           <i class="fa-solid fa-plus" style="margin-right:5px"></i>Novo Cargo
         </button>
       </div>
     </div>
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Nível de Acesso</th>
-          <th>Descrição</th>
-          <th style="text-align:center">Nº Funcionários</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="tabela-cargos"></tbody>
-    </table>
+
+    <!-- Cards de cargos -->
+    <div id="cargo-cards-grid" class="cargo-cards-grid"></div>
+
+
   </div>
 
   <!-- Sub-painel: Matriz de Permissões por Cargo -->

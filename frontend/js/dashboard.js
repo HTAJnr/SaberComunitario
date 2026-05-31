@@ -26,7 +26,32 @@ async function carregarDashboardBibAdmin() {
   await carregarDashboardBib(utilizadorActual?.NIVEL_ACESSO);
 }
 
+const _SNAPSHOT_TTL_MS = 90 * 60 * 1000; // 1h30m
+
+async function _verificarSnapshots() {
+  if (utilizadorActual?.NIVEL_ACESSO !== 'Administrador') return;
+  try {
+    const lista = await get('/api/manutencao/snapshots');
+    if (!lista.length) return;
+    const agora = Date.now();
+    const precisaRefresh = lista.some(s =>
+      !s.ULTIMO_REFRESH || (agora - new Date(s.ULTIMO_REFRESH).getTime() > _SNAPSHOT_TTL_MS)
+    );
+    if (!precisaRefresh) return;
+
+    document.getElementById('loading-sync').classList.remove('hidden');
+    try {
+      await post('/api/manutencao/refresh-snapshots', {});
+    } catch (err) {
+      console.warn('[SNAPSHOT TTL] refresh falhou:', err.message);
+    } finally {
+      document.getElementById('loading-sync').classList.add('hidden');
+    }
+  } catch { /* silencioso — endpoint indisponível ou utilizador sem acesso */ }
+}
+
 async function carregarDashboard() {
+  await _verificarSnapshots();
   const nivel = utilizadorActual?.NIVEL_ACESSO;
   if (nivel === 'Administrador') {
     document.getElementById('dash-rede-view').classList.remove('hidden');

@@ -55,35 +55,54 @@ function switchTabPermissoes(tab) {
 async function carregarCargos() {
   try {
     _cargosRows = await get('/api/permissoes/cargos');
-    _renderizarTabelaCargos();
+    _renderizarCargoCards();
   } catch (err) {
     toast('Erro a carregar cargos: ' + err.message, 'erro');
   }
 }
 
-function _renderizarTabelaCargos() {
-  const tbody = document.getElementById('tabela-cargos');
-  if (!tbody) return;
+const _CARGO_ESTILOS = {
+  'Administrador': { bg: 'rgba(192,132,252,.08)', border: 'rgba(192,132,252,.2)', icon: '#c084fc', iconBg: 'rgba(192,132,252,.12)', fa: 'fa-crown' },
+  'Coordenador':   { bg: 'rgba(96,165,250,.08)',  border: 'rgba(96,165,250,.2)',  icon: '#60a5fa', iconBg: 'rgba(96,165,250,.12)',  fa: 'fa-compass' },
+  'Bibliotecario': { bg: 'rgba(63,178,122,.08)',  border: 'rgba(63,178,122,.2)',  icon: '#3fb27a', iconBg: 'rgba(63,178,122,.12)',  fa: 'fa-book-open' },
+  'Assistente':    { bg: 'rgba(210,153,34,.08)',   border: 'rgba(210,153,34,.2)',   icon: '#d29922', iconBg: 'rgba(210,153,34,.12)',  fa: 'fa-user-check' },
+};
+
+function _renderizarCargoCards() {
+  const grid = document.getElementById('cargo-cards-grid');
+  if (!grid) return;
   if (!_cargosRows.length) {
-    tbody.innerHTML = linhaVazia(6, 'Sem cargos registados.');
+    grid.innerHTML = `<p style="color:var(--text-muted);font-size:12px;padding:16px 0">Sem cargos registados.</p>`;
     return;
   }
-  tbody.innerHTML = _cargosRows.map(c => `
-    <tr>
-      <td style="font-family:monospace;font-size:11px;color:var(--text-muted)">${c.ID_FUNCAO}</td>
-      <td style="font-weight:500">${c.NOME_FUNCAO || '—'}</td>
-      <td>${_badgeNivelCargo(c.NIVEL_ACESSO)}</td>
-      <td style="color:var(--text-secondary);font-size:12px">${c.DESCRICAO || '<em style="color:var(--text-muted)">—</em>'}</td>
-      <td style="text-align:center">${c.NUM_FUNCIONARIOS ?? 0}</td>
-      <td style="text-align:right;padding-right:10px">
-        <button class="btn-ghost btn-sm" onclick="abrirModalCargo(${c.ID_FUNCAO})">
-          <i class="fa-solid fa-pen"></i>
-        </button>
-        <button class="btn-ghost btn-sm" onclick="eliminarCargo(${c.ID_FUNCAO})" style="color:#f85149">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </td>
-    </tr>`).join('');
+  grid.innerHTML = _cargosRows.map(c => {
+    const e = _CARGO_ESTILOS[c.NIVEL_ACESSO] || { bg: 'rgba(139,148,158,.08)', border: 'rgba(139,148,158,.2)', icon: '#8b949e', iconBg: 'rgba(139,148,158,.12)', fa: 'fa-user' };
+    return `
+    <div class="cargo-card" style="border-color:${e.border}">
+      <div class="cargo-card-header" style="background:${e.bg}">
+        <div class="cargo-card-icon" style="background:${e.iconBg};color:${e.icon}">
+          <i class="fa-solid ${e.fa}"></i>
+        </div>
+        <div class="cargo-card-actions">
+          <button class="btn-ghost btn-sm" title="Editar" onclick="abrirModalCargo(${c.ID_FUNCAO})">
+            <i class="fa-solid fa-pen" style="font-size:10px"></i>
+          </button>
+          <button class="btn-ghost btn-sm" title="Eliminar" onclick="eliminarCargo(${c.ID_FUNCAO})" style="color:#f85149">
+            <i class="fa-solid fa-trash" style="font-size:10px"></i>
+          </button>
+        </div>
+      </div>
+      <div class="cargo-card-body">
+        <div class="cargo-card-nome">${c.NOME_FUNCAO || '—'}</div>
+        <div style="margin-bottom:8px">${_badgeNivelCargo(c.NIVEL_ACESSO)}</div>
+        <div class="cargo-card-desc">${c.DESCRICAO || '<span style="color:var(--text-muted);font-style:italic">Sem descrição</span>'}</div>
+        <div class="cargo-card-meta">
+          <i class="fa-solid fa-users" style="font-size:9px"></i>
+          ${c.NUM_FUNCIONARIOS ?? 0} funcionário${(c.NUM_FUNCIONARIOS ?? 0) !== 1 ? 's' : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function _badgeNivelCargo(nivel) {
@@ -95,6 +114,109 @@ function _badgeNivelCargo(nivel) {
     'Assistente':     'background:#3a3a1f;color:#d29922',
   };
   return `<span class="bdg" style="font-size:10px;${cores[nivel] || ''}">${nivel}</span>`;
+}
+
+// ── Matriz estática de referência ──
+const _MATRIZ_REF = [
+  { grupo: 'Dashboard', fa: 'fa-chart-bar', itens: [
+    { label: 'Dashboard — rede',             A:1, C:0, B:0, As:0 },
+    { label: 'Dashboard — biblioteca',       A:1, C:1, B:1, As:1 },
+  ]},
+  { grupo: 'Leitores', fa: 'fa-users', itens: [
+    { label: 'Ver lista',                    A:1, C:1, B:1, As:1 },
+    { label: 'Cadastrar',                    A:1, C:1, B:1, As:1 },
+    { label: 'Editar',                       A:1, C:1, B:1, As:0 },
+    { label: 'Eliminar',                     A:1, C:0, B:0, As:0 },
+    { label: 'Alterar status',               A:1, C:1, B:0, As:0 },
+  ]},
+  { grupo: 'Empréstimos', fa: 'fa-arrow-right-arrow-left', itens: [
+    { label: 'Ver',                          A:1, C:1, B:1, As:1 },
+    { label: 'Criar',                        A:1, C:1, B:1, As:1 },
+    { label: 'Devolver',                     A:1, C:1, B:1, As:1 },
+    { label: 'Eliminar',                     A:1, C:0, B:0, As:0 },
+    { label: 'Multas — marcar paga',         A:1, C:1, B:1, As:0 },
+  ]},
+  { grupo: 'Materiais', fa: 'fa-book', itens: [
+    { label: 'Ver',                          A:1, C:1, B:1, As:1 },
+    { label: 'Adicionar',                    A:1, C:1, B:1, As:0 },
+    { label: 'Editar',                       A:1, C:1, B:1, As:0 },
+    { label: 'Eliminar',                     A:1, C:1, B:0, As:0 },
+  ]},
+  { grupo: 'Transferências', fa: 'fa-truck', itens: [
+    { label: 'Ver',                          A:1, C:1, B:0, As:0 },
+    { label: 'Solicitar',                    A:1, C:1, B:0, As:0 },
+    { label: 'Aprovar / Rejeitar',           A:1, C:1, B:0, As:0 },
+  ]},
+  { grupo: 'Eventos', fa: 'fa-calendar-days', itens: [
+    { label: 'Ver',                          A:1, C:1, B:1, As:1 },
+    { label: 'Criar / Editar',               A:1, C:1, B:1, As:0 },
+    { label: 'Cancelar',                     A:1, C:1, B:0, As:0 },
+    { label: 'Gerir participantes',          A:1, C:1, B:1, As:1 },
+  ]},
+  { grupo: 'Doações', fa: 'fa-hand-holding-heart', itens: [
+    { label: 'Ver',                          A:1, C:1, B:1, As:0 },
+    { label: 'Registar',                     A:1, C:1, B:0, As:0 },
+    { label: 'Certificados — emitir',        A:1, C:1, B:0, As:0 },
+  ]},
+  { grupo: 'Programas', fa: 'fa-graduation-cap', itens: [
+    { label: 'Ver',                          A:1, C:1, B:1, As:1 },
+    { label: 'Criar / Editar',               A:1, C:1, B:0, As:0 },
+    { label: 'Gerir participantes',          A:1, C:1, B:1, As:0 },
+  ]},
+  { grupo: 'Funcionários', fa: 'fa-user-tie', itens: [
+    { label: 'Ver',                          A:1, C:1, B:0, As:0 },
+    { label: 'Cadastrar / Editar',           A:1, C:1, B:0, As:0 },
+    { label: 'Eliminar',                     A:1, C:0, B:0, As:0 },
+  ]},
+  { grupo: 'Sistema', fa: 'fa-gear', itens: [
+    { label: 'Permissões — ver / gerir',     A:1, C:0, B:0, As:0 },
+    { label: 'Bibliotecas (rede)',           A:1, C:0, B:0, As:0 },
+    { label: 'Biblioteca (própria)',         A:1, C:1, B:0, As:0 },
+    { label: 'Suspensões — reduzir',         A:1, C:1, B:0, As:0 },
+  ]},
+];
+
+function _celula(val) {
+  return val
+    ? `<span class="matriz-check sim"><i class="fa-solid fa-check"></i></span>`
+    : `<span class="matriz-check nao">—</span>`;
+}
+
+function _renderizarMatrizRef() {
+  const container = document.getElementById('matriz-ref-container');
+  if (!container) return;
+
+  const linhas = _MATRIZ_REF.map(grupo => {
+    const headerRow = `
+      <tr class="grupo-header">
+        <td colspan="5">
+          <i class="fa-solid ${grupo.fa}" style="margin-right:6px;font-size:10px"></i>${grupo.grupo}
+        </td>
+      </tr>`;
+    const itemRows = grupo.itens.map(item => `
+      <tr>
+        <td style="padding-left:20px;color:var(--text-secondary)">${item.label}</td>
+        <td>${_celula(item.A)}</td>
+        <td>${_celula(item.C)}</td>
+        <td>${_celula(item.B)}</td>
+        <td>${_celula(item.As)}</td>
+      </tr>`).join('');
+    return headerRow + itemRows;
+  }).join('');
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Operação</th>
+          <th style="color:#c084fc">Admin</th>
+          <th style="color:#60a5fa">Coord.</th>
+          <th style="color:#3fb27a">Biblio.</th>
+          <th style="color:#d29922">Assist.</th>
+        </tr>
+      </thead>
+      <tbody>${linhas}</tbody>
+    </table>`;
 }
 
 // Modal de cargo (criar ou editar)
@@ -156,6 +278,10 @@ function abrirModalCargo(idCargo) {
 function eliminarCargo(idCargo) {
   const c = _cargosRows.find(r => r.ID_FUNCAO === idCargo);
   if (!c) return;
+  if ((c.NUM_FUNCIONARIOS ?? 0) > 0) {
+    toast(`"${c.NOME_FUNCAO}" tem ${c.NUM_FUNCIONARIOS} funcionário(s) — reassigna-os antes de eliminar.`, 'erro');
+    return;
+  }
   confirmar(`Eliminar o cargo "${c.NOME_FUNCAO}"? Esta acção não pode ser revertida.`, async () => {
     try {
       await del(`/api/permissoes/cargos/${idCargo}`);
@@ -166,6 +292,118 @@ function eliminarCargo(idCargo) {
     }
   }, { labelOk: 'Eliminar', danger: true });
 }
+
+// ── Estrutura de grupos para a matriz editável ──
+const _GRUPOS_MATRIZ = [
+  { grupo: 'Leitores', fa: 'fa-users', itens: [
+    { label: 'Ver lista',          modulo: 'leitores',       accao: 'ver' },
+    { label: 'Cadastrar',          modulo: 'leitores',       accao: 'criar' },
+    { label: 'Editar',             modulo: 'leitores',       accao: 'editar' },
+    { label: 'Eliminar',           modulo: 'leitores',       accao: 'eliminar' },
+    { label: 'Alterar status',     modulo: 'leitores',       accao: 'alterar_status' },
+  ]},
+  { grupo: 'Empréstimos', fa: 'fa-arrow-right-arrow-left', itens: [
+    { label: 'Ver',                modulo: 'emprestimos',    accao: 'ver' },
+    { label: 'Criar',              modulo: 'emprestimos',    accao: 'criar' },
+    { label: 'Devolver',           modulo: 'emprestimos',    accao: 'devolver' },
+    { label: 'Eliminar',           modulo: 'emprestimos',    accao: 'eliminar' },
+  ]},
+  { grupo: 'Materiais', fa: 'fa-book', itens: [
+    { label: 'Ver',                modulo: 'materiais',      accao: 'ver' },
+    { label: 'Adicionar',          modulo: 'materiais',      accao: 'criar' },
+    { label: 'Editar',             modulo: 'materiais',      accao: 'editar' },
+    { label: 'Eliminar',           modulo: 'materiais',      accao: 'eliminar' },
+  ]},
+  { grupo: 'Transferências', fa: 'fa-truck', itens: [
+    { label: 'Ver',                modulo: 'transferencias', accao: 'ver' },
+    { label: 'Solicitar',          modulo: 'transferencias', accao: 'solicitar' },
+    { label: 'Aprovar / Rejeitar', modulo: 'transferencias', accao: 'aprovar' },
+  ]},
+  { grupo: 'Eventos', fa: 'fa-calendar-days', itens: [
+    { label: 'Ver',                modulo: 'eventos',        accao: 'ver' },
+    { label: 'Criar',              modulo: 'eventos',        accao: 'criar' },
+    { label: 'Editar',             modulo: 'eventos',        accao: 'editar' },
+    { label: 'Cancelar',           modulo: 'eventos',        accao: 'cancelar' },
+    { label: 'Gerir participantes',modulo: 'eventos',        accao: 'gerir_participantes' },
+  ]},
+  { grupo: 'Doações', fa: 'fa-hand-holding-heart', itens: [
+    { label: 'Ver',                modulo: 'doacoes',        accao: 'ver' },
+    { label: 'Registar',           modulo: 'doacoes',        accao: 'registar' },
+    { label: 'Emitir certificado', modulo: 'doacoes',        accao: 'emitir_certificado' },
+  ]},
+  { grupo: 'Programas', fa: 'fa-graduation-cap', itens: [
+    { label: 'Ver',                modulo: 'programas',      accao: 'ver' },
+    { label: 'Criar',              modulo: 'programas',      accao: 'criar' },
+    { label: 'Editar',             modulo: 'programas',      accao: 'editar' },
+    { label: 'Gerir participantes',modulo: 'programas',      accao: 'gerir_participantes' },
+  ]},
+  { grupo: 'Funcionários', fa: 'fa-user-tie', itens: [
+    { label: 'Ver',                modulo: 'funcionarios',   accao: 'ver' },
+    { label: 'Cadastrar',          modulo: 'funcionarios',   accao: 'criar' },
+    { label: 'Editar',             modulo: 'funcionarios',   accao: 'editar' },
+    { label: 'Eliminar',           modulo: 'funcionarios',   accao: 'eliminar' },
+  ]},
+  { grupo: 'Sistema', fa: 'fa-gear', itens: [
+    { label: 'Ver permissões',     modulo: 'permissoes',     accao: 'ver' },
+    { label: 'Gerir permissões',   modulo: 'permissoes',     accao: 'gerir' },
+    { label: 'Ver bibliotecas',    modulo: 'bibliotecas',    accao: 'ver' },
+    { label: 'Editar biblioteca',  modulo: 'bibliotecas',    accao: 'editar' },
+    { label: 'Alterar estado',     modulo: 'bibliotecas',    accao: 'alterar_estado' },
+    { label: 'Ver auditoria',      modulo: 'auditoria',      accao: 'ver' },
+  ]},
+];
+
+// Defaults por nível — usados quando PERMISSAO_CARGO está vazia para um cargo
+const _DEFAULTS_POR_NIVEL = {
+  'Administrador': {
+    'leitores:ver':1,'leitores:criar':1,'leitores:editar':1,'leitores:eliminar':1,'leitores:alterar_status':1,
+    'emprestimos:ver':1,'emprestimos:criar':1,'emprestimos:devolver':1,'emprestimos:eliminar':1,
+    'materiais:ver':1,'materiais:criar':1,'materiais:editar':1,'materiais:eliminar':1,
+    'transferencias:ver':1,'transferencias:solicitar':1,'transferencias:aprovar':1,
+    'eventos:ver':1,'eventos:criar':1,'eventos:editar':1,'eventos:cancelar':1,'eventos:gerir_participantes':1,
+    'doacoes:ver':1,'doacoes:registar':1,'doacoes:emitir_certificado':1,
+    'programas:ver':1,'programas:criar':1,'programas:editar':1,'programas:gerir_participantes':1,
+    'funcionarios:ver':1,'funcionarios:criar':1,'funcionarios:editar':1,'funcionarios:eliminar':1,
+    'permissoes:ver':1,'permissoes:gerir':1,
+    'bibliotecas:ver':1,'bibliotecas:editar':1,'bibliotecas:alterar_estado':1,'auditoria:ver':1,
+  },
+  'Coordenador': {
+    'leitores:ver':1,'leitores:criar':1,'leitores:editar':1,'leitores:eliminar':0,'leitores:alterar_status':1,
+    'emprestimos:ver':1,'emprestimos:criar':1,'emprestimos:devolver':1,'emprestimos:eliminar':0,
+    'materiais:ver':1,'materiais:criar':1,'materiais:editar':1,'materiais:eliminar':1,
+    'transferencias:ver':1,'transferencias:solicitar':1,'transferencias:aprovar':1,
+    'eventos:ver':1,'eventos:criar':1,'eventos:editar':1,'eventos:cancelar':1,'eventos:gerir_participantes':1,
+    'doacoes:ver':1,'doacoes:registar':1,'doacoes:emitir_certificado':1,
+    'programas:ver':1,'programas:criar':1,'programas:editar':1,'programas:gerir_participantes':1,
+    'funcionarios:ver':1,'funcionarios:criar':1,'funcionarios:editar':1,'funcionarios:eliminar':0,
+    'permissoes:ver':0,'permissoes:gerir':0,
+    'bibliotecas:ver':0,'bibliotecas:editar':1,'bibliotecas:alterar_estado':0,'auditoria:ver':0,
+  },
+  'Bibliotecario': {
+    'leitores:ver':1,'leitores:criar':1,'leitores:editar':1,'leitores:eliminar':0,'leitores:alterar_status':0,
+    'emprestimos:ver':1,'emprestimos:criar':1,'emprestimos:devolver':1,'emprestimos:eliminar':0,
+    'materiais:ver':1,'materiais:criar':1,'materiais:editar':1,'materiais:eliminar':0,
+    'transferencias:ver':0,'transferencias:solicitar':0,'transferencias:aprovar':0,
+    'eventos:ver':1,'eventos:criar':1,'eventos:editar':1,'eventos:cancelar':0,'eventos:gerir_participantes':1,
+    'doacoes:ver':1,'doacoes:registar':0,'doacoes:emitir_certificado':0,
+    'programas:ver':1,'programas:criar':0,'programas:editar':0,'programas:gerir_participantes':1,
+    'funcionarios:ver':0,'funcionarios:criar':0,'funcionarios:editar':0,'funcionarios:eliminar':0,
+    'permissoes:ver':0,'permissoes:gerir':0,
+    'bibliotecas:ver':0,'bibliotecas:editar':0,'bibliotecas:alterar_estado':0,'auditoria:ver':0,
+  },
+  'Assistente': {
+    'leitores:ver':1,'leitores:criar':1,'leitores:editar':0,'leitores:eliminar':0,'leitores:alterar_status':0,
+    'emprestimos:ver':1,'emprestimos:criar':1,'emprestimos:devolver':1,'emprestimos:eliminar':0,
+    'materiais:ver':1,'materiais:criar':0,'materiais:editar':0,'materiais:eliminar':0,
+    'transferencias:ver':0,'transferencias:solicitar':0,'transferencias:aprovar':0,
+    'eventos:ver':1,'eventos:criar':0,'eventos:editar':0,'eventos:cancelar':0,'eventos:gerir_participantes':1,
+    'doacoes:ver':0,'doacoes:registar':0,'doacoes:emitir_certificado':0,
+    'programas:ver':1,'programas:criar':0,'programas:editar':0,'programas:gerir_participantes':0,
+    'funcionarios:ver':0,'funcionarios:criar':0,'funcionarios:editar':0,'funcionarios:eliminar':0,
+    'permissoes:ver':0,'permissoes:gerir':0,
+    'bibliotecas:ver':0,'bibliotecas:editar':0,'bibliotecas:alterar_estado':0,'auditoria:ver':0,
+  },
+};
 
 // ── Tab 2 — MATRIZ DE PERMISSÕES POR CARGO ──
 async function carregarSelectCargos() {
@@ -182,7 +420,6 @@ async function carregarSelectCargos() {
       `<option value="${c.ID_FUNCAO}">${c.NOME_FUNCAO} (${c.NIVEL_ACESSO})</option>`
     ).join('');
 
-  // renderizar área vazia
   const conteudo = document.getElementById('matriz-cargo-conteudo');
   if (conteudo) {
     conteudo.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:30px">
@@ -205,9 +442,15 @@ async function carregarMatrizCargo(idCargo) {
   try {
     const rows = await get(`/api/permissoes/cargos/${idCargo}/matriz`);
     _matrizActual = {};
-    rows.forEach(r => {
-      _matrizActual[`${r.MODULO}:${r.ACCAO}`] = r.PERMITIDO;
-    });
+    rows.forEach(r => { _matrizActual[`${r.MODULO}:${r.ACCAO}`] = r.PERMITIDO; });
+
+    // Se vazio, pré-preenche com defaults do nível (primeiro uso)
+    if (rows.length === 0) {
+      const cargo = _cargosRows.find(c => c.ID_FUNCAO === _matrizCargoId);
+      const defaults = _DEFAULTS_POR_NIVEL[cargo?.NIVEL_ACESSO];
+      if (defaults) _matrizActual = { ...defaults };
+    }
+
     _renderizarMatrizEditavel();
   } catch (err) {
     toast('Erro a carregar matriz: ' + err.message, 'erro');
@@ -218,44 +461,56 @@ function _renderizarMatrizEditavel() {
   const conteudo = document.getElementById('matriz-cargo-conteudo');
   if (!conteudo) return;
 
-  // colunas = união de todas as acções existentes (apresentadas como cabeçalhos por módulo)
-  const linhas = Object.entries(MODULOS_ACCOES).map(([modulo, accoes]) => `
-    <tr>
-      <td style="font-weight:500;font-size:12px;text-transform:capitalize;padding:6px 10px;
-                 border-bottom:0.5px solid var(--border-soft)">${modulo}</td>
-      <td style="padding:6px 10px;border-bottom:0.5px solid var(--border-soft)">
-        <div style="display:flex;flex-wrap:wrap;gap:10px">
-          ${accoes.map(accao => {
-            const key = `${modulo}:${accao}`;
-            const checked = _matrizActual[key] === 1 ? 'checked' : '';
-            return `
-              <label style="display:inline-flex;align-items:center;gap:5px;font-size:11px;
-                            color:var(--text-secondary);cursor:pointer">
-                <input type="checkbox" ${checked}
-                       onchange="_togglePermissao('${modulo}','${accao}',this.checked)"/>
-                ${accao}
-              </label>`;
-          }).join('')}
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  const linhas = _GRUPOS_MATRIZ.map(grupo => {
+    const headerRow = `
+      <tr class="grupo-header">
+        <td colspan="2">
+          <i class="fa-solid ${grupo.fa}" style="margin-right:6px;font-size:10px"></i>${grupo.grupo}
+        </td>
+      </tr>`;
+    const itemRows = grupo.itens.map(item => {
+      const key = `${item.modulo}:${item.accao}`;
+      const val = _matrizActual[key] === 1;
+      return `
+        <tr>
+          <td style="padding-left:20px;color:var(--text-secondary);font-size:12px">${item.label}</td>
+          <td style="text-align:center;width:72px">
+            <button class="matriz-toggle ${val ? 'sim' : 'nao'}"
+                    onclick="_togglePermissaoVisual('${item.modulo}','${item.accao}',this)"
+                    title="${val ? 'Clique para revogar' : 'Clique para permitir'}">
+              <i class="fa-solid ${val ? 'fa-check' : 'fa-xmark'}"></i>
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+    return headerRow + itemRows;
+  }).join('');
 
   conteudo.innerHTML = `
-    <table class="tbl" style="font-size:12px">
-      <thead>
-        <tr>
-          <th style="width:160px">Módulo</th>
-          <th>Acções</th>
-        </tr>
-      </thead>
-      <tbody>${linhas}</tbody>
-    </table>
+    <div class="matriz-ref">
+      <table>
+        <thead>
+          <tr>
+            <th>Operação</th>
+            <th style="width:72px;text-align:center">Permitido</th>
+          </tr>
+        </thead>
+        <tbody>${linhas}</tbody>
+      </table>
+    </div>
     <p style="font-size:11px;color:var(--text-muted);margin-top:10px">
       <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
-      Carrega em "Guardar Matriz" para aplicar as alterações.
-    </p>
-  `;
+      Clica nos botões para alternar e depois em "Guardar Matriz" para aplicar.
+    </p>`;
+}
+
+function _togglePermissaoVisual(modulo, accao, btn) {
+  const key = `${modulo}:${accao}`;
+  const novo = _matrizActual[key] === 1 ? 0 : 1;
+  _matrizActual[key] = novo;
+  btn.className = `matriz-toggle ${novo ? 'sim' : 'nao'}`;
+  btn.innerHTML = `<i class="fa-solid ${novo ? 'fa-check' : 'fa-xmark'}"></i>`;
+  btn.title = novo ? 'Clique para revogar' : 'Clique para permitir';
 }
 
 function _togglePermissao(modulo, accao, permitido) {

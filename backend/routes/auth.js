@@ -4,14 +4,6 @@ const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { registar } = require('../middleware/auditoria');
 
-function refreshSnapshotsBackground() {
-  getConnection().then(c =>
-    c.execute(`BEGIN prc_refresh_snapshots; END;`)
-     .catch(e => console.warn('[SNAPSHOT REFRESH]', e.message))
-     .finally(() => c.close().catch(() => {}))
-  ).catch(e => console.warn('[SNAPSHOT REFRESH]', e.message));
-}
-
 const DEMO_USER = {
   COD_FUNCIONARIO: 0,
   NOME_FUNCIONARIO: 'Demo',
@@ -36,7 +28,6 @@ router.post('/login', async (req, res) => {
     req.session.nivel_acesso = DEMO_USER.NIVEL_ACESSO;
     req.session.provincia = DEMO_USER.PROVINCIA;
     res.json({ ok: true, funcionario: DEMO_USER });
-    refreshSnapshotsBackground();
     return;
   }
 
@@ -79,7 +70,6 @@ router.post('/login', async (req, res) => {
     req.session.nivel_acesso = func.NIVEL_ACESSO;
     req.session.provincia = func.PROVINCIA;
     res.json({ ok: true, funcionario: func });
-    refreshSnapshotsBackground();
   } catch (err) {
     console.error('\x1b[31m[AUTH POST /login] ERRO ao autenticar funcionário\x1b[0m');
     console.error('     BD: FUNCIONARIO + FUNCAO_FUNCIONARIO + BIBLIOTECA');
