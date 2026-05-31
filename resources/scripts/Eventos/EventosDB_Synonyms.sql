@@ -87,3 +87,29 @@ CREATE OR REPLACE PUBLIC SYNONYM FUNCAO_FUNCIONARIO
 CREATE OR REPLACE PUBLIC SYNONYM snap_leitor             FOR usr_eventosdb.snap_leitor;
 CREATE OR REPLACE PUBLIC SYNONYM repl_funcionarios       FOR usr_eventosdb.repl_funcionarios;
 CREATE OR REPLACE PUBLIC SYNONYM repl_funcao_funcionario FOR usr_eventosdb.repl_funcao_funcionario;
+
+-- ============================================================
+-- Auditoria local (vista criada em EventosDB_AuditView.sql)
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM VW_AUDITORIA FOR usr_eventosdb.VW_AUDITORIA;
+
+-- ============================================================
+-- Snapshots do NacionalDB (dashboard) — via link_nacionaldb
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM snap_emp_activos           FOR usr_NACIONALDB.snap_emp_activos@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_material_basico       FOR usr_NACIONALDB.snap_material_basico@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_eventos               FOR usr_NACIONALDB.snap_eventos@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_transferencias        FOR usr_NACIONALDB.snap_transferencias@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_sistema        FOR usr_NACIONALDB.vw_metricas_sistema@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_por_biblioteca FOR usr_NACIONALDB.vw_metricas_por_biblioteca@link_nacionaldb;
+
+-- ============================================================
+-- Objectos do NacionalDB acedidos por leitores / auditoria
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM vw_leitores_completos  FOR usr_NACIONALDB.vw_leitores_completos@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM professor              FOR usr_NACIONALDB.professor@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM professor_disciplina   FOR usr_NACIONALDB.professor_disciplina@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM adulto                 FOR usr_NACIONALDB.adulto@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM crianca                FOR usr_NACIONALDB.crianca@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM adulto_interesse       FOR usr_NACIONALDB.adulto_interesse@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_doacoes_detalhadas  FOR usr_NACIONALDB.vw_doacoes_detalhadas@link_nacionaldb;

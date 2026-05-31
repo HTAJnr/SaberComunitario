@@ -46,7 +46,7 @@ CREATE MATERIALIZED VIEW repl_funcao_funcionario
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
-SELECT id_funcao, nome_funcao, nivel_acesso
+SELECT id_funcao, nome_funcao, nivel_acesso, descricao
 FROM funcao_funcionario@link_nacionaldb;
 
 -- ============================================================

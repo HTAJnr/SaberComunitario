@@ -97,3 +97,19 @@ CREATE OR REPLACE PUBLIC SYNONYM REGISTAR_AUDITORIA_MAT
 CREATE OR REPLACE PUBLIC SYNONYM snap_leitor_publico FOR usr_materiaisdb.snap_leitor_publico;
 CREATE OR REPLACE PUBLIC SYNONYM biblioteca_snap     FOR usr_materiaisdb.biblioteca_snap;
 
+-- ============================================================
+-- Snapshots do NacionalDB (dashboard) — via link_nacionaldb
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM snap_emp_activos           FOR usr_NACIONALDB.snap_emp_activos@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_material_basico       FOR usr_NACIONALDB.snap_material_basico@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_eventos               FOR usr_NACIONALDB.snap_eventos@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_transferencias        FOR usr_NACIONALDB.snap_transferencias@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_sistema        FOR usr_NACIONALDB.vw_metricas_sistema@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_por_biblioteca FOR usr_NACIONALDB.vw_metricas_por_biblioteca@link_nacionaldb;
+
+-- ============================================================
+-- Objectos do NacionalDB acedidos por leitores / auditoria
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM vw_leitores_completos FOR usr_NACIONALDB.vw_leitores_completos@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_doacoes_detalhadas FOR usr_NACIONALDB.vw_doacoes_detalhadas@link_nacionaldb;
+

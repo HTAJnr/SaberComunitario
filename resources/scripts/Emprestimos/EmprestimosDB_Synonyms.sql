@@ -101,3 +101,19 @@ CREATE OR REPLACE PUBLIC SYNONYM snap_professor  FOR usr_emprestimosdb.snap_prof
 CREATE OR REPLACE PUBLIC SYNONYM snap_categoria  FOR usr_emprestimosdb.snap_categoria;
 CREATE OR REPLACE PUBLIC SYNONYM biblioteca_snap FOR usr_emprestimosdb.biblioteca_snap;
 
+-- ============================================================
+-- Snapshots do NacionalDB (dashboard) — via @nacionaldb
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM snap_emp_activos           FOR usr_NACIONALDB.snap_emp_activos@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_material_basico       FOR usr_NACIONALDB.snap_material_basico@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_eventos               FOR usr_NACIONALDB.snap_eventos@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM snap_transferencias        FOR usr_NACIONALDB.snap_transferencias@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_sistema        FOR usr_NACIONALDB.vw_metricas_sistema@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_por_biblioteca FOR usr_NACIONALDB.vw_metricas_por_biblioteca@nacionaldb;
+
+-- ============================================================
+-- Objectos do NacionalDB acedidos por leitores / auditoria
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM vw_leitores_completos FOR usr_NACIONALDB.vw_leitores_completos@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_doacoes_detalhadas FOR usr_NACIONALDB.vw_doacoes_detalhadas@nacionaldb;
+
