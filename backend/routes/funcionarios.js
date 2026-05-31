@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { autenticar, exigirNivel, exigirNo } = require('../middleware/permissoes');
+const { registar } = require('../middleware/auditoria');
 
 // Gera email a partir do nome: "Ana Beatriz Machava" → "ana.machava@sabercomunitario.mz"
 function gerarEmail(nome) {
@@ -361,6 +362,13 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       }
     }
 
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'CRIAR',
+      objeto: 'FUNCIONARIO',
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.status(201).json({ ok: true, cod_funcionario: codFuncionario, email, senha_temporaria: senhaTemporaria });
   } catch (err) {
@@ -458,6 +466,13 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, re
       }
     }
 
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'EDITAR',
+      objeto: 'FUNCIONARIO:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.json({ ok: true, cod_funcionario: req.params.id });
   } catch (err) {
@@ -483,6 +498,13 @@ router.delete('/:id', exigirNivel('Administrador'), exigirNo('BibliotecaNacional
       `UPDATE FUNCIONARIO SET DATA_DEMISSAO = SYSDATE WHERE COD_FUNCIONARIO = :id AND DATA_DEMISSAO IS NULL`,
       { id: req.params.id }
     );
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'ELIMINAR',
+      objeto: 'FUNCIONARIO:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
@@ -515,6 +537,13 @@ router.patch('/:id/acesso', exigirNivel('Administrador'), exigirNo('BibliotecaNa
     if (result.rowsAffected === 0) {
       return res.status(404).json({ erro: 'Funcionário não encontrado.' });
     }
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'ALTERAR_PERMISSAO',
+      objeto: 'FUNCIONARIO:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {

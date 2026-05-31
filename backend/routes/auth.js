@@ -3,6 +3,14 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 
+function refreshSnapshotsBackground() {
+  getConnection().then(c =>
+    c.execute(`BEGIN DBMS_MVIEW.REFRESH('snap_emp_activos,snap_transferencias,snap_eventos,snap_material_basico,biblioteca_snap','C'); END;`)
+     .catch(e => console.warn('[SNAPSHOT REFRESH]', e.message))
+     .finally(() => c.close().catch(() => {}))
+  ).catch(e => console.warn('[SNAPSHOT REFRESH]', e.message));
+}
+
 const DEMO_USER = {
   COD_FUNCIONARIO: 0,
   NOME_FUNCIONARIO: 'Demo',
@@ -26,7 +34,9 @@ router.post('/login', async (req, res) => {
     req.session.cod_biblioteca = DEMO_USER.COD_BIBLIOTECA;
     req.session.nivel_acesso = DEMO_USER.NIVEL_ACESSO;
     req.session.provincia = DEMO_USER.PROVINCIA;
-    return res.json({ ok: true, funcionario: DEMO_USER });
+    res.json({ ok: true, funcionario: DEMO_USER });
+    refreshSnapshotsBackground();
+    return;
   }
 
   let conn;
@@ -62,6 +72,7 @@ router.post('/login', async (req, res) => {
     req.session.nivel_acesso = func.NIVEL_ACESSO;
     req.session.provincia = func.PROVINCIA;
     res.json({ ok: true, funcionario: func });
+    refreshSnapshotsBackground();
   } catch (err) {
     console.error('\x1b[31m[AUTH POST /login] ERRO ao autenticar funcionário\x1b[0m');
     console.error('     BD: FUNCIONARIO + FUNCAO_FUNCIONARIO + BIBLIOTECA');

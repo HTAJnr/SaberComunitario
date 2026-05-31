@@ -3,6 +3,7 @@ const router = express.Router();
 const doadoresRouter = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { exigirNivel } = require('../middleware/permissoes');
+const { registar } = require('../middleware/auditoria');
 
 // ── Doadores ──────────────────────────────────────────────────────────────────
 doadoresRouter.get('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), async (req, res) => {
@@ -244,6 +245,13 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       );
     }
 
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'CRIAR',
+      objeto: 'DOACAO:' + idDoacao,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     // O trigger gera_certificado_automatico insere o certificado automaticamente após ITEM_DOACAO
     res.status(201).json({ ok: true, id_doacao: idDoacao });
@@ -298,6 +306,13 @@ router.post('/:id/certificado', exigirNivel('Administrador', 'Coordenador'), asy
       { num_cert: numCertificado, id_doacao: parseInt(req.params.id),
         tipo: tipo_certificado, obs: observacoes || null }
     );
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'EMITIR_CERTIFICADO',
+      objeto: 'DOACAO:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.status(201).json({ ok: true, num_certificado: numCertificado });
   } catch (err) {

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { autenticar } = require('../middleware/permissoes');
+const { registar } = require('../middleware/auditoria');
 
 // Taxas de multa por atraso (MT/dia) — RN03.1
 const TAXA_MULTA = { ADULTO: 15, CRIANCA: 5, PROFESSOR: 10 };
@@ -512,6 +513,13 @@ router.post('/', autenticar, async (req, res) => {
         id_out:      { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
       }
     );
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'CRIAR',
+      objeto: 'EMPRESTIMO:' + empResult.outBinds.id_out[0],
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
 
     res.status(201).json({
@@ -620,6 +628,15 @@ router.patch('/:id/devolver', autenticar, async (req, res) => {
         suspensao = { dias: suspR.rows[0].DIAS_SUSPENSAO, data_fim: suspR.rows[0].DATA_FIM };
       }
     } catch (_) { /* suspensão é informação extra — não falhar por isso */ }
+
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'DEVOLVER',
+      objeto: 'EMPRESTIMO:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
+    try { await conn.commit(); } catch (_) {}
 
     res.json({ ok: true, multa: multaTotal, dias_atraso: diasAtraso, suspensao });
   } catch (err) {

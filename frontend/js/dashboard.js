@@ -29,6 +29,7 @@ async function refreshSnapshots() {
 }
 
 async function carregarSnapshotsInfo() {
+  if (utilizadorActual?.NIVEL_ACESSO !== 'Administrador') return;
   const el = document.getElementById('dash-snapshots-lista');
   if (!el) return;
   try {

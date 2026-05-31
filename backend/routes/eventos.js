@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { autenticar, exigirNivel } = require('../middleware/permissoes');
+const { registar } = require('../middleware/auditoria');
 
 const DIAS_PT = ['Domingo','Segunda-feira','Terca-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sabado'];
 
@@ -155,6 +156,13 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
       }
     }
 
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'CRIAR',
+      objeto: 'EVENTO:' + idEvento,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.status(201).json({ ok: true, id_evento: idEvento });
   } catch (err) {
@@ -189,6 +197,13 @@ router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
         rec: recorrente !== undefined ? recorrente : null,
         cod_bib: cod_biblioteca || null, id: req.params.id }
     );
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'EDITAR',
+      objeto: 'EVENTO:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
@@ -217,6 +232,13 @@ router.patch('/:id/status', exigirNivel('Administrador', 'Coordenador', 'Bibliot
       { status: status_evento, id: req.params.id }
     );
     if (upd.rowsAffected === 0) return res.status(404).json({ erro: 'Evento não encontrado.' });
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: status_evento === 'Cancelado' ? 'CANCELAR' : 'ALTERAR_STATUS',
+      objeto: 'EVENTO:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {

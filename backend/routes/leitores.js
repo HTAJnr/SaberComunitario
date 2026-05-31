@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { autenticar, exigirNivel, exigirNo } = require('../middleware/permissoes');
+const { registar } = require('../middleware/auditoria');
 
 function normalizarTelefone(tel) {
   if (!tel) return tel;
@@ -449,6 +450,13 @@ router.post('/', autenticar, async (req, res) => {
       );
     }
 
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'CRIAR',
+      objeto: 'LEITOR:' + num_cartao,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.status(201).json({ ok: true, num_cartao });
   } catch (err) {
@@ -564,6 +572,13 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'
       );
     }
 
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'EDITAR',
+      objeto: 'LEITOR:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
@@ -595,6 +610,13 @@ router.patch('/:id/status', exigirNivel('Administrador', 'Coordenador'), async (
     if (result.rowsAffected === 0) {
       return res.status(404).json({ erro: true, codigo: 'LEITOR_NAO_ENCONTRADO', mensagem: 'Leitor não encontrado.' });
     }
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'ALTERAR_STATUS',
+      objeto: 'LEITOR:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
@@ -630,6 +652,13 @@ router.delete('/:id', exigirNivel('Administrador'), exigirNo('BibliotecaNacional
     }
 
     await conn.execute(`DELETE FROM LEITOR WHERE NUM_CARTAO = :id`, { id: req.params.id });
+    await registar(conn, {
+      cod_func: req.session.cod_funcionario,
+      operacao: 'ELIMINAR',
+      objeto: 'LEITOR:' + req.params.id,
+      resultado: 'OK',
+      nos: req.session.cod_biblioteca || 'NACIONAL'
+    });
     await conn.commit();
     res.json({ ok: true });
   } catch (err) {
