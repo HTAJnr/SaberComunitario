@@ -540,13 +540,14 @@ async function _submeterModalFunc() {
   };
 
   try {
-    const resp = await patch(`/api/funcionarios/${_editFuncCod}`, body);
+    const codEditado = _editFuncCod;
+    const resp = await patch(`/api/funcionarios/${codEditado}`, body);
     fecharModalFunc();
     toast('Funcionário actualizado com sucesso.');
     await carregarFuncionarios();
-    const codAtualizado = resp?.cod_funcionario || _editFuncCod;
-    if (_funcDrawerCod === _editFuncCod) abrirDrawerFunc(codAtualizado);
-    if (_editFuncCod === utilizadorActual?.COD_FUNCIONARIO && nome) {
+    const codAtualizado = resp?.cod_funcionario || codEditado;
+    if (_funcDrawerCod === codEditado) abrirDrawerFunc(codAtualizado);
+    if (codEditado === utilizadorActual?.COD_FUNCIONARIO && nome) {
       utilizadorActual.NOME_FUNCIONARIO = nome;
       const elNome = document.getElementById('sidebar-user-name');
       const elAvatar = document.getElementById('sidebar-avatar');
