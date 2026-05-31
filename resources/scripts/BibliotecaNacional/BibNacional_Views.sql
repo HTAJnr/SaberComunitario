@@ -17,39 +17,28 @@
 
 -- OBJETIVO: Rastreabilidade completa de doações e certificados
 CREATE OR REPLACE VIEW vw_doacoes_detalhadas AS
-WITH BibliotecasPorDoacao AS (
-    SELECT
-        d.id_doacao,
-        RTRIM(
-            XMLAGG(XMLELEMENT(E, b.nome_biblioteca || ',') ORDER BY b.nome_biblioteca)
-            .EXTRACT('//text()').GETSTRINGVAL(),
-        ',') AS bibliotecas_beneficiadas
-    FROM DOACAO d
-    JOIN ITEM_DOACAO i ON d.id_doacao = i.id_doacao
-    JOIN BIBLIOTECA b ON i.cod_biblioteca = b.cod_biblioteca
-    GROUP BY d.id_doacao
-)
 SELECT
     d.id_doacao,
     d.data_doacao,
+    d.cod_biblioteca,
+    b.nome_biblioteca         AS nome_biblioteca,
+    b.nome_biblioteca         AS bibliotecas_beneficiadas,
     r.nome_doador,
     r.tipo_doador,
     r.contacto    AS doador_contacto,
     COUNT(DISTINCT i.id_itemDoado) AS total_itens,
-    NVL(SUM(i.valor_estimado * i.quantidade), 0) AS valor_total_doacao,
-    bp.bibliotecas_beneficiadas,
+    NVL(SUM(NVL(i.valor_estimado,0) * NVL(i.quantidade,1)), 0) AS valor_total_doacao,
     c.num_certificado AS certificado_numero,
     c.tipo_certificado AS certificado_tipo,
     c.data_emissao    AS data_emissao_certificado
 FROM DOACAO d
 JOIN DOADOR r ON d.id_doador = r.id_doador
+LEFT JOIN BIBLIOTECA b ON d.cod_biblioteca = b.cod_biblioteca
 LEFT JOIN ITEM_DOACAO i ON d.id_doacao = i.id_doacao
 LEFT JOIN CERTIFICADO_DOACAO c ON d.id_doacao = c.id_doacao
-LEFT JOIN BibliotecasPorDoacao bp ON d.id_doacao = bp.id_doacao
 GROUP BY
-    d.id_doacao, d.data_doacao,
+    d.id_doacao, d.data_doacao, d.cod_biblioteca, b.nome_biblioteca,
     r.nome_doador, r.tipo_doador, r.contacto,
-    bp.bibliotecas_beneficiadas,
     c.num_certificado, c.tipo_certificado, c.data_emissao;
 /
 
@@ -60,12 +49,12 @@ SELECT
     r.nome_doador,
     r.tipo_doador,
     COUNT(DISTINCT d.id_doacao)                        AS total_doacoes,
-    NVL(SUM(i.valor_estimado * i.quantidade), 0)       AS valor_total_contribuido,
+    NVL(SUM(NVL(i.valor_estimado,0) * NVL(i.quantidade,1)), 0) AS valor_total_contribuido,
     MIN(d.data_doacao)                                 AS primeira_doacao,
     MAX(d.data_doacao)                                 AS ultima_doacao,
     COUNT(DISTINCT c.num_certificado)                  AS certificados_emitidos,
     ROW_NUMBER() OVER (
-        ORDER BY NVL(SUM(i.valor_estimado * i.quantidade), 0) DESC
+        ORDER BY NVL(SUM(NVL(i.valor_estimado,0) * NVL(i.quantidade,1)), 0) DESC
     ) AS ranking_geral
 FROM DOADOR r
 LEFT JOIN DOACAO d ON r.id_doador = d.id_doador
@@ -83,7 +72,7 @@ SELECT
     r.nome_doador,
     r.contacto AS doador_contacto,
     d.data_doacao,
-    NVL(SUM(i.valor_estimado * i.quantidade), 0) AS valor_doacao,
+    NVL(SUM(NVL(i.valor_estimado,0) * NVL(i.quantidade,1)), 0) AS valor_doacao,
     c.observacoes,
     c.original_numero
 FROM CERTIFICADO_DOACAO c
@@ -336,7 +325,7 @@ SELECT
     0                                                                       AS taxa_devolucao_no_prazo,
     (SELECT NVL(SUM(multa_valor), 0)
        FROM snap_emp_activos WHERE multa_paga = 'N')                        AS valor_multas_pendentes,
-    (SELECT NVL(SUM(i.valor_estimado * i.quantidade), 0)
+    (SELECT NVL(SUM(NVL(i.valor_estimado,0) * NVL(i.quantidade,1)), 0)
        FROM DOACAO d
        JOIN ITEM_DOACAO i ON d.id_doacao = i.id_doacao
       WHERE EXTRACT(MONTH FROM d.data_doacao) = EXTRACT(MONTH FROM SYSDATE)

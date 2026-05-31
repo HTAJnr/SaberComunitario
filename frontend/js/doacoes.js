@@ -10,9 +10,12 @@ let _drawerDoacData = null;
 let _certDoacId     = null;
 let _wizStep        = 1;
 let _wizDoador      = null;
+let _wizCodBib      = '';
 let _wizItens       = [];
 let _wizBibliotecas = [];
 let _wizBibOpts     = '';
+
+const _TIPOS_ITEM = ['Livro','Dinheiro','Recurso','Outro'];
 
 // ── Helpers de apresentação ────────────────────
 
@@ -182,6 +185,7 @@ function _renderizarDrawerInfoDoacao(d) {
     ${_dsecao('Doação')}
     ${_dcampo('ID', `<span style="font-family:monospace">#${d.ID_DOACAO}</span>`)}
     ${_dcampo('Data', fmtData(d.DATA_DOACAO))}
+    ${_dcampo('Biblioteca beneficiada', d.NOME_BIBLIOTECA || d.COD_BIBLIOTECA || '—')}
     ${_dsecao('Doador')}
     ${_dcampo('Nome', d.NOME_DOADOR || '<em style="color:var(--text-muted)">Anónimo</em>')}
     ${d.TIPO_DOADOR ? _dcampo('Tipo', _badgeTipoDoador(d.TIPO_DOADOR)) : ''}
@@ -203,10 +207,11 @@ function _renderizarDrawerItensDoacao(d) {
       ${itens.map(i => `
         <div style="padding:8px 0;border-bottom:0.5px solid var(--border-soft)">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
-            <span style="font-weight:500">${i.NOME_BIBLIOTECA || i.COD_BIBLIOTECA || '—'}</span>
+            <span style="font-weight:500">${i.NOME_ITEM || '—'}</span>
             <span style="color:#3fb27a">${fmtMoeda((i.VALOR_ESTIMADO || 0) * (i.QUANTIDADE || 1))}</span>
           </div>
           <div style="color:var(--text-muted);margin-top:2px">
+            <span class="bdg" style="font-size:10px;margin-right:6px">${i.TIPO_ITEM || '—'}</span>
             Qtd: ${i.QUANTIDADE || 1} · ${fmtMoeda(i.VALOR_ESTIMADO)} / un.
           </div>
           ${i.OBSERVACOES ? `<div style="color:var(--text-muted);font-size:11px;margin-top:2px">${i.OBSERVACOES}</div>` : ''}
@@ -308,6 +313,7 @@ function _mostrarErroCert(msg) {
 async function abrirWizardDoacao() {
   _wizStep        = 1;
   _wizDoador      = null;
+  _wizCodBib      = '';
   _wizItens       = [];
   _wizBibliotecas = [];
   _wizBibOpts     = '';
@@ -440,6 +446,19 @@ function _renderizarWizStep1() {
         </div>
       </div>
 
+      <div style="border-top:1px solid var(--border-soft);padding-top:12px">
+        <label class="form-label" style="font-size:11px">Biblioteca beneficiada <span style="color:#f85149">*</span></label>
+        <select id="wiz-cod-biblioteca" class="input-field" style="font-size:12px"
+                onchange="_wizCodBib=this.value">
+          <option value="">— Seleccionar biblioteca —</option>
+          ${_wizBibliotecas.map(b =>
+            `<option value="${b.COD_BIBLIOTECA}"${_wizCodBib === b.COD_BIBLIOTECA ? ' selected' : ''}>
+              ${b.NOME || b.NOME_BIBLIOTECA}
+            </option>`
+          ).join('')}
+        </select>
+      </div>
+
     </div>
   `;
 
@@ -538,25 +557,29 @@ function _renderizarLinhasItens() {
   const lista = document.getElementById('wiz-itens-lista');
   if (!lista) return;
   lista.innerHTML = _wizItens.map((item, i) => `
-    <div style="display:grid;grid-template-columns:60px 1fr 100px 80px auto;gap:6px;
+    <div style="display:grid;grid-template-columns:1fr 110px 60px 100px 1fr auto;gap:6px;
                 align-items:end;padding:10px;background:var(--surface-raised);border-radius:6px;font-size:12px">
+      <div>
+        <label class="form-label" style="font-size:10px">Nome do item *</label>
+        <input type="text" class="input-field" style="font-size:11px"
+               placeholder="Ex: Dom Casmurro"
+               value="${(item.nome_item || '').replace(/"/g,'&quot;')}"
+               onchange="_wizItens[${i}].nome_item=this.value"/>
+      </div>
+      <div>
+        <label class="form-label" style="font-size:10px">Tipo *</label>
+        <select class="input-field" style="font-size:11px"
+                onchange="_wizItens[${i}].tipo_item=this.value">
+          ${_TIPOS_ITEM.map(t =>
+            `<option value="${t}"${item.tipo_item === t ? ' selected' : ''}>${t}</option>`
+          ).join('')}
+        </select>
+      </div>
       <div>
         <label class="form-label" style="font-size:10px">Qtd. *</label>
         <input type="number" min="1" class="input-field" style="font-size:11px"
                value="${item.quantidade || 1}"
                onchange="_wizItens[${i}].quantidade=Math.max(1,+this.value||1);_atualizarTotalWiz()"/>
-      </div>
-      <div>
-        <label class="form-label" style="font-size:10px">Biblioteca destino *</label>
-        <select class="input-field" style="font-size:11px"
-                onchange="_wizItens[${i}].cod_biblioteca=this.value">
-          <option value="">— Seleccionar —</option>
-          ${_wizBibliotecas.map(b =>
-            `<option value="${b.COD_BIBLIOTECA}"${item.cod_biblioteca === b.COD_BIBLIOTECA ? ' selected' : ''}>
-              ${b.NOME || b.NOME_BIBLIOTECA}
-            </option>`
-          ).join('')}
-        </select>
       </div>
       <div>
         <label class="form-label" style="font-size:10px">Valor un. (MT)</label>
@@ -567,7 +590,7 @@ function _renderizarLinhasItens() {
       <div>
         <label class="form-label" style="font-size:10px">Obs.</label>
         <input type="text" class="input-field" style="font-size:11px"
-               value="${item.observacoes || ''}"
+               value="${(item.observacoes || '').replace(/"/g,'&quot;')}"
                onchange="_wizItens[${i}].observacoes=this.value"/>
       </div>
       <button onclick="_wizRemoverItem(${i})"
@@ -580,7 +603,7 @@ function _renderizarLinhasItens() {
 }
 
 function _wizAdicionarItem() {
-  _wizItens.push({ quantidade: 1, cod_biblioteca: '', valor_estimado: 0, observacoes: '' });
+  _wizItens.push({ nome_item: '', tipo_item: 'Livro', quantidade: 1, valor_estimado: 0, observacoes: '' });
   _renderizarLinhasItens();
 }
 
@@ -601,20 +624,21 @@ function _renderizarWizStep3() {
   const tipoDoador = _wizDoador?.tipo;
   const totalVal   = _wizItens.reduce((acc, i) => acc + (i.valor_estimado || 0) * (i.quantidade || 1), 0);
   const autoCert   = tipoDoador === 'INDIVIDUAL' && totalVal >= 1000;
+  const bibSel     = _wizBibliotecas.find(b => b.COD_BIBLIOTECA === _wizCodBib);
+  const nomeBib    = bibSel ? (bibSel.NOME || bibSel.NOME_BIBLIOTECA) : (_wizCodBib || '—');
 
   document.getElementById('modal-wiz-conteudo').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:4px;padding:4px 0;font-size:12px">
       ${_dsecao('Doador')}
       ${_dcampo('Nome', nomeDoador)}
       ${tipoDoador ? _dcampo('Tipo', _badgeTipoDoador(tipoDoador)) : ''}
+      ${_dcampo('Biblioteca beneficiada', nomeBib)}
 
       ${_dsecao(`Itens (${_wizItens.length})`)}
       ${_wizItens.map((item, i) => {
-        const bib = _wizBibliotecas.find(b => b.COD_BIBLIOTECA === item.cod_biblioteca);
-        const nomeBib = bib ? (bib.NOME || bib.NOME_BIBLIOTECA) : (item.cod_biblioteca || '—');
         return _dcampo(
           `Item ${i + 1}`,
-          `${item.quantidade}× <span style="color:var(--text-muted)">${nomeBib}</span> — ${fmtMoeda(item.valor_estimado)}/un.`
+          `${item.quantidade}× <span style="color:var(--text-muted)">${item.nome_item || '—'}</span> <span class="bdg" style="font-size:10px;margin-left:4px">${item.tipo_item || '—'}</span> — ${fmtMoeda(item.valor_estimado)}/un.`
         );
       }).join('')}
       ${_dcampo('Valor total estimado',
@@ -647,13 +671,25 @@ function _wizAvancar() {
       _mostrarErroWiz('Selecciona um doador, cria um novo, ou escolhe "Anónimo".');
       return;
     }
+    // captura o valor actual do select de biblioteca (evita perder mudança não disparada)
+    const selBib = document.getElementById('wiz-cod-biblioteca');
+    if (selBib) _wizCodBib = selBib.value;
+    if (!_wizCodBib) {
+      _mostrarErroWiz('Selecciona a biblioteca beneficiada.');
+      return;
+    }
     _renderizarWizStep(2);
 
   } else if (_wizStep === 2) {
     if (!_wizItens.length) { _mostrarErroWiz('Adiciona pelo menos um item.'); return; }
     for (let i = 0; i < _wizItens.length; i++) {
-      if (!_wizItens[i].cod_biblioteca) {
-        _mostrarErroWiz(`Item ${i + 1}: selecciona a biblioteca de destino.`);
+      const it = _wizItens[i];
+      if (!it.nome_item || !String(it.nome_item).trim()) {
+        _mostrarErroWiz(`Item ${i + 1}: preenche o nome do item.`);
+        return;
+      }
+      if (!it.tipo_item || !_TIPOS_ITEM.includes(it.tipo_item)) {
+        _mostrarErroWiz(`Item ${i + 1}: selecciona um tipo válido.`);
         return;
       }
     }
@@ -665,12 +701,14 @@ async function _wizConfirmar() {
   _mostrarErroWiz('');
   try {
     await post('/api/doacoes', {
-      id_doador: _wizDoador.id_doador,
+      id_doador:      _wizDoador.id_doador,
+      cod_biblioteca: _wizCodBib,
       itens: _wizItens.map(i => ({
-        cod_biblioteca:  i.cod_biblioteca,
-        quantidade:      i.quantidade,
-        valor_estimado:  i.valor_estimado,
-        observacoes:     i.observacoes || null,
+        nome_item:      String(i.nome_item || '').trim(),
+        tipo_item:      i.tipo_item,
+        quantidade:     i.quantidade,
+        valor_estimado: i.valor_estimado,
+        observacoes:    i.observacoes || null,
       })),
     });
     toast('Doação registada com sucesso.', 'sucesso');

@@ -1,4 +1,5 @@
 -- Tabelas de associação e dependentes primeiro
+DROP TABLE PERMISSAO_CARGO CASCADE CONSTRAINTS;
 DROP TABLE AUDITORIA_OPERACOES CASCADE CONSTRAINTS;
 DROP TABLE CERTIFICADO_DOACAO CASCADE CONSTRAINTS;
 DROP TABLE ITEM_DOACAO CASCADE CONSTRAINTS;
@@ -21,7 +22,8 @@ DROP TABLE FUNCAO_FUNCIONARIO CASCADE CONSTRAINTS;
 CREATE TABLE FUNCAO_FUNCIONARIO (
     id_funcao   NUMBER              NOT NULL,
     nome_funcao VARCHAR2(15 BYTE)   NOT NULL,
-    nivel_acesso VARCHAR2(15 BYTE)  NOT NULL
+    nivel_acesso VARCHAR2(15 BYTE)  NOT NULL,
+    descricao    VARCHAR2(300 BYTE)
 ) TABLESPACE tbs_NACIONALDB;
 
 ALTER TABLE FUNCAO_FUNCIONARIO
@@ -108,9 +110,10 @@ ALTER TABLE DOADOR
 -- DOACAO
 -- ============================================================
 CREATE TABLE DOACAO (
-    id_doacao  NUMBER  NOT NULL,
-    id_doador  NUMBER  NOT NULL,
-    data_doacao DATE   NOT NULL
+    id_doacao       NUMBER             NOT NULL,
+    id_doador       NUMBER             NOT NULL,
+    cod_biblioteca  VARCHAR2(10 BYTE)  NOT NULL,
+    data_doacao     DATE               NOT NULL
 ) TABLESPACE tbs_NACIONALDB;
 
 ALTER TABLE DOACAO
@@ -120,16 +123,20 @@ ALTER TABLE DOACAO
 -- ITEM_DOACAO
 -- ============================================================
 CREATE TABLE ITEM_DOACAO (
-    id_itemDoado  NUMBER              NOT NULL,
-    id_doacao     NUMBER              NOT NULL,
-    cod_biblioteca VARCHAR2(10 BYTE)  NOT NULL,
-    quantidade    NUMBER(4)           NOT NULL,
-    valor_estimado NUMBER(10,2)       NOT NULL,
-    observacoes   VARCHAR2(300 BYTE)
+    id_itemDoado    NUMBER              NOT NULL,
+    id_doacao       NUMBER              NOT NULL,
+    nome_item       VARCHAR2(200 BYTE)  NOT NULL,
+    tipo_item       VARCHAR2(20 BYTE)   NOT NULL,
+    quantidade      NUMBER(5)           DEFAULT 1,
+    valor_estimado  NUMBER(10,2),
+    observacoes     VARCHAR2(300 BYTE)
 ) TABLESPACE tbs_NACIONALDB;
 
 ALTER TABLE ITEM_DOACAO
     ADD CONSTRAINT ITEM_DOACAO_PK PRIMARY KEY (id_itemDoado);
+ALTER TABLE ITEM_DOACAO
+    ADD CONSTRAINT chk_tipo_item
+    CHECK (tipo_item IN ('Livro','Dinheiro','Recurso','Outro'));
 
 -- ============================================================
 -- CERTIFICADO_DOACAO
@@ -305,5 +312,24 @@ ALTER TABLE ITEM_DOACAO ADD CONSTRAINT ITEM_DOACAO_FK
     FOREIGN KEY (id_doacao) REFERENCES DOACAO (id_doacao) ON DELETE CASCADE;
 ALTER TABLE CERTIFICADO_DOACAO ADD CONSTRAINT CERT_DOACAO_FK
     FOREIGN KEY (id_doacao) REFERENCES DOACAO (id_doacao) ON DELETE CASCADE;
+-- DOACAO.cod_biblioteca é FK lógica para BIBLIOTECA (cross-node via snapshot/snippet — sem DDL directo)
+
+-- ============================================================
+-- PERMISSAO_CARGO — Permissões granulares por cargo (FASE 10)
+-- ============================================================
+CREATE SEQUENCE SEQ_PERMISSAO START WITH 1 INCREMENT BY 1 NOCACHE;
+
+CREATE TABLE PERMISSAO_CARGO (
+  id_permissao  NUMBER        NOT NULL,
+  id_funcao     NUMBER        NOT NULL,
+  modulo        VARCHAR2(50)  NOT NULL,
+  accao         VARCHAR2(30)  NOT NULL,
+  permitido     NUMBER(1)     DEFAULT 1
+    CONSTRAINT chk_permitido CHECK (permitido IN (0,1)),
+  CONSTRAINT pk_permissao_cargo PRIMARY KEY (id_permissao),
+  CONSTRAINT fk_perm_funcao FOREIGN KEY (id_funcao)
+    REFERENCES FUNCAO_FUNCIONARIO(id_funcao),
+  CONSTRAINT uq_perm_cargo_modulo_accao UNIQUE (id_funcao, modulo, accao)
+);
 
 

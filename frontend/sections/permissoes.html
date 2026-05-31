@@ -1,7 +1,63 @@
 <section id="section-permissoes" class="section hidden">
 
-  <!-- Painel 1 — Tabela de funcionários -->
-  <div class="panel" style="margin-bottom:24px">
+  <!-- Tabs -->
+  <div class="panel" style="margin-bottom:14px;display:flex;gap:8px;padding:8px">
+    <button id="tab-perm-cargos-btn" class="tab tab-active"
+            onclick="switchTabPermissoes('cargos')">
+      <i class="fa-solid fa-briefcase" style="margin-right:5px"></i>Cargos
+    </button>
+    <button id="tab-perm-matriz-btn" class="tab"
+            onclick="switchTabPermissoes('matriz')">
+      <i class="fa-solid fa-shield-halved" style="margin-right:5px"></i>Permissões por Cargo
+    </button>
+    <button id="tab-perm-funcs-btn" class="tab"
+            onclick="switchTabPermissoes('funcs')">
+      <i class="fa-solid fa-users" style="margin-right:5px"></i>Funcionários
+    </button>
+  </div>
+
+  <!-- Sub-painel: Cargos -->
+  <div id="sub-perm-cargos" class="panel" style="margin-bottom:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Cargos do Sistema</span>
+      <button id="btn-novo-cargo" class="btn-primary btn-sm hidden"
+              onclick="abrirModalCargo()">
+        <i class="fa-solid fa-plus" style="margin-right:5px"></i>Novo Cargo
+      </button>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Nível de Acesso</th>
+          <th>Descrição</th>
+          <th style="text-align:center">Nº Funcionários</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tabela-cargos"></tbody>
+    </table>
+  </div>
+
+  <!-- Sub-painel: Matriz de Permissões por Cargo -->
+  <div id="sub-perm-matriz" class="panel" style="margin-bottom:24px;display:none">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Permissões por Cargo</span>
+      <select id="sel-cargo-matriz" class="input-field" style="font-size:12px;max-width:300px"
+              onchange="carregarMatrizCargo(this.value)">
+        <option value="">— Seleccionar cargo —</option>
+      </select>
+      <button id="btn-guardar-matriz" class="btn-primary btn-sm hidden"
+              onclick="guardarMatrizCargo()" style="margin-left:auto">
+        <i class="fa-solid fa-floppy-disk" style="margin-right:5px"></i>Guardar Matriz
+      </button>
+    </div>
+    <div id="matriz-cargo-conteudo"></div>
+  </div>
+
+  <!-- Sub-painel: Funcionários (vista original) -->
+  <div id="sub-perm-funcs" class="panel" style="margin-bottom:24px;display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Funcionários e Níveis de Acesso</span>
     </div>
@@ -19,15 +75,6 @@
       </thead>
       <tbody id="tabela-permissoes"></tbody>
     </table>
-  </div>
-
-  <!-- Painel 2 — Matriz de referência -->
-  <div class="panel">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-      <i class="fa-solid fa-shield-halved" style="color:var(--theme-accent)"></i>
-      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Matriz de Permissões do Sistema</span>
-    </div>
-    <div id="matriz-permissoes"></div>
   </div>
 
 </section>

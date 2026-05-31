@@ -361,43 +361,43 @@ VALUES ('Editora Mocambicana SARL', 'Institucional',
 -- ============================================================
 
 -- Doação 1 — Fundação (Institucional) → sem certificado automático
-INSERT INTO DOACAO (id_doador, data_doacao)
-VALUES (1, TO_DATE('2024-02-10','YYYY-MM-DD'));
+INSERT INTO DOACAO (id_doador, cod_biblioteca, data_doacao)
+VALUES (1, 'BIBMPC0001', TO_DATE('2024-02-10','YYYY-MM-DD'));
 -- id_doacao = 1
 
-INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
-VALUES (1, 'BIBMPC0001', 50, 35.00, 'Lote de livros infantis novos');
+INSERT INTO ITEM_DOACAO (id_doacao, nome_item, tipo_item, quantidade, valor_estimado, observacoes)
+VALUES (1, 'Lote de livros infantis novos', 'Livro', 50, 35.00, 'Lote de livros infantis novos');
 -- id_itemDoado = 1
 
-INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
-VALUES (1, 'BIBGZA0001', 30, 40.00, 'Livros de ciencias para jovens');
+INSERT INTO ITEM_DOACAO (id_doacao, nome_item, tipo_item, quantidade, valor_estimado, observacoes)
+VALUES (1, 'Livros de ciencias para jovens', 'Livro', 30, 40.00, 'Livros de ciencias para jovens');
 -- id_itemDoado = 2
 
 -- Doação 2 — Manuel Guebuza (Individual, total 1200 MT → trigger gera certificado automático)
-INSERT INTO DOACAO (id_doador, data_doacao)
-VALUES (2, TO_DATE('2024-05-20','YYYY-MM-DD'));
+INSERT INTO DOACAO (id_doador, cod_biblioteca, data_doacao)
+VALUES (2, 'BIBMPC0001', TO_DATE('2024-05-20','YYYY-MM-DD'));
 -- id_doacao = 2
 
-INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
-VALUES (2, 'BIBMPC0001', 20, 60.00, 'Romances de autores mocambicanos');
+INSERT INTO ITEM_DOACAO (id_doacao, nome_item, tipo_item, quantidade, valor_estimado, observacoes)
+VALUES (2, 'Romances de autores mocambicanos', 'Livro', 20, 60.00, 'Romances de autores mocambicanos');
 -- id_itemDoado = 3  →  total 1200 MT, tipo Individual → CERT gerado pelo trigger
 
 -- Doação 3 — Editora Moçambicana (Institucional — sem certificado automático)
-INSERT INTO DOACAO (id_doador, data_doacao)
-VALUES (3, TO_DATE('2024-09-01','YYYY-MM-DD'));
+INSERT INTO DOACAO (id_doador, cod_biblioteca, data_doacao)
+VALUES (3, 'BIBSOF0001', TO_DATE('2024-09-01','YYYY-MM-DD'));
 -- id_doacao = 3
 
-INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
-VALUES (3, 'BIBSOF0001', 40, 45.00, 'Titulos publicados pela editora em 2024');
+INSERT INTO ITEM_DOACAO (id_doacao, nome_item, tipo_item, quantidade, valor_estimado, observacoes)
+VALUES (3, 'Titulos publicados pela editora em 2024', 'Livro', 40, 45.00, 'Titulos publicados pela editora em 2024');
 -- id_itemDoado = 4
 
 -- Doação 4 — Anónimo (total 250 MT — sem certificado)
-INSERT INTO DOACAO (id_doador, data_doacao)
-VALUES (0, TO_DATE('2025-01-15','YYYY-MM-DD'));
+INSERT INTO DOACAO (id_doador, cod_biblioteca, data_doacao)
+VALUES (0, 'BIBGZA0001', TO_DATE('2025-01-15','YYYY-MM-DD'));
 -- id_doacao = 4
 
-INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
-VALUES (4, 'BIBGZA0001', 10, 25.00, 'Revistas diversas');
+INSERT INTO ITEM_DOACAO (id_doacao, nome_item, tipo_item, quantidade, valor_estimado, observacoes)
+VALUES (4, 'Revistas diversas', 'Outro', 10, 25.00, 'Revistas diversas');
 -- id_itemDoado = 5  →  total 250 MT → sem certificado
 
 -- ============================================================

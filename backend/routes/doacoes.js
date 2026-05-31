@@ -80,7 +80,7 @@ router.get('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), as
     const binds = { min_row: minRow, max_row: maxRow };
     let where = '';
     if (biblioteca) {
-      where = `WHERE ID_DOACAO IN (SELECT ID_DOACAO FROM ITEM_DOACAO WHERE COD_BIBLIOTECA = :biblioteca)`;
+      where = `WHERE COD_BIBLIOTECA = :biblioteca`;
       binds.biblioteca = biblioteca;
     }
 
@@ -88,6 +88,7 @@ router.get('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), as
       `SELECT * FROM (
          SELECT a.*, ROWNUM AS RN FROM (
            SELECT ID_DOACAO, DATA_DOACAO,
+                  COD_BIBLIOTECA, NOME_BIBLIOTECA,
                   NOME_DOADOR,
                   TIPO_DOADOR,
                   VALOR_TOTAL_DOACAO       AS VALOR_TOTAL,
@@ -102,7 +103,7 @@ router.get('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), as
     const countBinds = {};
     let countWhere = '';
     if (biblioteca) {
-      countWhere = `WHERE ID_DOACAO IN (SELECT ID_DOACAO FROM ITEM_DOACAO WHERE COD_BIBLIOTECA = :biblioteca)`;
+      countWhere = `WHERE COD_BIBLIOTECA = :biblioteca`;
       countBinds.biblioteca = biblioteca;
     }
     const countResult = await conn.execute(
@@ -157,18 +158,19 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
   try {
     conn = await getConnection();
     const dResult = await conn.execute(
-      `SELECT d.*, dr.NOME_DOADOR, dr.TIPO_DOADOR, dr.CONTACTO, dr.ENDERECO
+      `SELECT d.*, dr.NOME_DOADOR, dr.TIPO_DOADOR, dr.CONTACTO, dr.ENDERECO,
+              b.NOME_BIBLIOTECA
          FROM DOACAO d
          LEFT JOIN DOADOR dr ON dr.ID_DOADOR = d.ID_DOADOR
+         LEFT JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = d.COD_BIBLIOTECA
         WHERE d.ID_DOACAO = :id`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
     if (dResult.rows.length === 0) return res.status(404).json({ erro: 'Doação não encontrada.' });
     const itensResult = await conn.execute(
-      `SELECT i.*, b.NOME_BIBLIOTECA
+      `SELECT i.*
          FROM ITEM_DOACAO i
-         JOIN BIBLIOTECA b ON b.COD_BIBLIOTECA = i.COD_BIBLIOTECA
         WHERE i.ID_DOACAO = :id`,
       { id: req.params.id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -193,17 +195,25 @@ router.get('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
 });
 
 router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) => {
-  // itens: [{ cod_biblioteca, quantidade, valor_estimado, observacoes }]
+  // body: { id_doador, cod_biblioteca, data_doacao, itens: [{ nome_item, tipo_item, quantidade, valor_estimado, observacoes }] }
   // id_doador: 0 significa doador anónimo (RN10)
-  const { id_doador, data_doacao, itens } = req.body;
+  const { id_doador, cod_biblioteca, data_doacao, itens } = req.body;
+  const TIPOS_VALIDOS = ['Livro','Dinheiro','Recurso','Outro'];
+
   if (id_doador == null || !itens || itens.length === 0) {
     return res.status(400).json({ erro: 'Doador (0 para anónimo) e pelo menos um item obrigatórios.' });
+  }
+  if (!cod_biblioteca) {
+    return res.status(400).json({ erro: 'Biblioteca beneficiada (cod_biblioteca) é obrigatória.' });
   }
 
   for (let i = 0; i < itens.length; i++) {
     const item = itens[i];
-    if (!item.cod_biblioteca) {
-      return res.status(400).json({ erro: `Item ${i + 1}: cod_biblioteca obrigatório.` });
+    if (!item.nome_item || !String(item.nome_item).trim()) {
+      return res.status(400).json({ erro: `Item ${i + 1}: nome_item obrigatório.` });
+    }
+    if (!item.tipo_item || !TIPOS_VALIDOS.includes(item.tipo_item)) {
+      return res.status(400).json({ erro: `Item ${i + 1}: tipo_item inválido. Valores aceites: ${TIPOS_VALIDOS.join(', ')}.` });
     }
     const qtd = Number(item.quantidade);
     const val = Number(item.valor_estimado ?? 0);
@@ -222,10 +232,20 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
   try {
     conn = await getConnection();
 
+    // Validar que a biblioteca existe e está activa
+    const bibCheck = await conn.execute(
+      `SELECT COD_BIBLIOTECA FROM BIBLIOTECA WHERE COD_BIBLIOTECA = :cod AND ESTADO = 'Activo'`,
+      { cod: cod_biblioteca },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    if (bibCheck.rows.length === 0) {
+      return res.status(400).json({ erro: 'Biblioteca beneficiada inválida ou inactiva.' });
+    }
+
     await conn.execute(
-      `INSERT INTO DOACAO (ID_DOACAO, ID_DOADOR, DATA_DOACAO)
-       VALUES (SEQ_DOACAO.NEXTVAL, :id_doador, NVL(TO_DATE(:data,'YYYY-MM-DD'), SYSDATE))`,
-      { id_doador: idDoadorBD, data: data_doacao || null }
+      `INSERT INTO DOACAO (ID_DOACAO, ID_DOADOR, COD_BIBLIOTECA, DATA_DOACAO)
+       VALUES (SEQ_DOACAO.NEXTVAL, :id_doador, :cod_bib, NVL(TO_DATE(:data,'YYYY-MM-DD'), SYSDATE))`,
+      { id_doador: idDoadorBD, cod_bib: cod_biblioteca, data: data_doacao || null }
     );
     const curDoacao = await conn.execute(
       `SELECT SEQ_DOACAO.CURRVAL AS ID FROM DUAL`,
@@ -235,10 +255,11 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
 
     for (const item of itens) {
       await conn.execute(
-        `INSERT INTO ITEM_DOACAO (ID_ITEMDOADO, ID_DOACAO, COD_BIBLIOTECA, QUANTIDADE, VALOR_ESTIMADO, OBSERVACOES)
-         VALUES (SEQ_ITEMDOADO.NEXTVAL, :id_doacao, :id_bib, :qtd, :val, :obs)`,
+        `INSERT INTO ITEM_DOACAO (ID_ITEMDOADO, ID_DOACAO, NOME_ITEM, TIPO_ITEM, QUANTIDADE, VALOR_ESTIMADO, OBSERVACOES)
+         VALUES (SEQ_ITEMDOADO.NEXTVAL, :id_doacao, :nome, :tipo, :qtd, :val, :obs)`,
         { id_doacao: idDoacao,
-          id_bib:  item.cod_biblioteca,
+          nome:    String(item.nome_item).trim(),
+          tipo:    item.tipo_item,
           qtd:     Number(item.quantidade),
           val:     Number(item.valor_estimado || 0),
           obs:     item.observacoes || null }

@@ -69,7 +69,8 @@ async function api(path, opts = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const msgErro = data.erro || data.mensagem || '';
-    if (typeof msgErro === 'string' && msgErro.includes('ORA-01031')) {
+    if (typeof msgErro === 'string' &&
+        (msgErro.includes('ORA-01031') || msgErro.includes('ORA-01732'))) {
       toast('Sem permissão para esta operação neste nó da rede.', 'erro');
       try { fecharModal(); } catch {}
       throw new Error('Sem permissão neste nó.');

@@ -63,34 +63,49 @@
   <!-- ── Vista Rede (só Administrador) ── -->
   <div id="dash-rede-view" class="hidden">
 
-    <div id="dash-rede-stats" class="stats-grid"></div>
-
-    <div class="panel" style="margin-top:4px">
-      <div class="panel-title">Bibliotecas da rede</div>
-      <div id="dash-rede-table"></div>
+    <!-- Tabs: Rede | Sistema -->
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button id="tab-dash-rede"    class="tab-btn tab-active" onclick="switchDashTab('rede')">
+        <i class="fa-solid fa-network-wired" style="margin-right:4px"></i>Rede
+      </button>
+      <button id="tab-dash-sistema" class="tab-btn" onclick="switchDashTab('sistema')">
+        <i class="fa-solid fa-database" style="margin-right:4px"></i>Sistema
+      </button>
     </div>
 
-    <div class="panel-grid" style="margin-top:16px">
-      <div class="panel">
-        <div class="panel-title">Empréstimos em atraso — rede</div>
-        <div id="dash-atrasos-rede"></div>
+    <!-- Tab Rede -->
+    <div id="dash-tab-rede">
+      <div id="dash-rede-stats" class="stats-grid"></div>
+
+      <div class="panel" style="margin-top:4px">
+        <div class="panel-title">Bibliotecas da rede</div>
+        <div id="dash-rede-table"></div>
       </div>
-      <div class="panel">
-        <div class="panel-title">Próximos eventos</div>
-        <div id="dash-proximos-eventos-rede"></div>
+
+      <div class="panel-grid" style="margin-top:16px">
+        <div class="panel">
+          <div class="panel-title">Empréstimos em atraso — rede</div>
+          <div id="dash-atrasos-rede"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Próximos eventos</div>
+          <div id="dash-proximos-eventos-rede"></div>
+        </div>
       </div>
     </div>
 
-    <!-- Painel de manutenção de snapshots — só Administrador -->
-    <div class="panel" style="margin-top:16px">
-      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>Snapshots / Réplicas — nó actual</span>
-        <button id="btn-refresh-snapshots" class="btn btn-sm" onclick="refreshSnapshots()">
-          Actualizar Snapshots
-        </button>
-      </div>
-      <div id="dash-snapshots-lista" style="margin-top:8px">
-        <p style="color:var(--text-secondary);font-size:12px">A carregar...</p>
+    <!-- Tab Sistema (snapshots / réplicas) -->
+    <div id="dash-tab-sistema" class="hidden">
+      <div class="panel">
+        <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Snapshots / Réplicas — nó actual</span>
+          <button id="btn-refresh-snapshots" class="btn btn-sm" onclick="refreshSnapshots()">
+            Actualizar Snapshots
+          </button>
+        </div>
+        <div id="dash-snapshots-lista" style="margin-top:8px">
+          <p style="color:var(--text-secondary);font-size:12px">A carregar...</p>
+        </div>
       </div>
     </div>
 

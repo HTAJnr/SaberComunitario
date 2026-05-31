@@ -133,7 +133,7 @@ DECLARE
     v_seq         NUMBER;
     v_numero_cert VARCHAR2(30);
 BEGIN
-    v_valor_item := :NEW.valor_estimado * :NEW.quantidade;
+    v_valor_item := NVL(:NEW.valor_estimado, 0) * NVL(:NEW.quantidade, 1);
 
     IF v_valor_item < 1000 THEN
         RETURN;

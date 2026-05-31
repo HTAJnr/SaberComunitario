@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { getConnection, oracledb } = require('../db');
+const { registar } = require('../middleware/auditoria');
 
 function refreshSnapshotsBackground() {
   getConnection().then(c =>
@@ -56,16 +57,22 @@ router.post('/login', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      await registar(conn, { cod_func: '0', operacao: 'LOGIN_FALHA', objeto: email, resultado: 'FALHA', motivo: 'Utilizador não encontrado' });
+      await conn.commit();
       return res.status(401).json({ erro: 'Credenciais inválidas ou conta inactiva.' });
     }
 
     const func = result.rows[0];
     const senhaValida = await bcrypt.compare(senha, func.SENHA);
     if (!senhaValida) {
+      await registar(conn, { cod_func: String(func.COD_FUNCIONARIO), operacao: 'LOGIN_FALHA', objeto: email, resultado: 'FALHA', motivo: 'Senha incorrecta' });
+      await conn.commit();
       return res.status(401).json({ erro: 'Credenciais inválidas ou conta inactiva.' });
     }
 
     delete func.SENHA;
+    await registar(conn, { cod_func: String(func.COD_FUNCIONARIO), operacao: 'LOGIN_SUCESSO', objeto: email, resultado: 'SUCESSO' });
+    await conn.commit();
     req.session.funcionario = func;
     req.session.cod_funcionario = func.COD_FUNCIONARIO;
     req.session.cod_biblioteca = func.COD_BIBLIOTECA;

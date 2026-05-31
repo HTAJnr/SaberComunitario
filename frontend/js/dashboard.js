@@ -1,6 +1,15 @@
 // ════════════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════════════
+function switchDashTab(tab) {
+  const isRede    = tab === 'rede';
+  document.getElementById('dash-tab-rede').classList.toggle('hidden', !isRede);
+  document.getElementById('dash-tab-sistema').classList.toggle('hidden', isRede);
+  document.getElementById('tab-dash-rede').classList.toggle('tab-active', isRede);
+  document.getElementById('tab-dash-sistema').classList.toggle('tab-active', !isRede);
+  if (!isRede) carregarSnapshotsInfo();
+}
+
 async function carregarDashboard() {
   const nivel = utilizadorActual?.NIVEL_ACESSO;
   if (nivel === 'Administrador') {
@@ -69,7 +78,6 @@ async function carregarDashboardAdmin() {
     _renderBibliotecasRede(Array.isArray(bibs) ? bibs : (bibs.bibliotecas || []));
     renderEmprestimosAtrasados('dash-atrasos-rede', atrasos || []);
     renderProximosEventos('dash-proximos-eventos-rede', proximosEv || []);
-    await carregarSnapshotsInfo();
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');
   }

@@ -150,6 +150,19 @@ GRANT SELECT ON vw_func_activos_operacional TO role_nac_leitor_tipo;
 
 -- ── Yannis (app_emprestimosdb) ──────────────────────────────
 
+-- Doacoes — DML cross-node (modulo acessivel de qualquer no)
+GRANT SELECT, INSERT, UPDATE, DELETE ON DOACAO            TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ITEM_DOACAO       TO app_emprestimosdb;
+GRANT SELECT, INSERT                 ON DOADOR            TO app_emprestimosdb;
+GRANT SELECT, INSERT                 ON CERTIFICADO_DOACAO TO app_emprestimosdb;
+GRANT SELECT                         ON SEQ_DOACAO        TO app_emprestimosdb;
+GRANT SELECT                         ON SEQ_ITEMDOADO     TO app_emprestimosdb;
+GRANT SELECT                         ON SEQ_DOADOR        TO app_emprestimosdb;
+GRANT SELECT                         ON SEQ_CERTIFICADO   TO app_emprestimosdb;
+-- Permissoes — so leitura (escrita exclusiva do NacionalDB per enunciado)
+GRANT SELECT                         ON PERMISSAO_CARGO   TO app_emprestimosdb;
+GRANT SELECT                         ON SEQ_PERMISSAO     TO app_emprestimosdb;
+
 -- RN01: trigger verifica status_leitor antes de criar emprestimo
 GRANT SELECT ON LEITOR                          TO app_emprestimosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_emprestimosdb;
@@ -178,6 +191,19 @@ GRANT SELECT ON snap_transferencias             TO app_emprestimosdb;
 
 -- ── Yasin (app_materiaisdb) ─────────────────────────────────
 
+-- Doacoes — DML cross-node
+GRANT SELECT, INSERT, UPDATE, DELETE ON DOACAO            TO app_materiaisdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ITEM_DOACAO       TO app_materiaisdb;
+GRANT SELECT, INSERT                 ON DOADOR            TO app_materiaisdb;
+GRANT SELECT, INSERT                 ON CERTIFICADO_DOACAO TO app_materiaisdb;
+GRANT SELECT                         ON SEQ_DOACAO        TO app_materiaisdb;
+GRANT SELECT                         ON SEQ_ITEMDOADO     TO app_materiaisdb;
+GRANT SELECT                         ON SEQ_DOADOR        TO app_materiaisdb;
+GRANT SELECT                         ON SEQ_CERTIFICADO   TO app_materiaisdb;
+-- Permissoes — so leitura
+GRANT SELECT                         ON PERMISSAO_CARGO   TO app_materiaisdb;
+GRANT SELECT                         ON SEQ_PERMISSAO     TO app_materiaisdb;
+
 -- RN09: e-books exigem leitor adulto
 GRANT SELECT ON LEITOR                          TO app_materiaisdb;
 GRANT SELECT ON ADULTO                          TO app_materiaisdb;
@@ -197,6 +223,19 @@ GRANT SELECT ON snap_eventos                    TO app_materiaisdb;
 GRANT SELECT ON snap_transferencias             TO app_materiaisdb;
 
 -- ── Gerson (app_eventosdb) ──────────────────────────────────
+
+-- Doacoes — DML cross-node
+GRANT SELECT, INSERT, UPDATE, DELETE ON DOACAO            TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ITEM_DOACAO       TO app_eventosdb;
+GRANT SELECT, INSERT                 ON DOADOR            TO app_eventosdb;
+GRANT SELECT, INSERT                 ON CERTIFICADO_DOACAO TO app_eventosdb;
+GRANT SELECT                         ON SEQ_DOACAO        TO app_eventosdb;
+GRANT SELECT                         ON SEQ_ITEMDOADO     TO app_eventosdb;
+GRANT SELECT                         ON SEQ_DOADOR        TO app_eventosdb;
+GRANT SELECT                         ON SEQ_CERTIFICADO   TO app_eventosdb;
+-- Permissoes — so leitura
+GRANT SELECT                         ON PERMISSAO_CARGO   TO app_eventosdb;
+GRANT SELECT                         ON SEQ_PERMISSAO     TO app_eventosdb;
 
 -- Verificacao de leitores antes de inscrever em eventos
 GRANT SELECT ON LEITOR                          TO app_eventosdb;
@@ -242,3 +281,5 @@ GRANT SELECT ON SEQ_ITEMDOADO            TO app_NACIONALDB;
 GRANT SELECT ON SEQ_CERTIFICADO          TO app_NACIONALDB;
 GRANT SELECT ON SEQ_AUDITORIA            TO app_NACIONALDB;
 GRANT SELECT ON SEQ_FUNCAO               TO app_NACIONALDB;
+GRANT SELECT ON SEQ_PERMISSAO            TO app_NACIONALDB;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PERMISSAO_CARGO TO app_NACIONALDB;

@@ -105,22 +105,22 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
       return res.status(409).json({ erro: `Biblioteca não tem horário definido para ${diaSemana}.` });
     }
 
-    const result = await conn.execute(
+    await conn.execute(
       `INSERT INTO EVENTO
          (ID_EVENTO, TITULO_EVENTO, DESCRICAO_EVENTO, LOCAL_EVENTO, DATA_EVENTO,
           PUBLICO_ALVO, CAPACIDADE, STATUS_EVENTO, RECORRENTE, COD_BIBLIOTECA)
        VALUES
          (SEQ_EVENTO.NEXTVAL, :titulo, :desc, :local, TO_DATE(:data,'YYYY-MM-DD'),
-          :pub_alvo, :cap, 'Planeado', NVL(:rec,'N'), :cod_bib)
-       RETURNING ID_EVENTO INTO :id_out`,
+          :pub_alvo, :cap, 'Planeado', NVL(:rec,'N'), :cod_bib)`,
       {
         titulo: titulo_evento, desc: descricao_evento || null, local: local_evento || null,
         data: data_evento, pub_alvo: publico_alvo, cap: capacidade || null,
-        rec: recorrente || 'N', cod_bib: cod_biblioteca,
-        id_out: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+        rec: recorrente || 'N', cod_bib: cod_biblioteca
       }
     );
-    const idEvento = result.outBinds.id_out[0];
+    const curRow = await conn.execute(`SELECT SEQ_EVENTO.CURRVAL AS ID FROM DUAL`, [],
+      { outFormat: oracledb.OUT_FORMAT_OBJECT });
+    const idEvento = curRow.rows[0].ID;
 
     // Inserir horários do evento
     if (Array.isArray(horarios) && horarios.length > 0) {
