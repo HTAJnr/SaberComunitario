@@ -459,7 +459,7 @@ router.patch('/:id', exigirNivel('Administrador', 'Coordenador'), async (req, re
     }
 
     await conn.commit();
-    res.json({ ok: true });
+    res.json({ ok: true, cod_funcionario: req.params.id });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error(`\x1b[31m[FUNCIONARIOS PATCH /${req.params.id}] ERRO ao actualizar funcionário\x1b[0m`);

@@ -401,7 +401,7 @@ async function _renderizarFormEvento(ev) {
   ).join('');
 
   const funcOpts = funcionarios.map(f =>
-    `<option value="${f.COD_FUNCIONARIO}"${ev && ev.COD_FUNCIONARIO === f.COD_FUNCIONARIO ? ' selected' : ''}>${f.NOME_FUNCIONARIO}</option>`
+    `<option value="${f.COD_FUNCIONARIO}"${ev && ev.COD_FUNCIONARIO === f.COD_FUNCIONARIO ? ' selected' : ''}>${f.NOME_FUNCIONARIO || f.NOME || '—'}</option>`
   ).join('');
 
   const dataVal = ev && ev.DATA_EVENTO

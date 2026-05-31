@@ -82,3 +82,16 @@ function avatarCirculo(nome, tamanho) {
     color:#fff;display:flex;align-items:center;justify-content:center;
     font-size:${Math.round(t * 0.38)}px;font-weight:700;flex-shrink:0">${txt}</div>`;
 }
+
+// ── Datas dd/mm/aaaa ──────────────────────────────
+function isoParaDdMmAaaa(iso) {
+  if (!iso) return '';
+  const [y, m, d] = String(iso).slice(0, 10).split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function ddMmAaaaParaIso(pt) {
+  if (!pt) return '';
+  const [d, m, y] = String(pt).split('/');
+  return `${y}-${m}-${d}`;
+}

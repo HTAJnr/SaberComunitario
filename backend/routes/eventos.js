@@ -3,7 +3,7 @@ const router = express.Router();
 const { getConnection, oracledb } = require('../db');
 const { autenticar, exigirNivel } = require('../middleware/permissoes');
 
-const DIAS_PT = ['Domingo','Segunda','Terca','Quarta','Quinta','Sexta','Sabado'];
+const DIAS_PT = ['Domingo','Segunda-feira','Terca-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sabado'];
 
 router.get('/', autenticar, async (req, res) => {
   let conn;

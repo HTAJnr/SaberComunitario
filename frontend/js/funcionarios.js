@@ -540,11 +540,12 @@ async function _submeterModalFunc() {
   };
 
   try {
-    await patch(`/api/funcionarios/${_editFuncCod}`, body);
+    const resp = await patch(`/api/funcionarios/${_editFuncCod}`, body);
     fecharModalFunc();
     toast('Funcionário actualizado com sucesso.');
-    carregarFuncionarios();
-    if (_funcDrawerCod === _editFuncCod) abrirDrawerFunc(_editFuncCod);
+    await carregarFuncionarios();
+    const codAtualizado = resp?.cod_funcionario || _editFuncCod;
+    if (_funcDrawerCod === _editFuncCod) abrirDrawerFunc(codAtualizado);
   } catch (err) {
     _mostrarErroFunc('modal-func-erro', 'modal-func-erro-msg', err.message);
   }

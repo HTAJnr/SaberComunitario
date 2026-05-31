@@ -67,7 +67,15 @@ async function api(path, opts = {}) {
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.erro || `Erro ${res.status}`);
+  if (!res.ok) {
+    const msgErro = data.erro || data.mensagem || '';
+    if (typeof msgErro === 'string' && msgErro.includes('ORA-01031')) {
+      toast('Sem permissão para esta operação neste nó da rede.', 'erro');
+      try { fecharModal(); } catch {}
+      throw new Error('Sem permissão neste nó.');
+    }
+    throw new Error(data.erro || `Erro ${res.status}`);
+  }
   return data;
 }
 const get  = (p)    => api(p);
@@ -597,6 +605,15 @@ async function _submeterPerfil() {
     const endereco = document.getElementById('perfil-endereco')?.value.trim() || null;
     try {
       await patch('/api/funcionarios/me', { contacto, endereco });
+      if (utilizadorActual) {
+        utilizadorActual.CONTACTO = contacto;
+        utilizadorActual.ENDERECO = endereco;
+        const nomeSidebar = utilizadorActual.NOME_FUNCIONARIO || utilizadorActual.EMAIL || 'Funcionário';
+        const elNome = document.getElementById('sidebar-user-name');
+        const elAvatar = document.getElementById('sidebar-avatar');
+        if (elNome) elNome.textContent = nomeSidebar;
+        if (elAvatar) elAvatar.textContent = iniciais(nomeSidebar);
+      }
       fecharModalPerfil();
       toast('Perfil actualizado.', 'sucesso');
     } catch (err) { _mostrarErroPerfil(err.message); }
