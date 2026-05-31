@@ -189,6 +189,10 @@ AS
 SELECT id_funcao, nome_funcao, nivel_acesso
 FROM funcao_funcionario@nacionaldb;
 
+-- Grants imediatos — aplicar apos criacao das MVs
+GRANT SELECT ON repl_funcionarios       TO app_emprestimosdb;
+GRANT SELECT ON repl_funcao_funcionario TO app_emprestimosdb;
+
 -- ============================================================
 -- Recompilar objectos dependentes das MVs
 -- ============================================================

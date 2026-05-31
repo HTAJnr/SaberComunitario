@@ -84,5 +84,9 @@ SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
 FROM leitor@link_nacionaldb;
 
+-- Grants imediatos — aplicar apos criacao das MVs
+GRANT SELECT ON repl_funcionarios       TO app_materiaisdb;
+GRANT SELECT ON repl_funcao_funcionario TO app_materiaisdb;
+
 -- RECOMPILAR O TRIGGER QUE DEPENDE DO SNAP 1
 ALTER TRIGGER trg_valida_transferencia COMPILE;
