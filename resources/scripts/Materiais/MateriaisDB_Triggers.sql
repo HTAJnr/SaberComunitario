@@ -1,5 +1,5 @@
 -- ============================================================
--- MateriaisDB_Triggers.sql — Triggers do no MateriaisDB
+-- MateriaisDB_Triggers.sql ï¿½ Triggers do no MateriaisDB
 -- Sistema de Gestao de Bibliotecas Comunitarias Distribuido
 -- Executar como: usr_materiaisdb
 -- Executar DEPOIS de: MateriaisDB_Synonyms.sql, MateriaisDB_Procedures.sql,
@@ -8,7 +8,7 @@
 
 
 -- ============================================================
--- TRIGGER 1 — trg_transferencia_id
+-- TRIGGER 1 ï¿½ trg_transferencia_id
 -- Gera id_transferencia automaticamente via SEQ_TRANSFERENCIA
 -- ============================================================
 CREATE OR REPLACE TRIGGER trg_transferencia_id
@@ -23,7 +23,7 @@ END trg_transferencia_id;
 
 
 -- ============================================================
--- TRIGGER 2 — trg_transferencia_insert (RN06)
+-- TRIGGER 2 ï¿½ trg_transferencia_insert (RN06)
 -- Proteccao no INSERT de TRANSFERENCIA
 -- Verifica emprestimo activo no EmprestimosDB via sinonimo
 -- ============================================================
@@ -92,7 +92,7 @@ END trg_transferencia_insert;
 
 
 -- ============================================================
--- TRIGGER 3 — protege_ultimo_exemplar_insert
+-- TRIGGER 3 ï¿½ protege_ultimo_exemplar_insert
 -- Bloqueia transferencia se for o ultimo exemplar disponivel
 -- Usa funcao normaliza_titulo para comparar por titulo
 -- quando o material nao tem ISBN
@@ -147,7 +147,7 @@ END protege_ultimo_exemplar_insert;
 
 
 -- ============================================================
--- TRIGGER 4 — protege_ultimo_exemplar_update
+-- TRIGGER 4 ï¿½ protege_ultimo_exemplar_update
 -- Bloqueia aprovacao se for o ultimo exemplar disponivel
 -- ============================================================
 CREATE OR REPLACE TRIGGER protege_ultimo_exemplar_update
@@ -201,7 +201,7 @@ END protege_ultimo_exemplar_update;
 
 
 -- ============================================================
--- TRIGGER 5 — trg_transferencia_fluxo (RN06)
+-- TRIGGER 5 ï¿½ trg_transferencia_fluxo (RN06)
 -- Validacao do fluxo de estados de TRANSFERENCIA
 -- ============================================================
 CREATE OR REPLACE TRIGGER trg_transferencia_fluxo
@@ -270,7 +270,7 @@ END trg_transferencia_fluxo;
 
 
 -- ============================================================
--- TRIGGER 6 — trg_valida_transferencia
+-- TRIGGER 6 ï¿½ trg_valida_transferencia
 -- Valida funcionarios e material da transferencia
 -- NOTA: depende de repl_funcionarios (snapshot do Helder)
 -- DESACTIVADO ate snapshot repl_funcionarios estar disponivel

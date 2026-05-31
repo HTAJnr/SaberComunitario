@@ -22,26 +22,28 @@
 -- ============================================================
 CREATE OR REPLACE PROCEDURE registrar_doacao_completa (
     p_id_doador       IN  NUMBER,
+    p_cod_biblioteca  IN  VARCHAR2,
     p_data            IN  DATE,
     p_itens           IN  SYS_REFCURSOR,
     p_id_doacao       OUT NUMBER,
     p_num_certificado OUT VARCHAR2
 ) AS
-    v_cod_biblioteca VARCHAR2(10);
-    v_qtd            NUMBER;
-    v_valor          NUMBER;
-    v_obs            VARCHAR2(300);
+    v_nome_item  VARCHAR2(200);
+    v_tipo_item  VARCHAR2(20);
+    v_qtd        NUMBER;
+    v_valor      NUMBER;
+    v_obs        VARCHAR2(300);
 BEGIN
-    INSERT INTO DOACAO (id_doador, data_doacao)
-    VALUES (p_id_doador, NVL(p_data, SYSDATE))
+    INSERT INTO DOACAO (id_doador, cod_biblioteca, data_doacao)
+    VALUES (p_id_doador, p_cod_biblioteca, NVL(p_data, SYSDATE))
     RETURNING id_doacao INTO p_id_doacao;
 
     LOOP
-        FETCH p_itens INTO v_cod_biblioteca, v_qtd, v_valor, v_obs;
+        FETCH p_itens INTO v_nome_item, v_tipo_item, v_qtd, v_valor, v_obs;
         EXIT WHEN p_itens%NOTFOUND;
 
-        INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
-        VALUES (p_id_doacao, v_cod_biblioteca, v_qtd, v_valor, v_obs);
+        INSERT INTO ITEM_DOACAO (id_doacao, nome_item, tipo_item, quantidade, valor_estimado, observacoes)
+        VALUES (p_id_doacao, v_nome_item, v_tipo_item, v_qtd, v_valor, v_obs);
     END LOOP;
     CLOSE p_itens;
 
@@ -545,12 +547,12 @@ CREATE OR REPLACE PROCEDURE prc_demo_2pc (
 ) AS
 BEGIN
     -- 1. INSERT local
-    INSERT INTO DOACAO (id_doador, data_doacao)
-    VALUES (p_id_doador, SYSDATE)
+    INSERT INTO DOACAO (id_doador, cod_biblioteca, data_doacao)
+    VALUES (p_id_doador, p_cod_biblioteca, SYSDATE)
     RETURNING id_doacao INTO p_id_doacao;
 
-    INSERT INTO ITEM_DOACAO (id_doacao, cod_biblioteca, quantidade, valor_estimado, observacoes)
-    VALUES (p_id_doacao, p_cod_biblioteca, 1, p_valor, 'Demo 2PC — transaccao distribuida');
+    INSERT INTO ITEM_DOACAO (id_doacao, nome_item, tipo_item, quantidade, valor_estimado, observacoes)
+    VALUES (p_id_doacao, 'Material ' || p_cod_material, 'Livro', 1, p_valor, 'Demo 2PC — transaccao distribuida');
 
     -- 2. UPDATE remoto (sinónimo: material_bibliografico → MateriaisDB)
     EXECUTE IMMEDIATE

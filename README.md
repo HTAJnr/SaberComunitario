@@ -38,6 +38,8 @@ STARTUP;
 
 Os scripts de cada nó são resilientes (usam DROP defensivo), mas a ordem abaixo garante que os database links e snapshots cross-node funcionam correctamente.
 
+> **Nota sobre reinstalação em sistema existente:** O `DROP USER ... CASCADE` pode falhar com `ORA-01940` se existirem sessões activas. Este erro é não-fatal — o script continua e os objectos são recriados na mesma. Basta fechar outras sessões activas (SQL Developer, sqlplus) antes de reinstalar.
+
 **Passo 1 — instalar os 3 nós dependentes** (podem correr em paralelo ou por esta ordem):
 
 **EventosBibliotecasDB:**
@@ -55,6 +57,8 @@ sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EmprestimosDB_Main.sql
 sqlplus sys/"bd2.isctem" as sysdba @/root/TP/MateriaisDB_Main.sql
 ```
 
+> **Nota:** Os snapshots cross-node definidos nestes nós (e.g. `SNAP_MATERIAL`, `SNAP_CATEGORIA` no EmpréstimosDB) falharão neste passo porque o BibliotecaNacionalDB ainda não existe. Isso é esperado — serão recriados no Passo 4.
+
 **Passo 2 — instalar o nó principal:**
 
 **BibliotecaNacionalDB:**
@@ -70,6 +74,32 @@ sqlplus usr_eventosdb/eventos1234 @/root/TP/EventosDB_Snapshots.sql
 ```
 
 Este script cria as materialized views `repl_funcionarios`, `repl_funcao_funcionario` e `snap_leitor` que puxam dados do BibliotecaNacionalDB via database link. Só funciona depois do BibliotecaNacionalDB estar activo.
+
+**Passo 4 — recriar os snapshots do EmpréstimosDB** (obrigatório após o Passo 2):
+
+Na VM do EmpréstimosDB, correr como `usr_emprestimosdb` (não como sysdba):
+```bash
+sqlplus usr_emprestimosdb/"YC20220156" @/root/TP/EmprestimosDB_Snapshots.sql
+```
+
+Este script recria as materialized views `SNAP_MATERIAL`, `SNAP_CATEGORIA` e `BIBLIOTECA_SNAP` que dependem do BibliotecaNacionalDB e do MateriaisDB. A primeira execução no Passo 1 falhou porque os nós dependentes ainda não existiam — esta segunda execução resolve isso.
+
+**Passo 5 — recompilar objectos inválidos** (se necessário após reinstalação):
+
+Após reinstalação em sistema existente, podem existir views, triggers ou procedures em estado `INVALID` por dependências transitórias. Verificar e recompilar em cada nó afectado:
+
+```sql
+-- Verificar objectos inválidos
+SELECT object_type, object_name, status
+FROM dba_objects
+WHERE owner = 'USR_EVENTOSDB'   -- substituir pelo schema do nó
+  AND status = 'INVALID';
+
+-- Recompilar (exemplos)
+ALTER VIEW usr_eventosdb.nome_da_view COMPILE;
+ALTER TRIGGER usr_eventosdb.nome_do_trigger COMPILE;
+ALTER PROCEDURE usr_eventosdb.nome_do_proc COMPILE;
+```
 
 O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
 
