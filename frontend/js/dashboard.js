@@ -67,7 +67,7 @@ async function carregarSnapshotsInfo() {
           <td class="cod">${s.NOME}</td>
           <td>${s.MODO || '—'}</td>
           <td style="color:var(--text-secondary)">${s.ULTIMO_REFRESH ? new Date(s.ULTIMO_REFRESH).toLocaleString('pt-PT') : '—'}</td>
-          <td><span class="badge ${s.ESTADO === 'FRESH' ? 'badge-verde' : 'badge-laranja'}">${s.ESTADO || '—'}</span></td>
+          <td><span class="badge ${s.ESTADO === 'FRESH' ? 'badge-green' : s.ESTADO === 'STALE' ? 'badge-red' : 'badge-gray'}">${s.ESTADO === 'FRESH' ? 'Actualizado' : s.ESTADO === 'STALE' ? 'Desactualizado' : s.ESTADO === 'UNDEFINED' || s.ESTADO === 'UNKNOWN' ? 'Não rastreável' : s.ESTADO || '—'}</span></td>
         </tr>`).join('')}
       </tbody></table>`;
   } catch (_) {
