@@ -63,6 +63,13 @@ CREATE OR REPLACE PUBLIC SYNONYM INSERE_PARTICIPACAO_EVENTO   FOR usr_eventosdb.
 CREATE OR REPLACE PUBLIC SYNONYM SEQ_EVENTO                   FOR usr_eventosdb.SEQ_EVENTO;
 CREATE OR REPLACE PUBLIC SYNONYM SEQ_AVALIACAO                FOR usr_eventosdb.SEQ_AVALIACAO;
 CREATE OR REPLACE PUBLIC SYNONYM SEQ_HORARIO_EVENTO           FOR usr_eventosdb.SEQ_HORARIO_EVENTO;
+CREATE OR REPLACE PUBLIC SYNONYM SEQ_AUDITORIA_EVT            FOR usr_eventosdb.SEQ_AUDITORIA_EVT;
+
+-- Leitores e materiais — acedidos via dblink por queries cross-node (dashboard, bibliotecas)
+CREATE OR REPLACE PUBLIC SYNONYM LEITOR
+    FOR usr_NACIONALDB.leitor@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM MATERIAL_BIBLIOGRAFICO
+    FOR usr_materiaisdb.MATERIAL_BIBLIOGRAFICO@link_materiaisdb;
 
 -- Tabelas do NacionalDB acessiveis de qualquer no
 CREATE OR REPLACE PUBLIC SYNONYM DOACAO             FOR usr_NACIONALDB.DOACAO@link_nacionaldb;

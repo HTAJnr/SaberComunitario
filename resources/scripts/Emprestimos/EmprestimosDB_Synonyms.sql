@@ -91,6 +91,10 @@ CREATE OR REPLACE PUBLIC SYNONYM vw_auditoria
     FOR usr_emprestimosdb.vw_auditoria;
 CREATE OR REPLACE PUBLIC SYNONYM vw_relatorio_programas
     FOR usr_emprestimosdb.vw_relatorio_programas;
+CREATE OR REPLACE PUBLIC SYNONYM auditoria_emprestimos
+    FOR usr_emprestimosdb.auditoria_emprestimos;
+CREATE OR REPLACE PUBLIC SYNONYM seq_auditoria_emp
+    FOR usr_emprestimosdb.seq_auditoria_emp;
 
 -- Snapshots locais (acesso directo pelo app_emprestimosdb sem prefixo de schema)
 CREATE OR REPLACE PUBLIC SYNONYM snap_leitor     FOR usr_emprestimosdb.snap_leitor;

@@ -198,3 +198,21 @@ LEFT JOIN BIBLIOTECA_RESPONSAVEL br
    AND br.data_fim IS NULL
 LEFT JOIN repl_funcionarios f ON br.cod_funcionario = f.cod_funcionario;
 /
+
+-- ============================================================
+-- VISTA DE AUDITORIA
+-- Padrao identico ao EmprestimosDB, MateriaisDB e BibliotecaNacionalDB.
+-- Acedida pelo backend via sinonimo publico VW_AUDITORIA.
+-- ============================================================
+CREATE OR REPLACE VIEW VW_AUDITORIA AS
+SELECT
+    id_auditoria,
+    data_operacao,
+    operacao,
+    resultado,
+    motivo_falha,
+    nos_afetados,
+    observacoes,
+    'EVENTOS' AS no_origem
+FROM AUDITORIA_EVENTOS;
+/

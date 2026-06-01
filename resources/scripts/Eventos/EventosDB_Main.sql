@@ -116,7 +116,18 @@ CREATE TABLE repl_funcionarios (
     nivel_acesso     VARCHAR2(15),
     nome_funcao      VARCHAR2(15),
     email            VARCHAR2(100),
-    contacto         VARCHAR2(20)
+    contacto         VARCHAR2(20),
+    senha            VARCHAR2(100),
+    data_demissao    DATE
+) TABLESPACE tbs_eventosdb;
+
+-- Placeholder para repl_funcao_funcionario — substituido por MV em EventosDB_Snapshots.sql.
+-- Necessario para que o sinonimo FUNCAO_FUNCIONARIO resolva antes de os snapshots serem criados.
+CREATE TABLE repl_funcao_funcionario (
+    id_funcao    NUMBER,
+    nome_funcao  VARCHAR2(15),
+    nivel_acesso VARCHAR2(15),
+    descricao    VARCHAR2(200)
 ) TABLESPACE tbs_eventosdb;
 
 CREATE TABLE snap_leitor (

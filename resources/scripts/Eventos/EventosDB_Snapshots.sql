@@ -21,6 +21,9 @@ AND f.data_demissao IS NULL;
 -- ============================================================
 -- repl_funcao_funcionario — para JOIN offline na query de login
 -- ============================================================
+-- DROP TABLE antes de DROP MV: o placeholder criado em EventosDB_Main.sql e' uma TABLE,
+-- nao uma MV — o DROP MATERIALIZED VIEW nao o remove (causaria ORA-00955 no CREATE MV).
+DROP TABLE repl_funcao_funcionario;
 DROP MATERIALIZED VIEW repl_funcao_funcionario;
 
 CREATE MATERIALIZED VIEW repl_funcao_funcionario

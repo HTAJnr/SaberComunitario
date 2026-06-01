@@ -66,6 +66,9 @@ GRANT SELECT ON SEQ_AVALIACAO               TO app_eventosdb;
 GRANT SELECT ON SEQ_AUDITORIA_EVT           TO app_eventosdb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO          TO app_eventosdb;
 
+-- Auditoria
+GRANT SELECT ON VW_AUDITORIA                TO app_eventosdb;
+
 -- Procedimentos
 GRANT EXECUTE ON INSERE_PARTICIPACAO_EVENTO TO app_eventosdb;
 -- Snapshots locais — criados em EventosDB_Snapshots.sql (depois deste script).
