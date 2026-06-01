@@ -471,7 +471,7 @@ function _mostrarModalCartaoLeitor(numCartao, nome) {
 // ── Modal 02-D — Editar leitor ─────────────────
 async function abrirModalEditarLeitor(numCartao) {
   abrirModalLeitorBase('Editar Leitor');
-  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">A carregar…</p>';
+  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>A carregar…</p>';
 
   let leitor;
   try { leitor = await get(`/api/leitores/${numCartao}`); }
@@ -631,7 +631,7 @@ async function abrirModalEditarLeitor(numCartao) {
 // ── Modal 02-E — Alterar estado ────────────────
 async function abrirModalAlterarStatus(numCartao, statusActual) {
   abrirModalLeitorBase('Alterar Estado');
-  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">A carregar…</p>';
+  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>A carregar…</p>';
 
   let leitor;
   try { leitor = await get(`/api/leitores/${numCartao}`); }
@@ -681,7 +681,7 @@ window._confirmarAlterarStatus = async (numCartao, temSuspActive) => {
 // ── Modal 02-F — Suspensões ────────────────────
 async function abrirModalSuspensoes(numCartao) {
   abrirModalLeitorBase('Suspensões do Leitor');
-  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">A carregar…</p>';
+  document.getElementById('modal-leitor-conteudo').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>A carregar…</p>';
   document.getElementById('modal-leitor-footer').innerHTML = `<button class="btn-ghost" onclick="fecharModalLeitor()">Fechar</button>`;
 
   let suspensoes;
@@ -744,7 +744,7 @@ async function abrirDrawerLeitor(numCartao) {
   _drawerTabActual = 'perfil';
   document.getElementById('drawer-leitor').classList.add('open');
   document.getElementById('drawer-leitor-overlay').style.display = 'block';
-  document.getElementById('drawer-leitor-header').innerHTML = '<p style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">A carregar…</p>';
+  document.getElementById('drawer-leitor-header').innerHTML = '<p style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>A carregar…</p>';
   document.getElementById('drawer-leitor-tabs').innerHTML = '';
   document.getElementById('drawer-leitor-conteudo').innerHTML = '';
   try {

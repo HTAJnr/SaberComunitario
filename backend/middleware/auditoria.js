@@ -39,9 +39,10 @@ const _AUDIT = {
 };
 
 async function registar(conn, { cod_func, operacao, objeto, resultado, motivo = null, nos = 'NACIONAL' }) {
+  const nosStr = Array.isArray(nos) ? nos.join(', ') : nos;
   const cfg = _AUDIT[_NODE] || _AUDIT.NACIONAL;
   try {
-    await conn.execute(cfg.sql, cfg.binds({ cod_func, operacao, objeto, resultado, motivo, nos }));
+    await conn.execute(cfg.sql, cfg.binds({ cod_func, operacao, objeto, resultado, motivo, nos: nosStr }));
   } catch (e) {
     console.warn('[AUDITORIA]', e.message);
   }

@@ -71,7 +71,9 @@ END;
 GRANT SELECT  ON CATEGORIA                  TO app_emprestimosdb;
 GRANT SELECT  ON MATERIAL_BIBLIOGRAFICO     TO app_emprestimosdb;
 GRANT SELECT  ON VW_MAT_DISPONIVEL          TO app_emprestimosdb;
-GRANT SELECT  ON VW_MAT_CATALOGO_PUBLICO    TO app_emprestimosdb;
+GRANT SELECT  ON VW_MAT_CATALOGO_PUBLICO        TO app_emprestimosdb;
+GRANT SELECT  ON vw_materiais_completos         TO app_emprestimosdb;
+GRANT SELECT  ON vw_transferencias_detalhadas   TO app_emprestimosdb;
 -- NAO tem UPDATE directo — usa procedure
 GRANT EXECUTE ON atualizar_estado_material  TO app_emprestimosdb;
 -- Transparencia: criar/editar materiais e solicitar transferencias de qualquer no
@@ -113,7 +115,9 @@ GRANT SELECT ON SEQ_CATEGORIA                         TO app_nacionaldb;
 -- Planeamento de eventos: catalogo publico e disponibilidade
 GRANT SELECT ON CATEGORIA               TO app_eventosdb;
 GRANT SELECT ON VW_MAT_CATALOGO_PUBLICO TO app_eventosdb;
-GRANT SELECT ON VW_MAT_DISPONIVEL       TO app_eventosdb;
+GRANT SELECT ON VW_MAT_DISPONIVEL               TO app_eventosdb;
+GRANT SELECT ON vw_materiais_completos          TO app_eventosdb;
+GRANT SELECT ON vw_transferencias_detalhadas    TO app_eventosdb;
 -- Transparencia: criar/editar materiais e solicitar transferencias de qualquer no
 GRANT SELECT, INSERT, UPDATE, DELETE ON MATERIAL_BIBLIOGRAFICO TO app_eventosdb;
 GRANT SELECT, INSERT, UPDATE, DELETE ON LIVRO_FISICO           TO app_eventosdb;

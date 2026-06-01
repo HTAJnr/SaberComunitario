@@ -91,6 +91,7 @@ GRANT SELECT                         ON SEQ_PERMISSAO     TO app_emprestimosdb;
 -- RN01: trigger verifica status_leitor antes de criar emprestimo
 GRANT SELECT ON LEITOR                          TO app_emprestimosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_emprestimosdb;
+GRANT SELECT ON vw_leitores_completos           TO app_emprestimosdb;
 
 -- RN03: trigger de devolucao actualiza status_leitor
 GRANT UPDATE ON LEITOR                          TO app_emprestimosdb;
@@ -133,6 +134,7 @@ GRANT SELECT                         ON SEQ_PERMISSAO     TO app_materiaisdb;
 GRANT SELECT ON LEITOR                          TO app_materiaisdb;
 GRANT SELECT ON ADULTO                          TO app_materiaisdb;
 GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
+GRANT SELECT ON vw_leitores_completos           TO app_materiaisdb;
 
 -- Replicacao de funcionarios
 GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;
@@ -165,6 +167,7 @@ GRANT SELECT                         ON SEQ_PERMISSAO     TO app_eventosdb;
 -- Verificacao de leitores antes de inscrever em eventos
 GRANT SELECT ON LEITOR                          TO app_eventosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_eventosdb;
+GRANT SELECT ON vw_leitores_completos           TO app_eventosdb;
 GRANT SELECT ON ADULTO                          TO app_eventosdb;
 GRANT SELECT ON CRIANCA                         TO app_eventosdb;
 GRANT SELECT ON PROFESSOR                       TO app_eventosdb;

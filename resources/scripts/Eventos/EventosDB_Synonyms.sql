@@ -120,3 +120,33 @@ CREATE OR REPLACE PUBLIC SYNONYM adulto                 FOR usr_NACIONALDB.adult
 CREATE OR REPLACE PUBLIC SYNONYM crianca                FOR usr_NACIONALDB.crianca@link_nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM adulto_interesse       FOR usr_NACIONALDB.adulto_interesse@link_nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM vw_doacoes_detalhadas  FOR usr_NACIONALDB.vw_doacoes_detalhadas@link_nacionaldb;
+
+-- ============================================================
+-- EmprestimosDB — via PUBLIC link (sobrepõe sinónimos privados
+-- @EMPRESTIMOSDB que só o SYS consegue usar)
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM EMPRESTIMO               FOR usr_emprestimosdb.EMPRESTIMO@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM VW_EMPRESTIMOS_ATIVOS    FOR usr_emprestimosdb.VW_EMPRESTIMOS_ATIVOS@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM VW_HISTORICO_EMPRESTIMOS FOR usr_emprestimosdb.VW_HISTORICO_EMPRESTIMOS@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM SUSPENSAO                FOR usr_emprestimosdb.SUSPENSAO@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM PROCESSAR_DEVOLUCAO      FOR usr_emprestimosdb.PROCESSAR_DEVOLUCAO@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM SEQ_EMPRESTIMO           FOR usr_emprestimosdb.SEQ_EMPRESTIMO@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM PROGRAMA_ALFABETIZACAO   FOR usr_emprestimosdb.PROGRAMA_ALFABETIZACAO@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM PARTICIPACAO_PROGRAMA    FOR usr_emprestimosdb.PARTICIPACAO_PROGRAMA@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM NIVEL_PROGRESSAO         FOR usr_emprestimosdb.NIVEL_PROGRESSAO@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM PROGRAMA_MATERIAL        FOR usr_emprestimosdb.PROGRAMA_MATERIAL@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM PROGRAMA_FUNCIONARIO     FOR usr_emprestimosdb.PROGRAMA_FUNCIONARIO@link_emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM SEQ_NIVEL                FOR usr_emprestimosdb.SEQ_NIVEL@link_emprestimosdb;
+
+-- ============================================================
+-- MateriaisDB — via PUBLIC link (sobrepõe sinónimos privados
+-- @MATERIAISDB que só o SYS consegue usar)
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM CATEGORIA                    FOR usr_materiaisdb.CATEGORIA@link_materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM EBOOK                        FOR usr_materiaisdb.EBOOK@link_materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM LIVRO_FISICO                 FOR usr_materiaisdb.LIVRO_FISICO@link_materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM PERIODICO                    FOR usr_materiaisdb.PERIODICO@link_materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM SEQ_TRANSFERENCIA            FOR usr_materiaisdb.SEQ_TRANSFERENCIA@link_materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM TRANSFERENCIA                FOR usr_materiaisdb.TRANSFERENCIA@link_materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM VW_MATERIAIS_COMPLETOS       FOR usr_materiaisdb.VW_MATERIAIS_COMPLETOS@link_materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM VW_TRANSFERENCIAS_DETALHADAS FOR usr_materiaisdb.VW_TRANSFERENCIAS_DETALHADAS@link_materiaisdb;

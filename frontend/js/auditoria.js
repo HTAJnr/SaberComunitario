@@ -105,7 +105,9 @@ function _audLinha(r, idx) {
     : '—';
 
   const nosAfetados = r.NOS_AFETADOS
-    ? `<span style="font-size:11px;color:var(--text-secondary)">${r.NOS_AFETADOS}</span>`
+    ? r.NOS_AFETADOS.split(', ').map(n =>
+        `<span style="display:inline-block;font-size:10px;background:var(--border);color:var(--text-secondary);border-radius:4px;padding:1px 5px;margin-right:3px;white-space:nowrap">${n.trim()}</span>`
+      ).join('')
     : '—';
 
   return `<tr>
@@ -113,7 +115,7 @@ function _audLinha(r, idx) {
     <td style="font-weight:500;font-size:12px">${r.OPERACAO || '—'}</td>
     <td>${resBadge}</td>
     <td>${noOrigemPill}</td>
-    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nosAfetados}</td>
+    <td style="max-width:200px">${nosAfetados}</td>
     <td style="max-width:200px">${motivo}</td>
     <td style="text-align:right">
       <button class="btn-ghost btn-sm" onclick="abrirCtxMenuAud(event,${idx})">···</button>
@@ -202,7 +204,11 @@ function abrirDrawerAud(idx) {
     ${campoDetalhe('Operação', `<strong>${r.OPERACAO || '—'}</strong>`)}
     ${campoDetalhe('Resultado', resBadge)}
     ${secaoDetalhe('Contexto')}
-    ${campoDetalhe('Nós Afetados', r.NOS_AFETADOS || '—')}
+    ${campoDetalhe('Nós Afetados', r.NOS_AFETADOS
+      ? r.NOS_AFETADOS.split(', ').map(n =>
+          `<span style="display:inline-block;font-size:10px;background:var(--border);color:var(--text-secondary);border-radius:4px;padding:1px 5px;margin-right:3px">${n.trim()}</span>`
+        ).join('')
+      : '—')}
     ${campoDetalhe('Observações', r.OBSERVACOES || '—')}
     ${r.RESULTADO === 'FALHA' ? `
     ${secaoDetalhe('Falha')}

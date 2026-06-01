@@ -129,7 +129,7 @@ async function abrirDrawerMat(cod) {
   document.getElementById('drawer-mat-overlay').style.display = 'block';
   document.getElementById('drawer-mat').classList.add('open');
   document.getElementById('drawer-mat-conteudo').innerHTML =
-    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
+    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>A carregar…</p>';
   try {
     const m = await get(`/api/materiais/${cod}`);
     _renderizarDrawerMat(m);

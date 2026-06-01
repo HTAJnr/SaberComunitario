@@ -149,7 +149,7 @@ async function abrirDrawerEmp(id) {
   document.getElementById('drawer-emp-overlay').style.display = 'block';
   document.getElementById('drawer-emp').classList.add('open');
   document.getElementById('drawer-emp-conteudo').innerHTML =
-    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
+    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>A carregar…</p>';
   try {
     _drawerEmp = await get(`/api/emprestimos/${id}`);
     _renderizarDrawerEmp();
@@ -565,7 +565,7 @@ async function abrirModalDevolucao(id) {
   _devolucaoId = id;
   abrirModalEmpBase('Registar Devolução');
   document.getElementById('modal-emp-conteudo').innerHTML =
-    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:16px">A carregar…</p>';
+    '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:16px"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>A carregar…</p>';
   try {
     _devolucaoEmp = await get(`/api/emprestimos/${id}`);
     _renderizarFormDevolucao();
