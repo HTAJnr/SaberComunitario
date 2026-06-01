@@ -4,7 +4,8 @@
 -- ============================================================
 
 -- Utilizador principal (dono dos objectos)
-DROP USER usr_emprestimosdb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER usr_emprestimosdb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER usr_emprestimosdb IDENTIFIED BY "YC20220156"
   DEFAULT TABLESPACE tbs_emprestimosdb
   TEMPORARY TABLESPACE TEMP
@@ -12,25 +13,29 @@ CREATE USER usr_emprestimosdb IDENTIFIED BY "YC20220156"
   QUOTA UNLIMITED ON tbs_emprestimosdb_idx;
 
 -- Utilizador de aplicacao (backend Node.js)
-DROP USER app_emprestimosdb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER app_emprestimosdb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER app_emprestimosdb IDENTIFIED BY "YC20220156"
   DEFAULT TABLESPACE tbs_emprestimosdb
   TEMPORARY TABLESPACE TEMP;
 
 -- Visitor user do Helder (BibliotecaNacionalDB)
-DROP USER app_nacionaldb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER app_nacionaldb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
   DEFAULT TABLESPACE tbs_emprestimosdb
   TEMPORARY TABLESPACE TEMP;
 
 -- Visitor user do Yasin (MateriaisDB)
-DROP USER app_materiaisdb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER app_materiaisdb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER app_materiaisdb IDENTIFIED BY "YM20240260"
   DEFAULT TABLESPACE tbs_emprestimosdb
   TEMPORARY TABLESPACE TEMP;
 
 -- Visitor user do Gerson (EventosBibliotecasDB)
-DROP USER app_eventosdb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER app_eventosdb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER app_eventosdb IDENTIFIED BY "appev1234"
   DEFAULT TABLESPACE tbs_emprestimosdb
   TEMPORARY TABLESPACE TEMP;

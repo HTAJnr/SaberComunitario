@@ -4,32 +4,37 @@
 -- ============================================
 
 -- Utilizadores principais
-DROP USER usr_eventosdb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER usr_eventosdb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER usr_eventosdb IDENTIFIED BY eventos1234
     DEFAULT TABLESPACE tbs_eventosdb
     TEMPORARY TABLESPACE TEMP
     QUOTA UNLIMITED ON tbs_eventosdb
     QUOTA UNLIMITED ON tbs_eventosdb_idx;
 
-DROP USER app_eventosdb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER app_eventosdb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER app_eventosdb IDENTIFIED BY appev1234
     DEFAULT TABLESPACE tbs_eventosdb
     TEMPORARY TABLESPACE TEMP;
 
--- Utilizadores remotos (visitor users � os outros nos ligam-se com estes)
-DROP USER app_nacionaldb CASCADE;
+-- Utilizadores remotos (visitor users - os outros nos ligam-se com estes)
+BEGIN EXECUTE IMMEDIATE 'DROP USER app_nacionaldb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER app_nacionaldb IDENTIFIED BY "HTAJnr#22041"
     DEFAULT TABLESPACE tbs_eventosdb
     TEMPORARY TABLESPACE TEMP;
 GRANT CREATE SESSION TO app_nacionaldb;
 
-DROP USER app_materiaisdb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER app_materiaisdb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER app_materiaisdb IDENTIFIED BY "YM20240260"
     DEFAULT TABLESPACE tbs_eventosdb
     TEMPORARY TABLESPACE TEMP;
 GRANT CREATE SESSION TO app_materiaisdb;
 
-DROP USER app_emprestimosdb CASCADE;
+BEGIN EXECUTE IMMEDIATE 'DROP USER app_emprestimosdb CASCADE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;
+/
 CREATE USER app_emprestimosdb IDENTIFIED BY "YC20220156"
     DEFAULT TABLESPACE tbs_eventosdb
     TEMPORARY TABLESPACE TEMP;
