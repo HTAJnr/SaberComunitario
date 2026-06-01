@@ -39,19 +39,20 @@ SELECT * FROM biblioteca@eventosdb;
 -- Replica leitores do BibliotecaNacionalDB (Helder)
 -- Necessario para: validar status_leitor, distancia_biblioteca
 -- e historico_pontualidade ao criar emprestimos (RN01, RN02)
--- Se o Helder estiver offline, os emprestimos continuam a funcionar
+-- BUILD DEFERRED: tolerante a NacionalDB offline durante install;
+-- o job automatico popula assim que o no estiver acessivel.
 -- ============================================================
 DROP MATERIALIZED VIEW snap_leitor;
 
 CREATE MATERIALIZED VIEW snap_leitor
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
 SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
-FROM leitor@nacionaldb;
+FROM usr_nacionaldb.leitor@nacionaldb;
 
 
 -- ============================================================
@@ -63,13 +64,13 @@ FROM leitor@nacionaldb;
 DROP MATERIALIZED VIEW snap_adulto;
 
 CREATE MATERIALIZED VIEW snap_adulto
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
 SELECT num_cartao, nivel_literacia
-FROM ADULTO@nacionaldb;
+FROM usr_nacionaldb.ADULTO@nacionaldb;
 
 
 -- ============================================================
@@ -81,13 +82,13 @@ FROM ADULTO@nacionaldb;
 DROP MATERIALIZED VIEW snap_professor;
 
 CREATE MATERIALIZED VIEW snap_professor
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
 SELECT num_cartao
-FROM PROFESSOR@nacionaldb;
+FROM usr_nacionaldb.PROFESSOR@nacionaldb;
 
 
 -- ============================================================
@@ -99,13 +100,13 @@ FROM PROFESSOR@nacionaldb;
 DROP MATERIALIZED VIEW snap_crianca;
 
 CREATE MATERIALIZED VIEW snap_crianca
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
 SELECT num_cartao
-FROM CRIANCA@nacionaldb;
+FROM usr_nacionaldb.CRIANCA@nacionaldb;
 
 
 -- ============================================================
@@ -127,7 +128,7 @@ AS
 SELECT cod_material, titulo, autor, cod_biblioteca,
        estado_material_conservacao, motivo_indisponibilidade,
        valor_aquisicao, cod_categoria
-FROM MATERIAL_BIBLIOGRAFICO@materiaisdb;
+FROM usr_materiaisdb.MATERIAL_BIBLIOGRAFICO@materiaisdb;
 
 
 -- ============================================================
@@ -148,7 +149,7 @@ CREATE MATERIALIZED VIEW snap_categoria
   NEXT SYSDATE + 1/24
 AS
 SELECT id_categoria, area_tematica, faixa_etaria, nivel_leitura
-FROM CATEGORIA@materiaisdb;
+FROM usr_materiaisdb.CATEGORIA@materiaisdb;
 
 
 -- ============================================================
@@ -160,7 +161,7 @@ FROM CATEGORIA@materiaisdb;
 DROP MATERIALIZED VIEW repl_funcionarios;
 
 CREATE MATERIALIZED VIEW repl_funcionarios
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
@@ -169,8 +170,8 @@ SELECT f.cod_funcionario, f.nome_funcionario, f.email, f.contacto,
        f.id_funcao, f.cod_biblioteca, fn.nivel_acesso, fn.nome_funcao, f.senha,
        f.genero, f.data_nasc, f.endereco, f.formacao, f.experiencia,
        f.data_contratacao, f.data_demissao
-FROM funcionario@nacionaldb f,
-     funcao_funcionario@nacionaldb fn
+FROM usr_nacionaldb.funcionario@nacionaldb f,
+     usr_nacionaldb.funcao_funcionario@nacionaldb fn
 WHERE f.id_funcao = fn.id_funcao AND f.data_demissao IS NULL;
 
 
@@ -182,24 +183,29 @@ WHERE f.id_funcao = fn.id_funcao AND f.data_demissao IS NULL;
 DROP MATERIALIZED VIEW repl_funcao_funcionario;
 
 CREATE MATERIALIZED VIEW repl_funcao_funcionario
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
 SELECT id_funcao, nome_funcao, nivel_acesso, descricao
-FROM funcao_funcionario@nacionaldb;
+FROM usr_nacionaldb.funcao_funcionario@nacionaldb;
 
 -- Grants imediatos — aplicar apos criacao das MVs
 GRANT SELECT ON repl_funcionarios       TO app_emprestimosdb;
 GRANT SELECT ON repl_funcao_funcionario TO app_emprestimosdb;
 
 -- ============================================================
--- Recompilar objectos dependentes das MVs
+-- Recompilar objectos dependentes das MVs (se ja existirem)
+-- Ignorar ORA-04043/ORA-00942 em install inicial onde trigger
+-- e vistas sao criados em passos posteriores (Triggers, Views).
 -- ============================================================
-ALTER TRIGGER trg_valida_emprestimo COMPILE;
-ALTER VIEW vw_emprestimos_ativos COMPILE;
-ALTER VIEW vw_historico_emprestimos COMPILE;
+BEGIN
+  BEGIN EXECUTE IMMEDIATE 'ALTER TRIGGER trg_valida_emprestimo COMPILE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+  BEGIN EXECUTE IMMEDIATE 'ALTER VIEW vw_emprestimos_ativos COMPILE';    EXCEPTION WHEN OTHERS THEN NULL; END;
+  BEGIN EXECUTE IMMEDIATE 'ALTER VIEW vw_historico_emprestimos COMPILE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+END;
+/
 
 -- ============================================================
 -- Recriar sinonimos publicos cross-node dependentes de BibliotecaNacionalDB

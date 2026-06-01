@@ -27,7 +27,7 @@ CREATE MATERIALIZED VIEW biblioteca_snap
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
 AS
-SELECT * FROM biblioteca@eventosdb;
+SELECT * FROM usr_eventosdb.biblioteca@eventosdb;
 
 
 -- ============================================================
@@ -53,8 +53,8 @@ SELECT
     SUM(CASE WHEN pp.estado_participacao = 'Activo'    THEN 1 ELSE 0 END) AS participantes_activos,
     SUM(CASE WHEN pp.estado_participacao = 'Concluido' THEN 1 ELSE 0 END) AS participantes_concluidos,
     SUM(CASE WHEN pp.estado_participacao = 'Desistiu'  THEN 1 ELSE 0 END) AS participantes_desistiram
-FROM PROGRAMA_ALFABETIZACAO@emprestimosdb p
-LEFT JOIN PARTICIPACAO_PROGRAMA@emprestimosdb pp
+FROM usr_emprestimosdb.PROGRAMA_ALFABETIZACAO@emprestimosdb p
+LEFT JOIN usr_emprestimosdb.PARTICIPACAO_PROGRAMA@emprestimosdb pp
     ON p.cod_programa = pp.cod_programa
 GROUP BY
     p.cod_programa, p.cod_biblioteca, p.nome_programa,
@@ -76,7 +76,7 @@ CREATE MATERIALIZED VIEW snap_material_basico
   NEXT SYSDATE + 1/24
 AS
 SELECT cod_material, titulo, cod_biblioteca, estado_material_conservacao
-FROM material_bibliografico@materiaisdb;
+FROM usr_materiaisdb.material_bibliografico@materiaisdb;
 
 
 -- ============================================================
@@ -96,7 +96,7 @@ CREATE MATERIALIZED VIEW snap_emp_activos
 AS
 SELECT id_emprestimo, num_cartao, cod_material,
        data_retirada, prazo_devolucao, multa_valor, multa_paga
-FROM emprestimo@emprestimosdb
+FROM usr_emprestimosdb.emprestimo@emprestimosdb
 WHERE data_devolucao IS NULL;
 
 
@@ -115,7 +115,7 @@ CREATE MATERIALIZED VIEW snap_eventos
   NEXT SYSDATE + 1/24
 AS
 SELECT id_evento, titulo_evento, data_evento, status_evento, cod_biblioteca
-FROM evento@eventosdb;
+FROM usr_eventosdb.evento@eventosdb;
 
 
 -- ============================================================
@@ -134,4 +134,4 @@ CREATE MATERIALIZED VIEW snap_transferencias
 AS
 SELECT id_transferencia, cod_material, estado_transferencia,
        cod_biblioteca_origem, cod_biblioteca_destino
-FROM transferencia@materiaisdb;
+FROM usr_materiaisdb.transferencia@materiaisdb;
