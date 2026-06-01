@@ -167,10 +167,14 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     res.status(201).json({ ok: true, id_evento: idEvento });
   } catch (err) {
     if (conn) await conn.rollback();
+    // Extrair mensagem legível de RAISE_APPLICATION_ERROR (ORA-200xx do trigger)
+    let mensagem = err.message;
+    const m = mensagem.match(/ORA-2\d{4}:\s*(.+?)(?:\r?\n|ORA-|$)/s);
+    if (m) mensagem = m[1].trim();
     console.error('\x1b[31m[EVENTOS POST /] ERRO ao criar evento\x1b[0m');
     console.error('     BD: HORARIO_BIBLIOTECA + INSERT EVENTO + HORARIO_EVENTO + EVENTO_RECURSO');
     console.error('     Detalhe:', err.message);
-    res.status(500).json({ erro: err.message });
+    res.status(500).json({ erro: mensagem });
   } finally {
     if (conn) await conn.close();
   }
@@ -208,10 +212,13 @@ router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
     res.json({ ok: true });
   } catch (err) {
     if (conn) await conn.rollback();
+    let mensagem = err.message;
+    const m = mensagem.match(/ORA-2\d{4}:\s*(.+?)(?:\r?\n|ORA-|$)/s);
+    if (m) mensagem = m[1].trim();
     console.error(`\x1b[31m[EVENTOS PUT /${req.params.id}] ERRO ao actualizar evento\x1b[0m`);
     console.error('     BD: UPDATE EVENTO');
     console.error('     Detalhe:', err.message);
-    res.status(500).json({ erro: err.message });
+    res.status(500).json({ erro: mensagem });
   } finally {
     if (conn) await conn.close();
   }

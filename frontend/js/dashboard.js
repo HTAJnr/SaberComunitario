@@ -18,11 +18,10 @@ async function carregarDashboardBibAdmin() {
   const tabPanel = document.getElementById('dash-tab-biblioteca');
   const bibView  = document.getElementById('dash-bib-view');
   if (!tabPanel || !bibView) return;
-  // Move o DOM do dash-bib-view para dentro do tab (apenas na primeira vez)
   if (!tabPanel.contains(bibView)) {
-    bibView.classList.remove('hidden');
     tabPanel.appendChild(bibView);
   }
+  bibView.classList.remove('hidden'); // sempre — pode ter sido ocultado por carregarDashboard()
   await carregarDashboardBib(utilizadorActual?.NIVEL_ACESSO);
 }
 

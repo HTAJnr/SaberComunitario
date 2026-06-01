@@ -119,7 +119,10 @@ CREATE OR REPLACE PUBLIC SYNONYM professor_disciplina   FOR usr_NACIONALDB.profe
 CREATE OR REPLACE PUBLIC SYNONYM adulto                 FOR usr_NACIONALDB.adulto@link_nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM crianca                FOR usr_NACIONALDB.crianca@link_nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM adulto_interesse       FOR usr_NACIONALDB.adulto_interesse@link_nacionaldb;
-CREATE OR REPLACE PUBLIC SYNONYM vw_doacoes_detalhadas  FOR usr_NACIONALDB.vw_doacoes_detalhadas@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_doacoes_detalhadas    FOR usr_NACIONALDB.vw_doacoes_detalhadas@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM VW_CERTIFICADOS_EMITIDOS FOR usr_NACIONALDB.vw_certificados_emitidos@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM FUNCIONARIO_HABILIDADE   FOR usr_NACIONALDB.funcionario_habilidade@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM HORARIO_FUNCIONARIO      FOR usr_NACIONALDB.horario_funcionario@link_nacionaldb;
 
 -- ============================================================
 -- EmprestimosDB — via PUBLIC link (sobrepõe sinónimos privados

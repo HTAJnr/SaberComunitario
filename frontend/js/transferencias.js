@@ -262,7 +262,9 @@ async function _pesquisarMaterialTransf() {
   const lista = document.getElementById('transf-mat-lista');
   lista.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">A pesquisar…</p>';
   try {
-    const res = await get(`/api/materiais?q=${encodeURIComponent(q)}&limit=5`);
+    const codBib = utilizadorActual?.COD_BIBLIOTECA || '';
+    const bibQs  = codBib ? `&biblioteca=${encodeURIComponent(codBib)}` : '';
+    const res = await get(`/api/materiais?q=${encodeURIComponent(q)}&limit=5${bibQs}`);
     _transfMatRes = res.materiais || res || [];
     if (!_transfMatRes.length) {
       lista.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">Nenhum resultado.</p>';

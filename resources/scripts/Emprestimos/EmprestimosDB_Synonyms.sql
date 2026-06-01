@@ -119,5 +119,8 @@ CREATE OR REPLACE PUBLIC SYNONYM vw_metricas_por_biblioteca FOR usr_NACIONALDB.v
 -- Objectos do NacionalDB acedidos por leitores / auditoria
 -- ============================================================
 CREATE OR REPLACE PUBLIC SYNONYM vw_leitores_completos FOR usr_NACIONALDB.vw_leitores_completos@nacionaldb;
-CREATE OR REPLACE PUBLIC SYNONYM vw_doacoes_detalhadas FOR usr_NACIONALDB.vw_doacoes_detalhadas@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_doacoes_detalhadas    FOR usr_NACIONALDB.vw_doacoes_detalhadas@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM VW_CERTIFICADOS_EMITIDOS FOR usr_NACIONALDB.vw_certificados_emitidos@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM FUNCIONARIO_HABILIDADE   FOR usr_NACIONALDB.funcionario_habilidade@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM HORARIO_FUNCIONARIO      FOR usr_NACIONALDB.horario_funcionario@nacionaldb;
 

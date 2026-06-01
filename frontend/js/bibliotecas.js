@@ -438,14 +438,16 @@ async function abrirModalEditarBib(cod) {
   const conteudo = document.getElementById('modal-bib-conteudo');
   const titulo   = document.getElementById('modal-bib-titulo');
 
-  conteudo.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">
-    <i class="fa-solid fa-spinner fa-spin"></i>
-  </div>`;
-
-  let d = null;
-  try { d = await get(`/api/bibliotecas/${cod}`); } catch (err) {
-    conteudo.innerHTML = `<div style="color:#f85149;padding:10px">${err.message}</div>`;
-    return;
+  // Reutilizar dados já carregados pelo drawer (evita pedido duplicado ao Oracle)
+  let d = (_bibDetalhe?.COD_BIBLIOTECA === cod) ? _bibDetalhe : null;
+  if (!d) {
+    conteudo.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+    </div>`;
+    try { d = await get(`/api/bibliotecas/${cod}`); } catch (err) {
+      conteudo.innerHTML = `<div style="color:#f85149;padding:10px">${err.message}</div>`;
+      return;
+    }
   }
 
   if (titulo) titulo.textContent = isAdmin ? 'Editar Biblioteca' : 'Editar A Minha Biblioteca';

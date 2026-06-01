@@ -24,9 +24,10 @@ const _dsecao = secaoDetalhe;
 
 function _badgeTipoDoador(tipo) {
   if (!tipo) return '—';
+  const norm = tipo.toUpperCase();
   const m = { INDIVIDUAL: 'bdg-activo-emp', INSTITUCIONAL: 'bdg-suspenso' };
-  const label = tipo === 'INDIVIDUAL' ? 'Individual' : 'Institucional';
-  return `<span class="bdg ${m[tipo] || ''}">${label}</span>`;
+  const label = norm === 'INDIVIDUAL' ? 'Individual' : 'Institucional';
+  return `<span class="bdg ${m[norm] || ''}">${label}</span>`;
 }
 
 function _badgeCertificado(numCert) {
@@ -397,7 +398,7 @@ function _renderizarWizStep1() {
             <div style="font-weight:600;color:#3fb27a">
               <i class="fa-solid fa-circle-check" style="margin-right:5px;color:#3fb27a"></i>${_wizDoador.nome}
             </div>
-            <div style="color:#3fb27a;margin-top:2px">${_wizDoador.tipo === 'INDIVIDUAL' ? 'Individual' : 'Institucional'}</div>
+            <div style="color:#3fb27a;margin-top:2px">${(_wizDoador.tipo || '').toUpperCase() === 'INDIVIDUAL' ? 'Individual' : 'Institucional'}</div>
           </div>` : ''}
 
         <details>
@@ -415,8 +416,8 @@ function _renderizarWizStep1() {
               <div>
                 <label class="form-label" style="font-size:11px">Tipo *</label>
                 <select id="wiz-nd-tipo" class="input-field" style="font-size:12px">
-                  <option value="INDIVIDUAL">Individual</option>
-                  <option value="INSTITUCIONAL">Institucional</option>
+                  <option value="Individual">Individual</option>
+                  <option value="Institucional">Institucional</option>
                 </select>
               </div>
             </div>
@@ -496,7 +497,7 @@ async function _wizPesquisarDoador() {
                       display:flex;justify-content:space-between;align-items:center"
                onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
             <span style="font-weight:500">${r.NOME || '—'}</span>
-            <span class="bdg" style="font-size:10px">${r.TIPO === 'INDIVIDUAL' ? 'Individual' : 'Institucional'}</span>
+            <span class="bdg" style="font-size:10px">${(r.TIPO||'').toUpperCase() === 'INDIVIDUAL' ? 'Individual' : 'Institucional'}</span>
           </div>`).join('')}
       </div>`;
   } catch (err) {
@@ -761,8 +762,8 @@ function abrirModalDoador() {
         <div>
           <label class="form-label">Tipo *</label>
           <select id="df-tipo" class="input-field">
-            <option value="INDIVIDUAL">Individual</option>
-            <option value="INSTITUCIONAL">Institucional</option>
+            <option value="Individual">Individual</option>
+            <option value="Institucional">Institucional</option>
           </select>
         </div>
         <div>
