@@ -106,7 +106,7 @@ FROM AUDITORIA_EMPRESTIMOS;
 -- Usada pelo backend: GET /api/emprestimos?estado=activo|vencido
 -- Expoe: ID_EMPRESTIMO, NUM_CARTAO, NOME_LEITOR, MATERIAL_TITULO,
 --        DATA_RETIRADA, PRAZO_DEVOLUCAO, MULTA_ESTIMADA, DIAS_ATRASO, BIBLIOTECA_NOME
-CREATE OR REPLACE VIEW vw_emprestimos_ativos AS
+CREATE OR REPLACE FORCE VIEW vw_emprestimos_ativos AS
 SELECT
     e.id_emprestimo,
     e.num_cartao,
@@ -147,7 +147,7 @@ WHERE e.data_devolucao IS NULL;
 -- Usada pelo backend: GET /api/emprestimos?estado=devolvido|todos
 -- Expoe: ID_EMPRESTIMO, NUM_CARTAO, NOME_LEITOR, MATERIAL_TITULO,
 --        DATA_RETIRADA, DATA_DEVOLUCAO, PRAZO_DEVOLUCAO, MULTA_VALOR, BIBLIOTECA_NOME
-CREATE OR REPLACE VIEW vw_historico_emprestimos AS
+CREATE OR REPLACE FORCE VIEW vw_historico_emprestimos AS
 SELECT
     e.id_emprestimo,
     l.num_cartao,
