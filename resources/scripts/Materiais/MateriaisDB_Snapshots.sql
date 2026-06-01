@@ -91,3 +91,11 @@ GRANT SELECT ON repl_funcao_funcionario TO app_materiaisdb;
 
 -- RECOMPILAR O TRIGGER QUE DEPENDE DO SNAP 1
 ALTER TRIGGER trg_valida_transferencia COMPILE;
+
+-- ============================================================
+-- Recriar sinonimos publicos cross-node dependentes de BibliotecaNacionalDB
+-- (agora que o no NacionalDB esta activo)
+-- ============================================================
+CONNECT sys/"bd2.isctem" AS SYSDBA
+@@MateriaisDB_Synonyms.sql
+CONNECT usr_materiaisdb/"YM20240260"

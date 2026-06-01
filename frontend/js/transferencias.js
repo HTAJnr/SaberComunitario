@@ -262,7 +262,8 @@ async function _pesquisarMaterialTransf() {
   const lista = document.getElementById('transf-mat-lista');
   lista.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">A pesquisar…</p>';
   try {
-    const codBib = utilizadorActual?.COD_BIBLIOTECA || '';
+    // Sempre filtrar por biblioteca do utilizador — transferência só pode ser da sua biblioteca
+    const codBib = utilizadorActual?.COD_BIBLIOTECA || utilizadorActual?.cod_biblioteca || '';
     const bibQs  = codBib ? `&biblioteca=${encodeURIComponent(codBib)}` : '';
     const res = await get(`/api/materiais?q=${encodeURIComponent(q)}&limit=5${bibQs}`);
     _transfMatRes = res.materiais || res || [];

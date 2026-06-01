@@ -17,11 +17,14 @@ function switchDashTab(tab) {
 async function carregarDashboardBibAdmin() {
   const tabPanel = document.getElementById('dash-tab-biblioteca');
   const bibView  = document.getElementById('dash-bib-view');
-  if (!tabPanel || !bibView) return;
-  if (!tabPanel.contains(bibView)) {
-    tabPanel.appendChild(bibView);
+  if (!tabPanel) return;
+  if (bibView) {
+    if (!tabPanel.contains(bibView)) tabPanel.appendChild(bibView);
+    bibView.classList.remove('hidden');
+    // Reset visual para garantir re-render limpo em cada entrada no tab
+    const statsEl = document.getElementById('dash-stats');
+    if (statsEl) statsEl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px">A carregar...</div>';
   }
-  bibView.classList.remove('hidden'); // sempre — pode ter sido ocultado por carregarDashboard()
   await carregarDashboardBib(utilizadorActual?.NIVEL_ACESSO);
 }
 

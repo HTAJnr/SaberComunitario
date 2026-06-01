@@ -42,8 +42,7 @@ async function api(path, opts = {}) {
   if (!res.ok) {
     const msgErro = (data.erro === true ? data.mensagem : data.erro) || data.mensagem || '';
     if (typeof msgErro === 'string' &&
-        (msgErro.includes('ORA-01031') || msgErro.includes('ORA-01732') ||
-         msgErro.includes('ORA-02063'))) {
+        (msgErro.includes('ORA-01031') || msgErro.includes('ORA-01732'))) {
       console.warn('[BD] Operação bloqueada por privilégios insuficientes:', msgErro);
       toast('Não tem permissão para realizar esta operação.', 'erro');
       try { fecharModal(); } catch {}
@@ -578,6 +577,8 @@ async function _submeterPerfil() {
   } else {
     const contacto = document.getElementById('perfil-contacto')?.value.trim() || null;
     const endereco = document.getElementById('perfil-endereco')?.value.trim() || null;
+    const errTelPerfil = validarTelefone(contacto);
+    if (errTelPerfil) { _mostrarErroPerfil(errTelPerfil); return; }
     try {
       await patch('/api/funcionarios/me', { contacto, endereco });
       if (utilizadorActual) {

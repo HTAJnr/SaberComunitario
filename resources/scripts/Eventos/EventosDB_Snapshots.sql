@@ -60,3 +60,13 @@ GRANT SELECT ON repl_funcao_funcionario TO app_eventosdb;
 ALTER VIEW vw_bibliotecas_operacionais COMPILE;
 ALTER VIEW vw_eventos_completos COMPILE;
 ALTER VIEW vw_participacoes_eventos COMPILE;
+
+-- ============================================================
+-- Recriar sinonimos publicos cross-node dependentes de BibliotecaNacionalDB
+-- (agora que o no NacionalDB esta activo)
+-- Necessario porque EventosDB_Main.sql criou os sinonimos no passo 1,
+-- antes do NacionalDB existir — ficaram INVALID (ORA-00980).
+-- ============================================================
+CONNECT sys/"bd2.isctem" AS SYSDBA
+@@EventosDB_Synonyms.sql
+CONNECT usr_eventosdb/"eventos1234"

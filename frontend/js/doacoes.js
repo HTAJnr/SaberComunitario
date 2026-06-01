@@ -513,9 +513,11 @@ function _wizSelecionarDoador(id, nome, tipo) {
 async function _wizCriarNovoDoador() {
   const nome     = (document.getElementById('wiz-nd-nome')?.value || '').trim();
   const tipo     = document.getElementById('wiz-nd-tipo')?.value;
-  const contacto = document.getElementById('wiz-nd-contacto')?.value || null;
+  const contacto = (document.getElementById('wiz-nd-contacto')?.value || '').trim() || null;
   const endereco = document.getElementById('wiz-nd-endereco')?.value || null;
   if (!nome) { _mostrarErroWiz('Nome do doador é obrigatório.'); return; }
+  const errTel = validarTelefone(contacto);
+  if (errTel) { _mostrarErroWiz(errTel); return; }
   try {
     const r = await post('/api/doadores', { nome_doador: nome, tipo_doador: tipo, contacto, endereco });
     _wizDoador = { id_doador: r.id_doador, nome, tipo, anonimo: false };
@@ -782,12 +784,15 @@ function abrirModalDoador() {
     </div>
   `;
   modalSalvarFn = async () => {
-    const nome = (document.getElementById('df-nome')?.value || '').trim();
+    const nome      = (document.getElementById('df-nome')?.value || '').trim();
+    const contacto  = (document.getElementById('df-contacto')?.value || '').trim() || null;
     if (!nome) { mostrarErroModal('Nome é obrigatório.'); return; }
+    const errTel = validarTelefone(contacto);
+    if (errTel) { mostrarErroModal(errTel); return; }
     await post('/api/doadores', {
       nome_doador:  nome,
       tipo_doador:  document.getElementById('df-tipo').value,
-      contacto:     document.getElementById('df-contacto').value || null,
+      contacto,
       endereco:     document.getElementById('df-endereco').value || null,
       observacoes:  document.getElementById('df-obs').value || null,
     });

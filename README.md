@@ -84,9 +84,25 @@ sqlplus usr_emprestimosdb/"YC20220156" @/root/TP/EmprestimosDB_Snapshots.sql
 
 Este script recria as materialized views `SNAP_MATERIAL`, `SNAP_CATEGORIA` e `BIBLIOTECA_SNAP` que dependem do BibliotecaNacionalDB e do MateriaisDB. A primeira execução no Passo 1 falhou porque os nós dependentes ainda não existiam — esta segunda execução resolve isso.
 
+**Passo 5 — recriar os snapshots do MateriaisDB** (obrigatório após o Passo 2):
+
+Na VM do MateriaisDB, correr como `usr_materiaisdb` (não como sysdba):
+```bash
+sqlplus usr_materiaisdb/"YM20240260" @/root/TP/MateriaisDB_Snapshots.sql
+```
+
+Este script recria as materialized views e, no fim, reconecta como sysdba para recriar os sinónimos públicos cross-node que ficaram inválidos no Passo 1 (quando o BibliotecaNacionalDB ainda não existia).
+
+> **Nota sobre sinónimos inválidos (ORA-04045/ORA-00980):** Os sinónimos criados no Passo 1 apontam para objectos que ainda não existiam. Os scripts dos Passos 3, 4 e 5 corrigem isso automaticamente ao recriarem os sinónimos após o BibliotecaNacionalDB estar activo. Para corrigir uma instalação existente sem reinstalar, correr apenas o script de sinónimos como sysdba em cada VM afectada:
+> ```bash
+> sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EventosDB_Synonyms.sql
+> sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EmprestimosDB_Synonyms.sql
+> sqlplus sys/"bd2.isctem" as sysdba @/root/TP/MateriaisDB_Synonyms.sql
+> ```
+
 O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
 
-Os scripts `EventosDB_Snapshots.sql` e `EmprestimosDB_Snapshots.sql` incluem um bloco de recompilação automática no fim — views e triggers dependentes das MVs são recompilados sem necessidade de intervenção manual.
+Os scripts `EventosDB_Snapshots.sql`, `EmprestimosDB_Snapshots.sql` e `MateriaisDB_Snapshots.sql` incluem um bloco de recompilação automática no fim — views, triggers e sinónimos dependentes das MVs são recompilados sem necessidade de intervenção manual adicional.
 
 ---
 

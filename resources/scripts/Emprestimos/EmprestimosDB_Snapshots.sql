@@ -200,3 +200,11 @@ GRANT SELECT ON repl_funcao_funcionario TO app_emprestimosdb;
 ALTER TRIGGER trg_valida_emprestimo COMPILE;
 ALTER VIEW vw_emprestimos_ativos COMPILE;
 ALTER VIEW vw_historico_emprestimos COMPILE;
+
+-- ============================================================
+-- Recriar sinonimos publicos cross-node dependentes de BibliotecaNacionalDB
+-- (agora que o no NacionalDB esta activo)
+-- ============================================================
+CONNECT sys/"bd2.isctem" AS SYSDBA
+@@EmprestimosDB_Synonyms.sql
+CONNECT usr_emprestimosdb/"YC20220156"
