@@ -152,9 +152,9 @@ async function carregarDashboardBib(nivel) {
     else if (podeVerTransf) cards = allCards;
     else                 cards = allCards.slice(0, 3); // Bibliotecario: sem transferências
 
-    document.getElementById('dash-stats').innerHTML = cards.map(renderStatCard).join('');
+    try { document.getElementById('dash-stats').innerHTML = cards.map(renderStatCard).join(''); } catch {}
 
-    renderDevolucoes(devHoje || []);
+    try { renderDevolucoes(devHoje || []); } catch {}
 
     const grafico     = document.getElementById('dash-grafico-panel');
     const linha2      = document.getElementById('dash-linha2');
@@ -162,16 +162,16 @@ async function carregarDashboardBib(nivel) {
 
     if (grafico) grafico.style.display = isAssistente ? 'none' : '';
     if (linha2)  linha2.style.display  = '';
-    if (!isAssistente) renderBarChart(stats.emprestimos_semana || []);
-    renderLeitoresRecentes(leitores || []);
+    if (!isAssistente) try { renderBarChart(stats.emprestimos_semana || []); } catch {}
+    try { renderLeitoresRecentes(leitores || []); } catch {}
     if (podeVerTransf) {
       if (panelTransf) panelTransf.style.display = '';
-      renderTransferenciasRecentes(transferencias || []);
+      try { renderTransferenciasRecentes(transferencias || []); } catch {}
     } else {
       if (panelTransf) panelTransf.style.display = 'none';
     }
-    renderEmprestimosAtrasados('dash-atrasos', atrasos || []);
-    renderProximosEventos('dash-proximos-eventos', proximosEv || []);
+    try { renderEmprestimosAtrasados('dash-atrasos', atrasos || []); } catch {}
+    try { renderProximosEventos('dash-proximos-eventos', proximosEv || []); } catch {}
   } catch (err) {
     toast('Erro a carregar dashboard: ' + err.message, 'erro');
   }

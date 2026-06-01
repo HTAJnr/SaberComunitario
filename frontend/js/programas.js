@@ -13,6 +13,8 @@ let _progFuncWiz   = [];
 let _inscrCod      = null;
 let _partCod       = null;
 let _partCartao    = null;
+let _progMatLista  = []; // [{COD_MATERIAL, TITULO}]
+let _progFuncLista = []; // [{COD_FUNCIONARIO, NOME_FUNCIONARIO}]
 
 // ── Helpers de apresentação ────────────────────
 
@@ -373,6 +375,10 @@ async function abrirModalProg(cod) {
   document.getElementById('modal-prog-erro').classList.add('hidden');
   document.getElementById('modal-prog-overlay').classList.remove('hidden');
 
+  // Carregar listas para comboboxes de materiais e funcionários
+  try { const r = await get('/api/materiais?limit=300'); _progMatLista = r.materiais || r || []; } catch { _progMatLista = []; }
+  try { const r = await get('/api/funcionarios?limit=300'); _progFuncLista = r.funcionarios || r || []; } catch { _progFuncLista = []; }
+
   let dados = null;
   if (cod) {
     try {
@@ -539,14 +545,19 @@ function _renderizarMatWiz() {
     lista.innerHTML = '<p style="font-size:11px;color:var(--text-muted);font-style:italic">Sem materiais adicionados.</p>';
     return;
   }
+  const matOpts = _progMatLista.map(m =>
+    `<option value="${m.COD_MATERIAL}">${m.TITULO || m.COD_MATERIAL} (${m.COD_MATERIAL})</option>`
+  ).join('');
   lista.innerHTML = _progMatWiz.map((m, i) => `
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-      <input type="text" class="input-field" placeholder="Código do material *"
-             value="${m.cod_material}" oninput="_progMatWiz[${i}].cod_material=this.value"
-             style="flex:1"/>
+      <select class="input-field" style="flex:2"
+              onchange="_progMatWiz[${i}].cod_material=this.value">
+        <option value="">— Seleccionar material —</option>
+        ${matOpts.replace(`value="${m.cod_material}"`, `value="${m.cod_material}" selected`)}
+      </select>
       <input type="text" class="input-field" placeholder="Observações"
              value="${m.observacoes}" oninput="_progMatWiz[${i}].observacoes=this.value"
-             style="flex:2"/>
+             style="flex:1"/>
       <button type="button" onclick="_removerMatWiz(${i})"
               style="background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;padding:2px">
         <i class="fa-solid fa-xmark"></i>
@@ -574,11 +585,16 @@ function _renderizarFuncWiz() {
     lista.innerHTML = '<p style="font-size:11px;color:var(--text-muted);font-style:italic">Sem funcionários adicionados.</p>';
     return;
   }
+  const funcOpts = _progFuncLista.map(f =>
+    `<option value="${f.COD_FUNCIONARIO}">${f.NOME || f.NOME_FUNCIONARIO || f.COD_FUNCIONARIO} (${f.COD_FUNCIONARIO})</option>`
+  ).join('');
   lista.innerHTML = _progFuncWiz.map((f, i) => `
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-      <input type="text" class="input-field" placeholder="Código do funcionário *"
-             value="${f.cod_funcionario}" oninput="_progFuncWiz[${i}].cod_funcionario=this.value"
-             style="flex:2"/>
+      <select class="input-field" style="flex:2"
+              onchange="_progFuncWiz[${i}].cod_funcionario=this.value">
+        <option value="">— Seleccionar funcionário —</option>
+        ${funcOpts.replace(`value="${f.cod_funcionario}"`, `value="${f.cod_funcionario}" selected`)}
+      </select>
       <select class="input-field" style="flex:1"
               onchange="_progFuncWiz[${i}].papel=this.value">
         ${['Responsavel','Instrutor','Auxiliar'].map(p =>

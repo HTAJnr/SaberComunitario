@@ -31,8 +31,7 @@ async function carregarPermissoes() {
     navegarPara('dashboard');
     return;
   }
-  // mostra os botões Admin
-  document.getElementById('btn-novo-cargo')?.classList.remove('hidden');
+  // mostra os botões Admin (btn-novo-cargo removido — NOME_FUNCAO é constrained na BD)
   document.getElementById('btn-guardar-matriz')?.classList.remove('hidden');
 
   switchTabPermissoes(_permTab);
@@ -230,11 +229,13 @@ function abrirModalCargo(idCargo) {
     <div class="space-y-3">
       <div>
         <label class="form-label">Nome do Cargo *</label>
-        <select id="cargo-nome" class="input-field">
+        <select id="cargo-nome" class="input-field" ${isEdit ? 'disabled' : ''}>
           ${_NIVEIS_CARGO.map(n =>
             `<option value="${n}"${existente?.NOME_FUNCAO === n ? ' selected' : ''}>${n}</option>`
           ).join('')}
         </select>
+        ${isEdit ? `<input type="hidden" id="cargo-nome-hidden" value="${existente?.NOME_FUNCAO || ''}"/>
+        <p style="font-size:10px;color:var(--text-muted);margin-top:3px">O nome do cargo não pode ser alterado.</p>` : ''}
       </div>
       <div>
         <label class="form-label">Nível de Acesso *</label>
@@ -251,7 +252,9 @@ function abrirModalCargo(idCargo) {
     </div>
   `;
   modalSalvarFn = async () => {
-    const nome = document.getElementById('cargo-nome').value;
+    const nome = isEdit
+      ? (document.getElementById('cargo-nome-hidden')?.value || existente?.NOME_FUNCAO || '')
+      : document.getElementById('cargo-nome').value;
     const nivel = document.getElementById('cargo-nivel').value;
     const desc = (document.getElementById('cargo-desc').value || '').trim() || null;
     try {

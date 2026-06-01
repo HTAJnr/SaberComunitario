@@ -523,11 +523,15 @@ async function _submeterModalFunc() {
     return;
   }
 
+  const contactoEdit = document.getElementById('ef-contacto')?.value?.trim() || '';
+  const errTelFunc = validarTelefone(contactoEdit);
+  if (errTelFunc) { _mostrarErroFunc('modal-func-erro', 'modal-func-erro-msg', errTelFunc); return; }
+
   const isAdmin = utilizadorActual?.NIVEL_ACESSO === 'Administrador';
 
   const body = {
     nome_funcionario: nome,
-    contacto:         document.getElementById('ef-contacto')?.value || undefined,
+    contacto:         contactoEdit || undefined,
     genero:           document.getElementById('ef-genero')?.value || undefined,
     data_nasc:        document.getElementById('ef-data-nasc')?.value || undefined,
     endereco:         document.getElementById('ef-endereco')?.value || undefined,
@@ -956,6 +960,8 @@ function _wizFuncAvancar() {
     const contacto = document.getElementById('wf1-contacto')?.value?.trim();
     if (!nome)     { _mostrarErroFunc('modal-wiz-func-erro', 'modal-wiz-func-erro-msg', 'Nome é obrigatório.'); return; }
     if (!contacto) { _mostrarErroFunc('modal-wiz-func-erro', 'modal-wiz-func-erro-msg', 'Contacto é obrigatório.'); return; }
+    const errTelWiz = validarTelefone(contacto);
+    if (errTelWiz) { _mostrarErroFunc('modal-wiz-func-erro', 'modal-wiz-func-erro-msg', errTelWiz); return; }
 
     _wizFuncDados.nome_funcionario = nome;
     _wizFuncDados.genero           = document.getElementById('wf1-genero')?.value || undefined;

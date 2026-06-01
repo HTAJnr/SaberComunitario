@@ -298,13 +298,27 @@ async function _renderizarDrawerAvaliacoesEvento(id) {
         </div>`
       : emptyState('⭐', 'Sem avaliações ainda');
 
+    let participantes = [];
+    try { participantes = await get(`/api/eventos/${id}/participantes`); } catch {}
+    const partOpts = participantes.length
+      ? participantes.map(p =>
+          `<option value="${p.NUM_CARTAO}">${p.NOME_LEITOR || p.NUM_CARTAO} (${p.NUM_CARTAO})</option>`
+        ).join('')
+      : '';
+
     conteudo.innerHTML = `
       <div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border-soft)">
         <div id="av-form-ev-${id}">
           <div style="display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap">
-            <div style="flex:1;min-width:110px">
-              <label class="form-label" style="font-size:11px">Cartão do leitor</label>
-              <input id="av-nc-${id}" class="input-field" style="font-size:12px" placeholder="Nº cartão…"/>
+            <div style="flex:2;min-width:130px">
+              <label class="form-label" style="font-size:11px">Participante</label>
+              ${participantes.length
+                ? `<select id="av-nc-${id}" class="input-field" style="font-size:12px">
+                     <option value="">— Seleccionar —</option>
+                     ${partOpts}
+                   </select>`
+                : `<input id="av-nc-${id}" class="input-field" style="font-size:12px" placeholder="Nº cartão…"/>`
+              }
             </div>
             <div style="width:80px">
               <label class="form-label" style="font-size:11px">Nota (1-5)</label>

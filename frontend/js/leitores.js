@@ -402,6 +402,8 @@ function _wizardAvancar() {
     if (!_wizardDados.genero)              { mostrarErroLeitor('Género é obrigatório.'); return; }
     if (!_wizardDados.nivel_escolar)       { mostrarErroLeitor('Nível escolar é obrigatório.'); return; }
     if (!_wizardDados.localizacao_leitor)  { mostrarErroLeitor('Localização é obrigatória.'); return; }
+    const errTel = validarTelefone(_wizardDados.contacto);
+    if (errTel) { mostrarErroLeitor(errTel); return; }
   } else if (_wizardStep === 2) {
     _wizardRecolherStep2();
     const idade = _calcularIdade(_wizardDados.data_nasc);
@@ -414,6 +416,8 @@ function _wizardAvancar() {
     if (_wizardDados.tipo === 'Crianca' && !_wizardDados.nome_responsavel) {
       mostrarErroLeitor('Nome do responsável é obrigatório para Criança.'); return;
     }
+    const errTelResp = validarTelefone(_wizardDados.telefone_responsavel);
+    if (errTelResp) { mostrarErroLeitor(errTelResp); return; }
   }
   _wizardStep++;
   _renderizarWizardStep();
@@ -602,6 +606,8 @@ async function abrirModalEditarLeitor(numCartao) {
       distancia_biblioteca: document.getElementById('ef-distancia')?.value || undefined,
     };
     if (!body.nome_completo) { mostrarErroLeitor('Nome completo é obrigatório.'); return; }
+    const errTelEdit = validarTelefone(body.contacto);
+    if (errTelEdit) { mostrarErroLeitor(errTelEdit); return; }
     if (tipo === 'Adulto' || tipo === 'Professor') {
       body.profissao   = document.getElementById('ef-profissao')?.value.trim();
       body.interesses  = _editInteresses;
@@ -617,6 +623,8 @@ async function abrirModalEditarLeitor(numCartao) {
       body.telefone_responsavel = document.getElementById('ef-telefone-responsavel')?.value.trim();
       body.escola_frequenta     = document.getElementById('ef-escola-frequenta')?.value.trim();
       body.classe               = document.getElementById('ef-classe')?.value.trim();
+      const errTelRespEdit = validarTelefone(body.telefone_responsavel);
+      if (errTelRespEdit) { mostrarErroLeitor(errTelRespEdit); return; }
     }
     try {
       await api(`/api/leitores/${nc}`, { method: 'PATCH', body });

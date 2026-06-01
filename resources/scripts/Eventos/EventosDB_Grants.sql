@@ -28,7 +28,7 @@ GRANT INSERT                ON AUDITORIA_EVENTOS  TO role_eventosdb_write;
 -- ============================================================
 
 -- Tabelas
-GRANT SELECT ON BIBLIOTECA                  TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE ON BIBLIOTECA  TO app_eventosdb;
 GRANT SELECT ON HORARIO_BIBLIOTECA          TO app_eventosdb;
 GRANT SELECT ON BIBLIOTECA_RESPONSAVEL      TO app_eventosdb;
 GRANT SELECT, INSERT, UPDATE ON EVENTO      TO app_eventosdb;
@@ -90,7 +90,8 @@ END;
 -- ============================================================
 
 -- ── Yannis (app_emprestimosdb) ──────────────────────────────
-GRANT SELECT ON BIBLIOTECA               TO app_emprestimosdb;
+-- UPDATE necessario para editar a propria biblioteca (transparencia de localizacao)
+GRANT SELECT, UPDATE ON BIBLIOTECA       TO app_emprestimosdb;
 GRANT SELECT ON EVENTO                   TO app_emprestimosdb;
 GRANT SELECT ON PARTICIPACAO_EVENTO      TO app_emprestimosdb;
 GRANT SELECT ON HORARIO_BIBLIOTECA       TO app_emprestimosdb;
@@ -106,7 +107,8 @@ GRANT SELECT ON SEQ_EVENTO               TO app_emprestimosdb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_emprestimosdb;
 
 -- ── Yasin (app_materiaisdb) ─────────────────────────────────
-GRANT SELECT ON BIBLIOTECA               TO app_materiaisdb;
+-- UPDATE necessario para editar a propria biblioteca (transparencia de localizacao)
+GRANT SELECT, UPDATE ON BIBLIOTECA       TO app_materiaisdb;
 GRANT SELECT ON EVENTO                   TO app_materiaisdb;
 GRANT SELECT ON PARTICIPACAO_EVENTO      TO app_materiaisdb;
 GRANT SELECT ON HORARIO_BIBLIOTECA       TO app_materiaisdb;
@@ -123,7 +125,8 @@ GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_materiaisdb;
 
 -- ── Helder (app_nacionaldb) ─────────────────────────────────
 -- Supervisao e gestao cross-node
-GRANT SELECT ON BIBLIOTECA               TO app_nacionaldb;
+-- UPDATE necessario para editar a propria biblioteca (transparencia de localizacao)
+GRANT SELECT, UPDATE ON BIBLIOTECA       TO app_nacionaldb;
 GRANT SELECT ON BIBLIOTECA_RESPONSAVEL   TO app_nacionaldb;
 GRANT SELECT ON EVENTO                   TO app_nacionaldb;
 GRANT SELECT ON PARTICIPACAO_EVENTO      TO app_nacionaldb;

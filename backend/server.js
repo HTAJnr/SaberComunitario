@@ -75,9 +75,8 @@ app.use((req, res, next) => {
     if (!codFunc || codFunc === 0) return; // não autenticado ou demo
     if (res.statusCode === 403) return;    // exigirNivel já registou ACESSO_NEGADO
 
-    const isOra01031 = res.statusCode === 500 &&
-      typeof corpoResposta?.erro === 'string' &&
-      corpoResposta.erro.includes('ORA-01031');
+    const erroReal = typeof corpoResposta?.erro === 'string' ? corpoResposta.erro : null;
+    const isOra01031 = res.statusCode === 500 && erroReal?.includes('ORA-01031');
 
     const resultado = res.statusCode < 400 ? 'SUCESSO' : 'FALHA';
     registarBackground({
@@ -87,7 +86,7 @@ app.use((req, res, next) => {
       resultado,
       motivo: isOra01031
         ? 'ORA-01031: privilégios insuficientes na base de dados'
-        : (resultado === 'FALHA' ? `HTTP ${res.statusCode}` : null),
+        : (resultado === 'FALHA' ? (erroReal || `HTTP ${res.statusCode}`) : null),
     });
   });
   next();

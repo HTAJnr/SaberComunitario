@@ -98,12 +98,16 @@ GRANT UPDATE ON LEITOR                          TO app_emprestimosdb;
 
 -- RN01/RN04.1: verificar tipo de leitor
 GRANT SELECT ON ADULTO                          TO app_emprestimosdb;
+GRANT SELECT ON ADULTO_INTERESSE                TO app_emprestimosdb;
 GRANT SELECT ON PROFESSOR                       TO app_emprestimosdb;
+GRANT SELECT ON PROFESSOR_DISCIPLINA            TO app_emprestimosdb;
 GRANT SELECT ON CRIANCA                         TO app_emprestimosdb;
 
 -- Verificacao de nivel de acesso cross-node
 GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_emprestimosdb;
 GRANT SELECT ON FUNCIONARIO                     TO app_emprestimosdb;
+GRANT SELECT ON FUNCIONARIO_HABILIDADE          TO app_emprestimosdb;
+GRANT SELECT ON HORARIO_FUNCIONARIO             TO app_emprestimosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_emprestimosdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_emprestimosdb;
 
@@ -133,12 +137,18 @@ GRANT SELECT                         ON SEQ_PERMISSAO     TO app_materiaisdb;
 -- RN09: e-books exigem leitor adulto
 GRANT SELECT ON LEITOR                          TO app_materiaisdb;
 GRANT SELECT ON ADULTO                          TO app_materiaisdb;
+GRANT SELECT ON ADULTO_INTERESSE                TO app_materiaisdb;
+GRANT SELECT ON PROFESSOR                       TO app_materiaisdb;
+GRANT SELECT ON PROFESSOR_DISCIPLINA            TO app_materiaisdb;
+GRANT SELECT ON CRIANCA                         TO app_materiaisdb;
 GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
 GRANT SELECT ON vw_leitores_completos           TO app_materiaisdb;
 
 -- Replicacao de funcionarios
 GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;
 GRANT SELECT ON FUNCIONARIO                     TO app_materiaisdb;
+GRANT SELECT ON FUNCIONARIO_HABILIDADE          TO app_materiaisdb;
+GRANT SELECT ON HORARIO_FUNCIONARIO             TO app_materiaisdb;
 GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_materiaisdb;
 
 -- Dashboard e snapshots
@@ -169,11 +179,15 @@ GRANT SELECT ON LEITOR                          TO app_eventosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_eventosdb;
 GRANT SELECT ON vw_leitores_completos           TO app_eventosdb;
 GRANT SELECT ON ADULTO                          TO app_eventosdb;
+GRANT SELECT ON ADULTO_INTERESSE                TO app_eventosdb;
 GRANT SELECT ON CRIANCA                         TO app_eventosdb;
 GRANT SELECT ON PROFESSOR                       TO app_eventosdb;
+GRANT SELECT ON PROFESSOR_DISCIPLINA            TO app_eventosdb;
 
 -- Verificacao de funcionarios (responsavel de evento/biblioteca)
 GRANT SELECT ON FUNCIONARIO                     TO app_eventosdb;
+GRANT SELECT ON FUNCIONARIO_HABILIDADE          TO app_eventosdb;
+GRANT SELECT ON HORARIO_FUNCIONARIO             TO app_eventosdb;
 GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_eventosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_eventosdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_eventosdb;
@@ -185,6 +199,25 @@ GRANT SELECT ON snap_material_basico            TO app_eventosdb;
 GRANT SELECT ON snap_emp_activos                TO app_eventosdb;
 GRANT SELECT ON snap_eventos                    TO app_eventosdb;
 GRANT SELECT ON snap_transferencias             TO app_eventosdb;
+
+-- ── Transparencia: sequencias e vistas de doacoes cross-node ──
+-- SEQ_FUNCIONARIO e SEQ_HORARIO_FUNC: necessarias para CREATE FUNCIONARIO de qualquer no
+-- (roles nao transitam por dblink — ORA-02289 sem grants directos)
+GRANT SELECT ON SEQ_FUNCIONARIO          TO app_emprestimosdb;
+GRANT SELECT ON SEQ_FUNCIONARIO          TO app_eventosdb;
+GRANT SELECT ON SEQ_FUNCIONARIO          TO app_materiaisdb;
+GRANT SELECT ON SEQ_HORARIO_FUNC         TO app_emprestimosdb;
+GRANT SELECT ON SEQ_HORARIO_FUNC         TO app_eventosdb;
+GRANT SELECT ON SEQ_HORARIO_FUNC         TO app_materiaisdb;
+
+-- vw_doacoes_detalhadas e vw_certificados_emitidos: vistas de NacionalDB
+-- precisam de ser acessiveis de qualquer no para o modulo de doacoes/certificados
+GRANT SELECT ON vw_doacoes_detalhadas    TO app_emprestimosdb;
+GRANT SELECT ON vw_doacoes_detalhadas    TO app_eventosdb;
+GRANT SELECT ON vw_doacoes_detalhadas    TO app_materiaisdb;
+GRANT SELECT ON vw_certificados_emitidos TO app_emprestimosdb;
+GRANT SELECT ON vw_certificados_emitidos TO app_eventosdb;
+GRANT SELECT ON vw_certificados_emitidos TO app_materiaisdb;
 
 -- ── Backend local (app_NACIONALDB) ──────────────────────────
 -- O Node.js usa este user para DML e execucao de procedures.

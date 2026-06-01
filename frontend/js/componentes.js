@@ -83,6 +83,17 @@ function avatarCirculo(nome, tamanho) {
     font-size:${Math.round(t * 0.38)}px;font-weight:700;flex-shrink:0">${txt}</div>`;
 }
 
+// ── Validação de telefone (Moçambique) ───────────
+// Aceita: 8[2-7]XXXXXXX (9 dígitos) ou +2588[2-7]XXXXXXX (com prefixo)
+// Devolve null se válido (ou vazio), mensagem de erro se inválido.
+function validarTelefone(val) {
+  if (!val || !val.trim()) return null;
+  const digits = val.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('258') && /^2588[2-7]\d{7}$/.test(digits)) return null;
+  if (digits.length === 9 && /^8[2-7]\d{7}$/.test(digits)) return null;
+  return 'Telefone inválido. Formato: 8XXXXXXXX ou +2588XXXXXXXX (operadoras 82–87).';
+}
+
 // ── Datas dd/mm/aaaa ──────────────────────────────
 function isoParaDdMmAaaa(iso) {
   if (!iso) return '';

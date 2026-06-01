@@ -108,6 +108,10 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
       return res.status(409).json({ erro: 'Biblioteca de origem e destino são iguais.' });
     }
 
+    if (cod_biblioteca_origem !== req.session.cod_biblioteca) {
+      return res.status(403).json({ erro: 'Só pode solicitar transferências de materiais da sua própria biblioteca.' });
+    }
+
     await conn.execute(
       `INSERT INTO TRANSFERENCIA (
          id_transferencia, data_solicitacao, estado_transferencia,

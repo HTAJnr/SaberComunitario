@@ -177,8 +177,10 @@ END;
 
 -- processar_devolucao
 -- Regista a devolucao de um emprestimo: actualiza data_devolucao,
--- estado do material, multa e observacoes. O COMMIT interno
--- dispara trg_aplica_suspensao (AFTER UPDATE OF data_devolucao).
+-- estado do material, multa e observacoes.
+-- trg_aplica_suspensao (AFTER UPDATE DE data_devolucao) dispara no commit.
+-- NOTA: COMMIT removido da procedure — feito pelo backend apos o call
+-- para compatibilidade com chamadas via dblink (ORA-02064 se COMMIT interno).
 -- Chamada pelo backend:
 --   BEGIN processar_devolucao(:id_emp,:cond,:obs,:multa_val,:sucesso); END;
 CREATE OR REPLACE PROCEDURE processar_devolucao(
@@ -207,11 +209,9 @@ BEGIN
            observacoes_devolucao   = p_observacoes
      WHERE id_emprestimo = p_id_emprestimo;
 
-    COMMIT;
     p_sucesso := 'OK';
 EXCEPTION
     WHEN OTHERS THEN
-        ROLLBACK;
         p_sucesso := 'Erro: ' || SQLERRM;
 END;
 /

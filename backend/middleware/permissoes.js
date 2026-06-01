@@ -52,7 +52,7 @@ function exigirNo(...nos) {
       return res.status(403).json({
         erro: true,
         codigo: 'NO_ERRADO',
-        mensagem: `Operação exclusiva do nó ${nos.join(' ou ')}. Nó actual: ${noActual}.`,
+        mensagem: 'Operação não disponível neste contexto. Privilégios insuficientes.',
       });
     }
     next();
