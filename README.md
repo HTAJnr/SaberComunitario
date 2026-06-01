@@ -36,20 +36,15 @@ STARTUP;
 
 ### Ordem de instalação
 
-Os scripts de cada nó são resilientes (usam DROP defensivo), mas a ordem abaixo garante que os database links e snapshots cross-node funcionam correctamente.
+Os scripts de cada nó são resilientes (usam DROP defensivo) e os Main scripts não criam snapshots cross-node — a ordem entre os 3 nós dependentes é irrelevante.
 
 > **Nota sobre reinstalação em sistema existente:** O `DROP USER ... CASCADE` pode falhar com `ORA-01940` se existirem sessões activas. Este erro é não-fatal — o script continua e os objectos são recriados na mesma. Basta fechar outras sessões activas (SQL Developer, sqlplus) antes de reinstalar.
 
-**Passo 1 — instalar os 3 nós dependentes** (podem correr em paralelo ou por esta ordem):
+**Passo 1 — instalar os 3 nós dependentes** (qualquer ordem):
 
 **EventosBibliotecasDB:**
 ```bash
 sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EventosDB_Main.sql
-```
-
-**EmpréstimosDB:**
-```bash
-sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EmprestimosDB_Main.sql
 ```
 
 **MateriaisDB:**
@@ -57,7 +52,12 @@ sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EmprestimosDB_Main.sql
 sqlplus sys/"bd2.isctem" as sysdba @/root/TP/MateriaisDB_Main.sql
 ```
 
-> **Nota:** Os snapshots cross-node definidos nestes nós (e.g. `SNAP_MATERIAL`, `SNAP_CATEGORIA` no EmpréstimosDB) falharão neste passo porque o BibliotecaNacionalDB ainda não existe. Isso é esperado — serão recriados no Passo 4.
+**EmpréstimosDB:**
+```bash
+sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EmprestimosDB_Main.sql
+```
+
+Os Main scripts criam tabelas placeholder no lugar dos snapshots cross-node. Isso garante que views e triggers compilam sem erros. Os placeholders são substituídos pelas Materialized Views reais nos Passos 3, 4 e 5.
 
 **Passo 2 — instalar o nó principal:**
 
@@ -73,34 +73,34 @@ Na VM do EventosBibliotecasDB, correr como `usr_eventosdb` (não como sysdba):
 sqlplus usr_eventosdb/eventos1234 @/root/TP/EventosDB_Snapshots.sql
 ```
 
-Este script cria as materialized views `repl_funcionarios`, `repl_funcao_funcionario` e `snap_leitor` que puxam dados do BibliotecaNacionalDB via database link. Só funciona depois do BibliotecaNacionalDB estar activo.
+Substitui os placeholders pelas MVs reais: `repl_funcionarios`, `repl_funcao_funcionario`, `snap_leitor`. Só funciona depois do BibliotecaNacionalDB estar activo.
 
-**Passo 4 — recriar os snapshots do EmpréstimosDB** (obrigatório após o Passo 2):
+**Passo 4 — criar os snapshots do EmpréstimosDB** (obrigatório após o Passo 2):
 
 Na VM do EmpréstimosDB, correr como `usr_emprestimosdb` (não como sysdba):
 ```bash
 sqlplus usr_emprestimosdb/"YC20220156" @/root/TP/EmprestimosDB_Snapshots.sql
 ```
 
-Este script recria as materialized views `SNAP_MATERIAL`, `SNAP_CATEGORIA` e `BIBLIOTECA_SNAP` que dependem do BibliotecaNacionalDB e do MateriaisDB. A primeira execução no Passo 1 falhou porque os nós dependentes ainda não existiam — esta segunda execução resolve isso.
+Substitui os placeholders pelas MVs reais. Dependências por snapshot:
 
-**Passo 5 — recriar os snapshots do MateriaisDB** (obrigatório após o Passo 2):
+| Snapshot | Depende de |
+|---|---|
+| `snap_leitor`, `snap_adulto`, `snap_professor`, `snap_crianca` | BibliotecaNacionalDB (Hélder) |
+| `repl_funcionarios`, `repl_funcao_funcionario` | BibliotecaNacionalDB (Hélder) |
+| `snap_material`, `snap_categoria` | MateriaisDB (Yasin) |
+| `biblioteca_snap` | EventosBibliotecasDB (Gerson) |
+
+**Passo 5 — criar os snapshots do MateriaisDB** (obrigatório após o Passo 2):
 
 Na VM do MateriaisDB, correr como `usr_materiaisdb` (não como sysdba):
 ```bash
 sqlplus usr_materiaisdb/"YM20240260" @/root/TP/MateriaisDB_Snapshots.sql
 ```
 
-Este script recria as materialized views e, no fim, reconecta como sysdba para recriar os sinónimos públicos cross-node que ficaram inválidos no Passo 1 (quando o BibliotecaNacionalDB ainda não existia).
+Substitui os placeholders pelas MVs reais e recria os sinónimos públicos cross-node.
 
-> **Nota sobre sinónimos inválidos (ORA-04045/ORA-00980):** Os sinónimos criados no Passo 1 apontam para objectos que ainda não existiam. Os scripts dos Passos 3, 4 e 5 corrigem isso automaticamente ao recriarem os sinónimos após o BibliotecaNacionalDB estar activo. Para corrigir uma instalação existente sem reinstalar, correr apenas o script de sinónimos como sysdba em cada VM afectada:
-> ```bash
-> sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EventosDB_Synonyms.sql
-> sqlplus sys/"bd2.isctem" as sysdba @/root/TP/EmprestimosDB_Synonyms.sql
-> sqlplus sys/"bd2.isctem" as sysdba @/root/TP/MateriaisDB_Synonyms.sql
-> ```
-
-O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
+O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → placeholders → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
 
 Os scripts `EventosDB_Snapshots.sql`, `EmprestimosDB_Snapshots.sql` e `MateriaisDB_Snapshots.sql` incluem um bloco de recompilação automática no fim — views, triggers e sinónimos dependentes das MVs são recompilados sem necessidade de intervenção manual adicional.
 

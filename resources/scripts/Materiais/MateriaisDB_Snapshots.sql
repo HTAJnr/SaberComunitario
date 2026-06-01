@@ -16,6 +16,7 @@
 -- Permite verificar dados de funcionarios sem depender
 -- da disponibilidade do no do Helder
 -- ============================================================
+DROP TABLE repl_funcionarios;
 DROP MATERIALIZED VIEW repl_funcionarios;
 
 -- Campos completos para autenticacao offline (inclui SENHA e EMAIL)
@@ -39,6 +40,7 @@ WHERE f.id_funcao = fn.id_funcao AND f.data_demissao IS NULL;
 -- Replica funcoes do BibliotecaNacionalDB
 -- Necessario para: JOIN FUNCAO_FUNCIONARIO na query de login offline
 -- ============================================================
+DROP TABLE repl_funcao_funcionario;
 DROP MATERIALIZED VIEW repl_funcao_funcionario;
 
 CREATE MATERIALIZED VIEW repl_funcao_funcionario
@@ -56,10 +58,11 @@ FROM usr_nacionaldb.funcao_funcionario@link_nacionaldb;
 -- Permite verificar dados de bibliotecas sem depender
 -- da disponibilidade do no do Gerson
 -- ============================================================
+DROP TABLE biblioteca_snap;
 DROP MATERIALIZED VIEW biblioteca_snap;
 
 CREATE MATERIALIZED VIEW biblioteca_snap
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
@@ -73,6 +76,7 @@ SELECT * FROM usr_eventosdb.biblioteca@link_eventosdb;
 -- Permite verificar dados de leitores sem depender
 -- da disponibilidade do no do Helder
 -- ============================================================
+DROP TABLE snap_leitor_publico;
 DROP MATERIALIZED VIEW snap_leitor_publico;
 
 CREATE MATERIALIZED VIEW snap_leitor_publico
@@ -85,9 +89,12 @@ SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
 FROM usr_nacionaldb.leitor@link_nacionaldb;
 
--- Grants imediatos — aplicar apos criacao das MVs
-GRANT SELECT ON repl_funcionarios       TO app_materiaisdb;
-GRANT SELECT ON repl_funcao_funcionario TO app_materiaisdb;
+-- Grants imediatos — tolerante a MV inexistente (NacionalDB offline durante install)
+BEGIN
+  BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON repl_funcionarios TO app_materiaisdb';       EXCEPTION WHEN OTHERS THEN NULL; END;
+  BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON repl_funcao_funcionario TO app_materiaisdb'; EXCEPTION WHEN OTHERS THEN NULL; END;
+END;
+/
 
 -- Recompilar trigger dependente das MVs (se ja existir)
 BEGIN

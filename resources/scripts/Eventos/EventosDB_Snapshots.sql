@@ -50,9 +50,12 @@ SELECT num_cartao, nome_completo, cod_biblioteca,
        status_leitor, historico_pontualidade, distancia_biblioteca
 FROM usr_nacionaldb.leitor@link_nacionaldb;
 
--- Grants imediatos — aplicar apos criacao das MVs
-GRANT SELECT ON repl_funcionarios       TO app_eventosdb;
-GRANT SELECT ON repl_funcao_funcionario TO app_eventosdb;
+-- Grants imediatos — tolerante a MV inexistente (NacionalDB offline durante install)
+BEGIN
+  BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON repl_funcionarios TO app_eventosdb';       EXCEPTION WHEN OTHERS THEN NULL; END;
+  BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON repl_funcao_funcionario TO app_eventosdb'; EXCEPTION WHEN OTHERS THEN NULL; END;
+END;
+/
 
 -- ============================================================
 -- Recompilar objectos dependentes das MVs (se ja existirem)

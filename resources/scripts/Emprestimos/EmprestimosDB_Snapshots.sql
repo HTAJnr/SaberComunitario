@@ -23,6 +23,7 @@
 -- Replica bibliotecas do EventosBibliotecasDB (Gerson)
 -- Necessario para: validar cod_biblioteca em programas e emprestimos
 -- ============================================================
+DROP TABLE biblioteca_snap;
 DROP MATERIALIZED VIEW biblioteca_snap;
 
 CREATE MATERIALIZED VIEW biblioteca_snap
@@ -42,6 +43,7 @@ SELECT * FROM biblioteca@eventosdb;
 -- BUILD DEFERRED: tolerante a NacionalDB offline durante install;
 -- o job automatico popula assim que o no estiver acessivel.
 -- ============================================================
+DROP TABLE snap_leitor;
 DROP MATERIALIZED VIEW snap_leitor;
 
 CREATE MATERIALIZED VIEW snap_leitor
@@ -61,6 +63,7 @@ FROM usr_nacionaldb.leitor@nacionaldb;
 -- Necessario para: detectar tipo ADULTO, verificar nivel_literacia
 -- na restricao de nivel de leitura (RN04.2)
 -- ============================================================
+DROP TABLE snap_adulto;
 DROP MATERIALIZED VIEW snap_adulto;
 
 CREATE MATERIALIZED VIEW snap_adulto
@@ -79,6 +82,7 @@ FROM usr_nacionaldb.ADULTO@nacionaldb;
 -- Necessario para: detectar tipo PROFESSOR e aplicar
 -- prazo de emprestimo alargado (+ 7 dias, RN02)
 -- ============================================================
+DROP TABLE snap_professor;
 DROP MATERIALIZED VIEW snap_professor;
 
 CREATE MATERIALIZED VIEW snap_professor
@@ -97,6 +101,7 @@ FROM usr_nacionaldb.PROFESSOR@nacionaldb;
 -- Necessario para: detectar tipo CRIANCA e bloquear
 -- emprestimo de material para adultos (RN04.1)
 -- ============================================================
+DROP TABLE snap_crianca;
 DROP MATERIALIZED VIEW snap_crianca;
 
 CREATE MATERIALIZED VIEW snap_crianca
@@ -117,10 +122,11 @@ FROM usr_nacionaldb.CRIANCA@nacionaldb;
 -- verificar estado antes de criar emprestimo
 -- Se o Yasin estiver offline, os emprestimos continuam a funcionar
 -- ============================================================
+DROP TABLE snap_material;
 DROP MATERIALIZED VIEW snap_material;
 
 CREATE MATERIALIZED VIEW snap_material
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
@@ -140,10 +146,11 @@ FROM usr_materiaisdb.MATERIAL_BIBLIOGRAFICO@materiaisdb;
 -- Pre-requisito: Yasin executar GRANT SELECT ON CATEGORIA
 --                              TO app_emprestimosdb
 -- ============================================================
+DROP TABLE snap_categoria;
 DROP MATERIALIZED VIEW snap_categoria;
 
 CREATE MATERIALIZED VIEW snap_categoria
-  BUILD IMMEDIATE
+  BUILD DEFERRED
   REFRESH COMPLETE
   START WITH SYSDATE
   NEXT SYSDATE + 1/24
@@ -158,6 +165,7 @@ FROM usr_materiaisdb.CATEGORIA@materiaisdb;
 -- Necessario para: autenticacao offline quando NacionalDB indisponivel
 -- Inclui SENHA para que o login funcione apenas com dados locais
 -- ============================================================
+DROP TABLE repl_funcionarios;
 DROP MATERIALIZED VIEW repl_funcionarios;
 
 CREATE MATERIALIZED VIEW repl_funcionarios
@@ -180,6 +188,7 @@ WHERE f.id_funcao = fn.id_funcao AND f.data_demissao IS NULL;
 -- Replica funcoes do BibliotecaNacionalDB
 -- Necessario para: JOIN FUNCAO_FUNCIONARIO na query de login offline
 -- ============================================================
+DROP TABLE repl_funcao_funcionario;
 DROP MATERIALIZED VIEW repl_funcao_funcionario;
 
 CREATE MATERIALIZED VIEW repl_funcao_funcionario
@@ -191,9 +200,12 @@ AS
 SELECT id_funcao, nome_funcao, nivel_acesso, descricao
 FROM usr_nacionaldb.funcao_funcionario@nacionaldb;
 
--- Grants imediatos — aplicar apos criacao das MVs
-GRANT SELECT ON repl_funcionarios       TO app_emprestimosdb;
-GRANT SELECT ON repl_funcao_funcionario TO app_emprestimosdb;
+-- Grants imediatos — tolerante a MV inexistente (NacionalDB offline durante install)
+BEGIN
+  BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON repl_funcionarios TO app_emprestimosdb';       EXCEPTION WHEN OTHERS THEN NULL; END;
+  BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON repl_funcao_funcionario TO app_emprestimosdb'; EXCEPTION WHEN OTHERS THEN NULL; END;
+END;
+/
 
 -- ============================================================
 -- Recompilar objectos dependentes das MVs (se ja existirem)

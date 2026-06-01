@@ -113,10 +113,92 @@ CONNECT usr_emprestimosdb/"YC20220156"
 -- 4. Database Links
 @/root/TP/EmprestimosDB_Database_Links.sql
 
--- 5. Snapshots (depende dos database links)
-@/root/TP/EmprestimosDB_Snapshots.sql
+-- 5. Placeholders para snapshots cross-node
+-- Tabelas temporárias que permitem compilar views e triggers antes do
+-- BibliotecaNacionalDB e MateriaisDB estarem activos.
+-- São substituídas pelas Materialized Views reais em EmprestimosDB_Snapshots.sql.
+CREATE TABLE snap_leitor (
+    num_cartao               VARCHAR2(12),
+    nome_completo            VARCHAR2(100),
+    cod_biblioteca           VARCHAR2(10),
+    status_leitor            VARCHAR2(12),
+    historico_pontualidade   VARCHAR2(10),
+    distancia_biblioteca     NUMBER(6,2)
+) TABLESPACE tbs_emprestimosdb;
 
--- 6. Sinónimos (depende dos database links e snapshots)
+CREATE TABLE snap_adulto (
+    num_cartao      VARCHAR2(12),
+    nivel_literacia VARCHAR2(15)
+) TABLESPACE tbs_emprestimosdb;
+
+CREATE TABLE snap_professor (
+    num_cartao VARCHAR2(12)
+) TABLESPACE tbs_emprestimosdb;
+
+CREATE TABLE snap_crianca (
+    num_cartao VARCHAR2(12)
+) TABLESPACE tbs_emprestimosdb;
+
+CREATE TABLE snap_material (
+    cod_material                VARCHAR2(12),
+    titulo                      VARCHAR2(200),
+    autor                       VARCHAR2(200),
+    cod_biblioteca              VARCHAR2(10),
+    estado_material_conservacao VARCHAR2(15),
+    motivo_indisponibilidade    VARCHAR2(200),
+    valor_aquisicao             NUMBER(10,2),
+    cod_categoria               NUMBER
+) TABLESPACE tbs_emprestimosdb;
+
+CREATE TABLE snap_categoria (
+    id_categoria  NUMBER,
+    area_tematica VARCHAR2(100),
+    faixa_etaria  VARCHAR2(15),
+    nivel_leitura VARCHAR2(15)
+) TABLESPACE tbs_emprestimosdb;
+
+CREATE TABLE repl_funcionarios (
+    cod_funcionario  VARCHAR2(12),
+    nome_funcionario VARCHAR2(100),
+    email            VARCHAR2(100),
+    contacto         VARCHAR2(20),
+    id_funcao        NUMBER,
+    cod_biblioteca   VARCHAR2(10),
+    nivel_acesso     VARCHAR2(15),
+    nome_funcao      VARCHAR2(15),
+    senha            VARCHAR2(100),
+    genero           VARCHAR2(9),
+    data_nasc        DATE,
+    endereco         VARCHAR2(200),
+    formacao         VARCHAR2(100),
+    experiencia      VARCHAR2(300),
+    data_contratacao DATE,
+    data_demissao    DATE
+) TABLESPACE tbs_emprestimosdb;
+
+CREATE TABLE repl_funcao_funcionario (
+    id_funcao    NUMBER,
+    nome_funcao  VARCHAR2(15),
+    nivel_acesso VARCHAR2(15),
+    descricao    VARCHAR2(200)
+) TABLESPACE tbs_emprestimosdb;
+
+CREATE TABLE biblioteca_snap (
+    cod_biblioteca      VARCHAR2(10),
+    nome_biblioteca     VARCHAR2(100),
+    endereco            VARCHAR2(200),
+    latitude            NUMBER(9,6),
+    longitude           NUMBER(9,6),
+    contacto_biblioteca VARCHAR2(50),
+    data_inauguracao    DATE,
+    capacidade          NUMBER(5),
+    infraestrutura      VARCHAR2(500),
+    servicos            VARCHAR2(500),
+    provincia           VARCHAR2(17),
+    estado              VARCHAR2(10)
+) TABLESPACE tbs_emprestimosdb;
+
+-- 6. Sinónimos (depende dos database links e placeholders)
 @/root/TP/EmprestimosDB_Synonyms.sql
 
 -- 7. Tabelas e constraints
