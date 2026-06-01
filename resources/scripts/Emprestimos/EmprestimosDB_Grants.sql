@@ -15,7 +15,8 @@ GRANT SELECT ON PARTICIPACAO_PROGRAMA  TO role_emprestimosdb_read;
 GRANT SELECT ON NIVEL_PROGRESSAO       TO role_emprestimosdb_read;
 GRANT SELECT ON PROGRAMA_MATERIAL      TO role_emprestimosdb_read;
 GRANT SELECT ON PROGRAMA_FUNCIONARIO   TO role_emprestimosdb_read;
-GRANT SELECT ON REPL_FUNCIONARIOS      TO role_emprestimosdb_read;
+BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.repl_funcionarios TO role_emprestimosdb_read'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
 GRANT SELECT ON AUDITORIA_EMPRESTIMOS  TO role_emprestimosdb_read;
 
 GRANT INSERT, UPDATE ON EMPRESTIMO            TO role_emprestimosdb_write;
@@ -29,8 +30,10 @@ GRANT INSERT         ON AUDITORIA_EMPRESTIMOS TO role_emprestimosdb_write;
 -- ============================================================
 GRANT SELECT ON EMPRESTIMO              TO app_emprestimosdb;
 GRANT SELECT ON SUSPENSAO               TO app_emprestimosdb;
-GRANT SELECT ON REPL_FUNCIONARIOS        TO app_emprestimosdb;
-GRANT SELECT ON REPL_FUNCAO_FUNCIONARIO  TO app_emprestimosdb;
+BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.repl_funcionarios TO app_emprestimosdb'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.repl_funcao_funcionario TO app_emprestimosdb'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
 GRANT SELECT ON vw_historico_emprestimos TO app_emprestimosdb;
 GRANT SELECT ON PROGRAMA_ALFABETIZACAO  TO app_emprestimosdb;
 GRANT SELECT ON NIVEL_PROGRESSAO        TO app_emprestimosdb;
@@ -121,7 +124,8 @@ GRANT SELECT ON SEQ_NIVEL                      TO app_nacionaldb;
 GRANT INSERT ON PROGRAMA_MATERIAL              TO app_nacionaldb;
 GRANT INSERT ON PROGRAMA_FUNCIONARIO           TO app_nacionaldb;
 -- prc_sincronizar_funcionarios e prc_modificar_nivel_acesso
-GRANT SELECT, INSERT, UPDATE, DELETE ON REPL_FUNCIONARIOS TO app_nacionaldb;
+BEGIN EXECUTE IMMEDIATE 'GRANT SELECT, INSERT, UPDATE, DELETE ON usr_emprestimosdb.repl_funcionarios TO app_nacionaldb'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
 -- Vistas de servico
 GRANT SELECT ON vw_emprestimos_activos   TO app_nacionaldb;
 GRANT SELECT ON vw_emprestimos_ativos    TO app_nacionaldb;
@@ -155,7 +159,8 @@ GRANT SELECT ON PARTICIPACAO_PROGRAMA    TO app_eventosdb;
 GRANT SELECT ON NIVEL_PROGRESSAO         TO app_eventosdb;
 GRANT SELECT ON PROGRAMA_MATERIAL        TO app_eventosdb;
 GRANT SELECT ON PROGRAMA_FUNCIONARIO     TO app_eventosdb;
-GRANT SELECT ON REPL_FUNCIONARIOS        TO app_eventosdb;
+BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.repl_funcionarios TO app_eventosdb'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
 GRANT SELECT ON VW_AUDITORIA             TO app_eventosdb;
 -- DML: mesmos endpoints de emprestimos/programas que app_nacionaldb
 GRANT UPDATE ON SUSPENSAO                    TO app_eventosdb;

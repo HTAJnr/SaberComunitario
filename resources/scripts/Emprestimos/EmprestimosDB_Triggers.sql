@@ -52,8 +52,15 @@ BEGIN
     END IF;
 
     -- 3. Funcionario reconhecido (local)
-    SELECT COUNT(*) INTO v_func FROM REPL_FUNCIONARIOS
-    WHERE cod_funcionario = :NEW.cod_funcionario;
+    -- EXECUTE IMMEDIATE evita ORA-01775 em compilacao quando REPL_FUNCIONARIOS
+    -- ainda nao existe (primeira instalacao com @nacionaldb offline).
+    BEGIN
+        EXECUTE IMMEDIATE
+            'SELECT COUNT(*) FROM usr_emprestimosdb.repl_funcionarios WHERE cod_funcionario = :1'
+            INTO v_func USING :NEW.cod_funcionario;
+    EXCEPTION
+        WHEN OTHERS THEN v_func := 1; -- fail-open: assume valido se MV indisponivel
+    END;
 
     IF v_func = 0 THEN
         prc_registar_auditoria('CRIAR_EMPRESTIMO',:NEW.num_cartao,:NEW.cod_material,
