@@ -13,99 +13,105 @@
 
 -- ============================================================
 -- FASE 0A — LIMPEZA DE SINÓNIMOS PÚBLICOS (SYSDBA)
+-- Ignora ORA-01432 (sinónimo inexistente) em primeira instalação.
 -- ============================================================
-
--- Objectos e views locais
-DROP PUBLIC SYNONYM funcao_funcionario;
-DROP PUBLIC SYNONYM funcionario;
-DROP PUBLIC SYNONYM funcionario_habilidade;
-DROP PUBLIC SYNONYM horario_funcionario;
-DROP PUBLIC SYNONYM leitor;
-DROP PUBLIC SYNONYM adulto;
-DROP PUBLIC SYNONYM adulto_interesse;
-DROP PUBLIC SYNONYM professor;
-DROP PUBLIC SYNONYM professor_disciplina;
-DROP PUBLIC SYNONYM crianca;
-DROP PUBLIC SYNONYM doador;
-DROP PUBLIC SYNONYM doacao;
-DROP PUBLIC SYNONYM item_doacao;
-DROP PUBLIC SYNONYM certificado_doacao;
-DROP PUBLIC SYNONYM auditoria_operacoes;
-DROP PUBLIC SYNONYM vw_doacoes_detalhadas;
-DROP PUBLIC SYNONYM vw_doadores_ranking;
-DROP PUBLIC SYNONYM vw_certificados_emitidos;
-DROP PUBLIC SYNONYM vw_funcionarios_ativos;
-DROP PUBLIC SYNONYM vw_acesso_funcionario;
-DROP PUBLIC SYNONYM vw_horarios_funcionario_semana;
-DROP PUBLIC SYNONYM vw_replica_funcionarios;
-DROP PUBLIC SYNONYM vw_func_activos_operacional;
-DROP PUBLIC SYNONYM vw_func_activos_confidencial;
-DROP PUBLIC SYNONYM vw_func_inactivos_operacional;
-DROP PUBLIC SYNONYM vw_func_inactivos_confidencial;
-DROP PUBLIC SYNONYM vw_leitores_completos;
-DROP PUBLIC SYNONYM vw_leitor_publico;
-DROP PUBLIC SYNONYM vw_leitor_privado;
-DROP PUBLIC SYNONYM vw_frag_leitor_activos;
-DROP PUBLIC SYNONYM vw_frag_leitor_suspensos;
-DROP PUBLIC SYNONYM vw_frag_leitor_inactivos;
-DROP PUBLIC SYNONYM vw_global_leitores_emprestimos;
-DROP PUBLIC SYNONYM vw_global_catalogo;
-DROP PUBLIC SYNONYM vw_global_eventos_participacao;
-DROP PUBLIC SYNONYM vw_auditoria;
-DROP PUBLIC SYNONYM vw_metricas_sistema;
-DROP PUBLIC SYNONYM vw_metricas_por_biblioteca;
-DROP PUBLIC SYNONYM total_doacoes_doador;
-DROP PUBLIC SYNONYM registrar_doacao_completa;
-DROP PUBLIC SYNONYM reemitir_certificado;
-DROP PUBLIC SYNONYM proc_gerir_acesso_bd;
-DROP PUBLIC SYNONYM prc_registar_auditoria;
-DROP PUBLIC SYNONYM prc_apagar_leitor;
-DROP PUBLIC SYNONYM prc_emitir_honorifico;
-DROP PUBLIC SYNONYM prc_atualizar_doacao_segura;
-DROP PUBLIC SYNONYM prc_demo_2pc;
-DROP PUBLIC SYNONYM prc_refresh_snapshots;
-
--- EmpréstimosDB (Yannis)
-DROP PUBLIC SYNONYM emprestimo;
-DROP PUBLIC SYNONYM suspensao;
-DROP PUBLIC SYNONYM seq_emprestimo;
-DROP PUBLIC SYNONYM programa_alfabetizacao;
-DROP PUBLIC SYNONYM nivel_progressao;
-DROP PUBLIC SYNONYM programa_material;
-DROP PUBLIC SYNONYM programa_funcionario;
-DROP PUBLIC SYNONYM participacao_programa;
-DROP PUBLIC SYNONYM seq_nivel;
-DROP PUBLIC SYNONYM vw_emprestimos_ativos;
-DROP PUBLIC SYNONYM vw_historico_emprestimos;
-DROP PUBLIC SYNONYM processar_devolucao;
-DROP PUBLIC SYNONYM repl_funcionarios;
-
--- MateriaisDB (Yasin)
-DROP PUBLIC SYNONYM material_bibliografico;
-DROP PUBLIC SYNONYM categoria;
-DROP PUBLIC SYNONYM livro_fisico;
-DROP PUBLIC SYNONYM ebook;
-DROP PUBLIC SYNONYM periodico;
-DROP PUBLIC SYNONYM transferencia;
-DROP PUBLIC SYNONYM seq_transferencia;
-DROP PUBLIC SYNONYM vw_materiais_completos;
-DROP PUBLIC SYNONYM vw_transferencias_detalhadas;
-
--- EventosBibliotecasDB (Gerson)
-DROP PUBLIC SYNONYM evento;
-DROP PUBLIC SYNONYM participacao_evento;
-DROP PUBLIC SYNONYM avaliacao_evento;
-DROP PUBLIC SYNONYM horario_evento;
-DROP PUBLIC SYNONYM horario_biblioteca;
-DROP PUBLIC SYNONYM evento_recurso;
-DROP PUBLIC SYNONYM seq_evento;
-DROP PUBLIC SYNONYM seq_avaliacao;
-DROP PUBLIC SYNONYM vw_eventos_proximos;
-DROP PUBLIC SYNONYM vw_eventos_completos;
-DROP PUBLIC SYNONYM insere_participacao_evento;
-
--- MV local (snapshot de BIBLIOTECA)
-DROP PUBLIC SYNONYM biblioteca;
+DECLARE
+  PROCEDURE drop_syn(p_syn IN VARCHAR2) IS
+  BEGIN
+    EXECUTE IMMEDIATE 'DROP PUBLIC SYNONYM ' || p_syn;
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -1432 THEN RAISE; END IF;
+  END;
+BEGIN
+  -- Objectos e views locais
+  drop_syn('funcao_funcionario');
+  drop_syn('funcionario');
+  drop_syn('funcionario_habilidade');
+  drop_syn('horario_funcionario');
+  drop_syn('leitor');
+  drop_syn('adulto');
+  drop_syn('adulto_interesse');
+  drop_syn('professor');
+  drop_syn('professor_disciplina');
+  drop_syn('crianca');
+  drop_syn('doador');
+  drop_syn('doacao');
+  drop_syn('item_doacao');
+  drop_syn('certificado_doacao');
+  drop_syn('auditoria_operacoes');
+  drop_syn('vw_doacoes_detalhadas');
+  drop_syn('vw_doadores_ranking');
+  drop_syn('vw_certificados_emitidos');
+  drop_syn('vw_funcionarios_ativos');
+  drop_syn('vw_acesso_funcionario');
+  drop_syn('vw_horarios_funcionario_semana');
+  drop_syn('vw_replica_funcionarios');
+  drop_syn('vw_func_activos_operacional');
+  drop_syn('vw_func_activos_confidencial');
+  drop_syn('vw_func_inactivos_operacional');
+  drop_syn('vw_func_inactivos_confidencial');
+  drop_syn('vw_leitores_completos');
+  drop_syn('vw_leitor_publico');
+  drop_syn('vw_leitor_privado');
+  drop_syn('vw_frag_leitor_activos');
+  drop_syn('vw_frag_leitor_suspensos');
+  drop_syn('vw_frag_leitor_inactivos');
+  drop_syn('vw_global_leitores_emprestimos');
+  drop_syn('vw_global_catalogo');
+  drop_syn('vw_global_eventos_participacao');
+  drop_syn('vw_auditoria');
+  drop_syn('vw_metricas_sistema');
+  drop_syn('vw_metricas_por_biblioteca');
+  drop_syn('total_doacoes_doador');
+  drop_syn('registrar_doacao_completa');
+  drop_syn('reemitir_certificado');
+  drop_syn('proc_gerir_acesso_bd');
+  drop_syn('prc_registar_auditoria');
+  drop_syn('prc_apagar_leitor');
+  drop_syn('prc_emitir_honorifico');
+  drop_syn('prc_atualizar_doacao_segura');
+  drop_syn('prc_demo_2pc');
+  drop_syn('prc_refresh_snapshots');
+  -- EmprestimosDB (Yannis)
+  drop_syn('emprestimo');
+  drop_syn('suspensao');
+  drop_syn('seq_emprestimo');
+  drop_syn('programa_alfabetizacao');
+  drop_syn('nivel_progressao');
+  drop_syn('programa_material');
+  drop_syn('programa_funcionario');
+  drop_syn('participacao_programa');
+  drop_syn('seq_nivel');
+  drop_syn('vw_emprestimos_ativos');
+  drop_syn('vw_historico_emprestimos');
+  drop_syn('processar_devolucao');
+  drop_syn('repl_funcionarios');
+  -- MateriaisDB (Yasin)
+  drop_syn('material_bibliografico');
+  drop_syn('categoria');
+  drop_syn('livro_fisico');
+  drop_syn('ebook');
+  drop_syn('periodico');
+  drop_syn('transferencia');
+  drop_syn('seq_transferencia');
+  drop_syn('vw_materiais_completos');
+  drop_syn('vw_transferencias_detalhadas');
+  -- EventosBibliotecasDB (Gerson)
+  drop_syn('evento');
+  drop_syn('participacao_evento');
+  drop_syn('avaliacao_evento');
+  drop_syn('horario_evento');
+  drop_syn('horario_biblioteca');
+  drop_syn('evento_recurso');
+  drop_syn('seq_evento');
+  drop_syn('seq_avaliacao');
+  drop_syn('vw_eventos_proximos');
+  drop_syn('vw_eventos_completos');
+  drop_syn('insere_participacao_evento');
+  -- MV local (snapshot de BIBLIOTECA)
+  drop_syn('biblioteca');
+END;
+/
 
 
 -- ============================================================

@@ -13,34 +13,40 @@
 
 -- ============================================================
 -- FASE 0A — LIMPEZA DE SINÓNIMOS PÚBLICOS (SYSDBA)
+-- Ignora ORA-01432 (sinónimo inexistente) em primeira instalação.
 -- ============================================================
-
--- EmprestimosDB (Yannis)
-DROP PUBLIC SYNONYM emprestimo_activo;
-
--- EventosBibliotecasDB (Gerson)
-DROP PUBLIC SYNONYM biblioteca_remota;
-
--- BibliotecaNacionalDB (Helder)
-DROP PUBLIC SYNONYM leitor_remoto;
-DROP PUBLIC SYNONYM leitor_publico;
-
--- Snapshots locais
-DROP PUBLIC SYNONYM funcionario;
-DROP PUBLIC SYNONYM funcao_funcionario;
-DROP PUBLIC SYNONYM biblioteca;
-
--- Objectos e views locais
-DROP PUBLIC SYNONYM CATEGORIA;
-DROP PUBLIC SYNONYM MATERIAL_BIBLIOGRAFICO;
-DROP PUBLIC SYNONYM LIVRO_FISICO;
-DROP PUBLIC SYNONYM EBOOK;
-DROP PUBLIC SYNONYM PERIODICO;
-DROP PUBLIC SYNONYM TRANSFERENCIA;
-DROP PUBLIC SYNONYM AUDITORIA_MATERIAIS;
-DROP PUBLIC SYNONYM VW_MAT_DISPONIVEL;
-DROP PUBLIC SYNONYM VW_MAT_GLOBAL;
-DROP PUBLIC SYNONYM VW_AUDITORIA;
+DECLARE
+  PROCEDURE drop_syn(p_syn IN VARCHAR2) IS
+  BEGIN
+    EXECUTE IMMEDIATE 'DROP PUBLIC SYNONYM ' || p_syn;
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -1432 THEN RAISE; END IF;
+  END;
+BEGIN
+  -- EmprestimosDB (Yannis)
+  drop_syn('emprestimo_activo');
+  -- EventosBibliotecasDB (Gerson)
+  drop_syn('biblioteca_remota');
+  -- BibliotecaNacionalDB (Helder)
+  drop_syn('leitor_remoto');
+  drop_syn('leitor_publico');
+  -- Snapshots locais
+  drop_syn('funcionario');
+  drop_syn('funcao_funcionario');
+  drop_syn('biblioteca');
+  -- Objectos e views locais
+  drop_syn('CATEGORIA');
+  drop_syn('MATERIAL_BIBLIOGRAFICO');
+  drop_syn('LIVRO_FISICO');
+  drop_syn('EBOOK');
+  drop_syn('PERIODICO');
+  drop_syn('TRANSFERENCIA');
+  drop_syn('AUDITORIA_MATERIAIS');
+  drop_syn('VW_MAT_DISPONIVEL');
+  drop_syn('VW_MAT_GLOBAL');
+  drop_syn('VW_AUDITORIA');
+END;
+/
 
 
 -- ============================================================

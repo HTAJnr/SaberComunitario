@@ -1,11 +1,21 @@
 -- ============================================
 -- TABLESPACES - EventosBibliotecasDB
 -- Executar como SYSDBA
+-- Ignora ORA-00959 (tablespace inexistente) em primeira instalação.
 -- ============================================
-
-DROP TABLESPACE tbs_eventosdb
-    INCLUDING CONTENTS AND DATAFILES
-    CASCADE CONSTRAINTS;
+DECLARE
+  PROCEDURE drop_ts(p_ts IN VARCHAR2) IS
+  BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLESPACE ' || p_ts
+        || ' INCLUDING CONTENTS AND DATAFILES CASCADE CONSTRAINTS';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -959 THEN RAISE; END IF;
+  END;
+BEGIN
+  drop_ts('tbs_eventosdb');
+  drop_ts('tbs_eventosdb_idx');
+END;
+/
 
 CREATE TABLESPACE tbs_eventosdb
     DATAFILE '/usr/lib/oracle/xe/oradata/XE/tbs_eventosdb.dbf'
@@ -13,10 +23,6 @@ CREATE TABLESPACE tbs_eventosdb
     AUTOEXTEND ON NEXT 10M MAXSIZE 500M
     EXTENT MANAGEMENT LOCAL
     SEGMENT SPACE MANAGEMENT AUTO;
-
-DROP TABLESPACE tbs_eventosdb_idx
-    INCLUDING CONTENTS AND DATAFILES
-    CASCADE CONSTRAINTS;
 
 CREATE TABLESPACE tbs_eventosdb_idx
     DATAFILE '/usr/lib/oracle/xe/oradata/XE/tbs_eventosdb_idx.dbf'

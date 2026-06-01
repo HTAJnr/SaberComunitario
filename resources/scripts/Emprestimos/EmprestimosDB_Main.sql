@@ -13,40 +13,47 @@
 
 -- ============================================================
 -- FASE 0A — LIMPEZA DE SINÓNIMOS PÚBLICOS (SYSDBA)
+-- Ignora ORA-01432 (sinónimo inexistente) em primeira instalação.
 -- ============================================================
-
--- BibliotecaNacionalDB (Helder)
-DROP PUBLIC SYNONYM leitor;
-DROP PUBLIC SYNONYM adulto;
-DROP PUBLIC SYNONYM adulto_interesse;
-DROP PUBLIC SYNONYM professor;
-DROP PUBLIC SYNONYM professor_disciplina;
-DROP PUBLIC SYNONYM crianca;
-
--- Snapshots locais
-DROP PUBLIC SYNONYM funcao_funcionario;
-DROP PUBLIC SYNONYM funcionario;
-DROP PUBLIC SYNONYM biblioteca;
-
--- MateriaisDB (Yasin)
-DROP PUBLIC SYNONYM material_bibliografico;
-DROP PUBLIC SYNONYM categoria;
-DROP PUBLIC SYNONYM transferencia;
-
--- Objectos e views locais
-DROP PUBLIC SYNONYM emprestimo;
-DROP PUBLIC SYNONYM suspensao;
-DROP PUBLIC SYNONYM repl_funcionarios;
-DROP PUBLIC SYNONYM programa_alfabetizacao;
-DROP PUBLIC SYNONYM nivel_progressao;
-DROP PUBLIC SYNONYM programa_material;
-DROP PUBLIC SYNONYM programa_funcionario;
-DROP PUBLIC SYNONYM participacao_programa;
-DROP PUBLIC SYNONYM vw_emprestimos_activos;
-DROP PUBLIC SYNONYM vw_suspensoes_activas;
-DROP PUBLIC SYNONYM frag_emp_activos_op;
-DROP PUBLIC SYNONYM vw_auditoria;
-DROP PUBLIC SYNONYM vw_relatorio_programas;
+DECLARE
+  PROCEDURE drop_syn(p_syn IN VARCHAR2) IS
+  BEGIN
+    EXECUTE IMMEDIATE 'DROP PUBLIC SYNONYM ' || p_syn;
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -1432 THEN RAISE; END IF;
+  END;
+BEGIN
+  -- BibliotecaNacionalDB (Helder)
+  drop_syn('leitor');
+  drop_syn('adulto');
+  drop_syn('adulto_interesse');
+  drop_syn('professor');
+  drop_syn('professor_disciplina');
+  drop_syn('crianca');
+  -- Snapshots locais
+  drop_syn('funcao_funcionario');
+  drop_syn('funcionario');
+  drop_syn('biblioteca');
+  -- MateriaisDB (Yasin)
+  drop_syn('material_bibliografico');
+  drop_syn('categoria');
+  drop_syn('transferencia');
+  -- Objectos e views locais
+  drop_syn('emprestimo');
+  drop_syn('suspensao');
+  drop_syn('repl_funcionarios');
+  drop_syn('programa_alfabetizacao');
+  drop_syn('nivel_progressao');
+  drop_syn('programa_material');
+  drop_syn('programa_funcionario');
+  drop_syn('participacao_programa');
+  drop_syn('vw_emprestimos_activos');
+  drop_syn('vw_suspensoes_activas');
+  drop_syn('frag_emp_activos_op');
+  drop_syn('vw_auditoria');
+  drop_syn('vw_relatorio_programas');
+END;
+/
 
 
 -- ============================================================
