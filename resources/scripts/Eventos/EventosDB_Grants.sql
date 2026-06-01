@@ -31,10 +31,10 @@ GRANT INSERT                ON AUDITORIA_EVENTOS  TO role_eventosdb_write;
 GRANT SELECT, INSERT, UPDATE ON BIBLIOTECA  TO app_eventosdb;
 GRANT SELECT ON HORARIO_BIBLIOTECA          TO app_eventosdb;
 GRANT SELECT ON BIBLIOTECA_RESPONSAVEL      TO app_eventosdb;
-GRANT SELECT, INSERT, UPDATE ON EVENTO      TO app_eventosdb;
-GRANT SELECT, INSERT ON HORARIO_EVENTO      TO app_eventosdb;
-GRANT SELECT ON EVENTO_RECURSO              TO app_eventosdb;
-GRANT SELECT, INSERT, DELETE ON PARTICIPACAO_EVENTO TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON EVENTO      TO app_eventosdb;
+GRANT SELECT, INSERT ON HORARIO_EVENTO              TO app_eventosdb;
+GRANT SELECT, INSERT ON EVENTO_RECURSO              TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PARTICIPACAO_EVENTO TO app_eventosdb;
 GRANT SELECT, INSERT, DELETE ON AVALIACAO_EVENTO    TO app_eventosdb;
 GRANT SELECT, INSERT ON AUDITORIA_EVENTOS   TO app_eventosdb;
 
@@ -101,8 +101,11 @@ GRANT SELECT ON v_bibliotecas_activas    TO app_emprestimosdb;
 GRANT SELECT ON v_programacao_eventos    TO app_emprestimosdb;
 GRANT SELECT ON v_horarios_bibliotecas   TO app_emprestimosdb;
 -- Transparencia: DML e sequencias para criar/editar eventos de qualquer no
-GRANT INSERT, UPDATE ON EVENTO           TO app_emprestimosdb;
+GRANT INSERT, UPDATE, DELETE ON EVENTO   TO app_emprestimosdb;
 GRANT SELECT, INSERT ON HORARIO_EVENTO   TO app_emprestimosdb;
+GRANT INSERT ON EVENTO_RECURSO           TO app_emprestimosdb;
+GRANT UPDATE ON PARTICIPACAO_EVENTO      TO app_emprestimosdb;
+GRANT SELECT ON BIBLIOTECA_RESPONSAVEL   TO app_emprestimosdb;
 GRANT SELECT ON SEQ_EVENTO               TO app_emprestimosdb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_emprestimosdb;
 
@@ -118,8 +121,11 @@ GRANT SELECT ON v_programacao_eventos    TO app_materiaisdb;
 GRANT SELECT ON vw_eventos_proximos      TO app_materiaisdb;
 GRANT SELECT ON vw_eventos_completos     TO app_materiaisdb;
 -- Transparencia: DML e sequencias para criar/editar eventos de qualquer no
-GRANT INSERT, UPDATE ON EVENTO           TO app_materiaisdb;
+GRANT INSERT, UPDATE, DELETE ON EVENTO   TO app_materiaisdb;
 GRANT SELECT, INSERT ON HORARIO_EVENTO   TO app_materiaisdb;
+GRANT INSERT ON EVENTO_RECURSO           TO app_materiaisdb;
+GRANT UPDATE ON PARTICIPACAO_EVENTO      TO app_materiaisdb;
+GRANT SELECT ON BIBLIOTECA_RESPONSAVEL   TO app_materiaisdb;
 GRANT SELECT ON SEQ_EVENTO               TO app_materiaisdb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_materiaisdb;
 
@@ -149,8 +155,10 @@ GRANT INSERT ON AUDITORIA_EVENTOS        TO app_nacionaldb;
 GRANT SELECT ON SEQ_AVALIACAO            TO app_nacionaldb;
 -- Procedimento de participacao chamado via dblink
 GRANT EXECUTE ON INSERE_PARTICIPACAO_EVENTO TO app_nacionaldb;
--- Transparencia: criar/editar eventos e horarios de qualquer no
-GRANT INSERT, UPDATE ON EVENTO           TO app_nacionaldb;
+-- Transparencia: criar/editar/apagar eventos de qualquer no
+GRANT INSERT, UPDATE, DELETE ON EVENTO   TO app_nacionaldb;
 GRANT INSERT ON HORARIO_EVENTO           TO app_nacionaldb;
+GRANT INSERT ON EVENTO_RECURSO           TO app_nacionaldb;
+GRANT UPDATE ON PARTICIPACAO_EVENTO      TO app_nacionaldb;
 GRANT SELECT ON SEQ_EVENTO               TO app_nacionaldb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_nacionaldb;

@@ -47,6 +47,20 @@ GRANT SELECT ON frag_emp_activos_det    TO app_emprestimosdb;
 GRANT SELECT ON frag_emp_historico_op   TO app_emprestimosdb;
 GRANT SELECT ON frag_emp_historico_det  TO app_emprestimosdb;
 GRANT SELECT ON VW_AUDITORIA            TO app_emprestimosdb;
+-- DML directo: Oracle 10g nao activa roles em todos os contextos de sessao
+GRANT INSERT, UPDATE ON EMPRESTIMO              TO app_emprestimosdb;
+GRANT INSERT, UPDATE ON SUSPENSAO               TO app_emprestimosdb;
+GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA   TO app_emprestimosdb;
+GRANT DELETE ON PARTICIPACAO_PROGRAMA           TO app_emprestimosdb;
+GRANT DELETE ON PROGRAMA_FUNCIONARIO            TO app_emprestimosdb;
+GRANT SELECT ON SEQ_EMPRESTIMO                  TO app_emprestimosdb;
+GRANT EXECUTE ON processar_devolucao            TO app_emprestimosdb;
+-- Criar/editar programas (backend transparente — todos os nos correm o mesmo codigo)
+GRANT INSERT, UPDATE ON PROGRAMA_ALFABETIZACAO  TO app_emprestimosdb;
+GRANT INSERT ON NIVEL_PROGRESSAO                TO app_emprestimosdb;
+GRANT SELECT ON SEQ_NIVEL                       TO app_emprestimosdb;
+GRANT INSERT ON PROGRAMA_MATERIAL               TO app_emprestimosdb;
+GRANT INSERT ON PROGRAMA_FUNCIONARIO            TO app_emprestimosdb;
 -- Snapshots locais — criados em EmprestimosDB_Snapshots.sql (depois deste script).
 -- Usa nome qualificado para evitar ORA-01775 (loop de sinónimos).
 -- Bloco tolerante a ORA-00942 caso os snapshots ainda nao existam.
@@ -100,6 +114,12 @@ GRANT SELECT ON PROGRAMA_FUNCIONARIO     TO app_nacionaldb;
 GRANT DELETE ON PARTICIPACAO_PROGRAMA    TO app_nacionaldb;
 -- prc_remover_funcionario: apaga relacao funcionario-programa
 GRANT DELETE ON PROGRAMA_FUNCIONARIO     TO app_nacionaldb;
+-- Criar/editar programas de qualquer no (transparencia)
+GRANT INSERT, UPDATE ON PROGRAMA_ALFABETIZACAO TO app_nacionaldb;
+GRANT INSERT ON NIVEL_PROGRESSAO               TO app_nacionaldb;
+GRANT SELECT ON SEQ_NIVEL                      TO app_nacionaldb;
+GRANT INSERT ON PROGRAMA_MATERIAL              TO app_nacionaldb;
+GRANT INSERT ON PROGRAMA_FUNCIONARIO           TO app_nacionaldb;
 -- prc_sincronizar_funcionarios e prc_modificar_nivel_acesso
 GRANT SELECT, INSERT, UPDATE, DELETE ON REPL_FUNCIONARIOS TO app_nacionaldb;
 -- Vistas de servico
@@ -145,8 +165,20 @@ GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_eventosdb;
 -- Transparencia: sequencia + procedure necessarias para qualquer no logado
 GRANT SELECT  ON SEQ_EMPRESTIMO              TO app_eventosdb;
 GRANT EXECUTE ON processar_devolucao         TO app_eventosdb;
+-- Criar/editar programas de qualquer no (transparencia)
+GRANT INSERT, UPDATE ON PROGRAMA_ALFABETIZACAO TO app_eventosdb;
+GRANT INSERT ON NIVEL_PROGRESSAO               TO app_eventosdb;
+GRANT SELECT ON SEQ_NIVEL                      TO app_eventosdb;
+GRANT INSERT ON PROGRAMA_MATERIAL              TO app_eventosdb;
+GRANT INSERT ON PROGRAMA_FUNCIONARIO           TO app_eventosdb;
 
 -- ── Yasin (app_materiaisdb) — acrescentar ao que ja existe ────
 -- Transparencia: sequencia + procedure para paridade com outros nos
 GRANT SELECT  ON SEQ_EMPRESTIMO              TO app_materiaisdb;
 GRANT EXECUTE ON processar_devolucao         TO app_materiaisdb;
+-- Criar/editar programas de qualquer no (transparencia)
+GRANT INSERT, UPDATE ON PROGRAMA_ALFABETIZACAO TO app_materiaisdb;
+GRANT INSERT ON NIVEL_PROGRESSAO               TO app_materiaisdb;
+GRANT SELECT ON SEQ_NIVEL                      TO app_materiaisdb;
+GRANT INSERT ON PROGRAMA_MATERIAL              TO app_materiaisdb;
+GRANT INSERT ON PROGRAMA_FUNCIONARIO           TO app_materiaisdb;

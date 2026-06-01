@@ -46,6 +46,9 @@ GRANT SELECT  ON VW_AUDITORIA             TO app_materiaisdb;
 GRANT EXECUTE ON atualizar_estado_material TO app_materiaisdb;
 GRANT EXECUTE ON registar_auditoria_mat    TO app_materiaisdb;
 GRANT SELECT  ON SEQ_AUDITORIA_MAT         TO app_materiaisdb;
+-- Signal A: visitor users têm estas sequences — home user também precisa
+GRANT SELECT  ON SEQ_MATERIAL              TO app_materiaisdb;
+GRANT SELECT  ON SEQ_CATEGORIA             TO app_materiaisdb;
 -- Autenticacao local (app_materiaisdb autentica contra snapshots locais)
 GRANT SELECT  ON REPL_FUNCIONARIOS         TO app_materiaisdb;
 GRANT SELECT  ON REPL_FUNCAO_FUNCIONARIO   TO app_materiaisdb;
