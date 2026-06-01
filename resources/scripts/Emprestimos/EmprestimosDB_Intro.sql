@@ -29,7 +29,11 @@
 
 -- ============================================================
 -- 1. EMPRESTIMOS
+-- repl_funcionarios e um placeholder vazio nesta fase (snapshots ainda
+-- nao foram criados). Desactivar o trigger para que os dados iniciais
+-- possam ser inseridos sem falhar na validacao de funcionario.
 -- ============================================================
+ALTER TRIGGER trg_valida_emprestimo DISABLE;
 
 -- Emprestimo activo -- leitor MPC20250001, material MAT20230001
 INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
@@ -100,6 +104,203 @@ VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'GZA20250002', 'FUC20250005', 'MAT20210001',
     TO_DATE('2023-08-18','YYYY-MM-DD'),
     'Bom', 'Bom', 'S');
 -- id_emprestimo = 7
+
+-- ============================================================
+-- 2B. EMPRESTIMOS ACTIVOS -- Semana Jun 1-6 2026 (3/dia)
+-- data_retirada = 14 dias antes do prazo
+-- ============================================================
+
+-- Jun 1
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'MPC20250002', 'FUC20250003', 'MAT20190003',
+    TO_DATE('2026-05-18','YYYY-MM-DD'), TO_DATE('2026-06-01','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'GZA20250002', 'FUC20250006', 'MAT20210001',
+    TO_DATE('2026-05-18','YYYY-MM-DD'), TO_DATE('2026-06-01','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'NMP20250002', 'FUC20250015', 'MAT20250013',
+    TO_DATE('2026-05-18','YYYY-MM-DD'), TO_DATE('2026-06-01','YYYY-MM-DD'), 'Bom', 'N');
+
+-- Jun 2
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'MPC20250003', 'FUC20250003', 'MAT20190004',
+    TO_DATE('2026-05-19','YYYY-MM-DD'), TO_DATE('2026-06-02','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'SOF20250001', 'FUC20250009', 'MAT20210002',
+    TO_DATE('2026-05-19','YYYY-MM-DD'), TO_DATE('2026-06-02','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'QLM20250002', 'FUC20250012', 'MAT20250011',
+    TO_DATE('2026-05-19','YYYY-MM-DD'), TO_DATE('2026-06-02','YYYY-MM-DD'), 'Bom', 'N');
+
+-- Jun 3
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'MPC20250001', 'FUC20250003', 'MAT20240003',
+    TO_DATE('2026-05-20','YYYY-MM-DD'), TO_DATE('2026-06-03','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'GZA20250001', 'FUC20250006', 'MAT20200002',
+    TO_DATE('2026-05-20','YYYY-MM-DD'), TO_DATE('2026-06-03','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'SOF20250002', 'FUC20250009', 'MAT20240005',
+    TO_DATE('2026-05-20','YYYY-MM-DD'), TO_DATE('2026-06-03','YYYY-MM-DD'), 'Bom', 'N');
+
+-- Jun 4
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'NMP20250001', 'FUC20250015', 'MAT20250014',
+    TO_DATE('2026-05-21','YYYY-MM-DD'), TO_DATE('2026-06-04','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'QLM20250001', 'FUC20250012', 'MAT20250012',
+    TO_DATE('2026-05-21','YYYY-MM-DD'), TO_DATE('2026-06-04','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'MPC20250002', 'FUC20250003', 'MAT20200001',
+    TO_DATE('2026-05-21','YYYY-MM-DD'), TO_DATE('2026-06-04','YYYY-MM-DD'), 'Bom', 'N');
+
+-- Jun 5
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'GZA20250002', 'FUC20250006', 'MAT20240004',
+    TO_DATE('2026-05-22','YYYY-MM-DD'), TO_DATE('2026-06-05','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'SOF20250001', 'FUC20250009', 'MAT20240006',
+    TO_DATE('2026-05-22','YYYY-MM-DD'), TO_DATE('2026-06-05','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'NMP20250002', 'FUC20250015', 'MAT20260002',
+    TO_DATE('2026-05-22','YYYY-MM-DD'), TO_DATE('2026-06-05','YYYY-MM-DD'), 'Bom', 'N');
+
+-- Jun 6
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'MPC20250003', 'FUC20250003', 'MAT20190002',
+    TO_DATE('2026-05-23','YYYY-MM-DD'), TO_DATE('2026-06-06','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'QLM20250002', 'FUC20250012', 'MAT20260001',
+    TO_DATE('2026-05-23','YYYY-MM-DD'), TO_DATE('2026-06-06','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'GZA20250001', 'FUC20250006', 'MAT20250001',
+    TO_DATE('2026-05-23','YYYY-MM-DD'), TO_DATE('2026-06-06','YYYY-MM-DD'), 'Bom', 'N');
+
+-- ============================================================
+-- 2C. EMPRESTIMOS DEVOLVIDOS RECENTES -- Mai 20-31 2026
+-- ============================================================
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, data_devolucao,
+    estado_material_saida, estado_material_retorno, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'MPC20250001', 'FUC20250003', 'MAT20240002',
+    TO_DATE('2026-05-06','YYYY-MM-DD'), TO_DATE('2026-05-20','YYYY-MM-DD'),
+    TO_DATE('2026-05-20','YYYY-MM-DD'), 'Bom', 'Bom', 'S');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, data_devolucao,
+    estado_material_saida, estado_material_retorno, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'GZA20250002', 'FUC20250006', 'MAT20240007',
+    TO_DATE('2026-05-08','YYYY-MM-DD'), TO_DATE('2026-05-22','YYYY-MM-DD'),
+    TO_DATE('2026-05-21','YYYY-MM-DD'), 'Bom', 'Bom', 'S');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, data_devolucao,
+    estado_material_saida, estado_material_retorno, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'SOF20250002', 'FUC20250009', 'MAT20220001',
+    TO_DATE('2026-05-12','YYYY-MM-DD'), TO_DATE('2026-05-26','YYYY-MM-DD'),
+    TO_DATE('2026-05-25','YYYY-MM-DD'), 'Bom', 'Bom', 'S');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, data_devolucao,
+    estado_material_saida, estado_material_retorno, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'NMP20250001', 'FUC20250015', 'MAT20260003',
+    TO_DATE('2026-05-14','YYYY-MM-DD'), TO_DATE('2026-05-28','YYYY-MM-DD'),
+    TO_DATE('2026-05-28','YYYY-MM-DD'), 'Bom', 'Bom', 'S');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, data_devolucao,
+    estado_material_saida, estado_material_retorno, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'QLM20250002', 'FUC20250012', 'MAT20230010',
+    TO_DATE('2026-05-15','YYYY-MM-DD'), TO_DATE('2026-05-29','YYYY-MM-DD'),
+    TO_DATE('2026-05-29','YYYY-MM-DD'), 'Bom', 'Bom', 'S');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, data_devolucao,
+    estado_material_saida, estado_material_retorno, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'MPC20250003', 'FUC20250003', 'MAT20240001',
+    TO_DATE('2026-05-17','YYYY-MM-DD'), TO_DATE('2026-05-31','YYYY-MM-DD'),
+    TO_DATE('2026-05-30','YYYY-MM-DD'), 'Bom', 'Bom', 'S');
+
+-- ============================================================
+-- 2D. EMPRESTIMOS VENCIDOS (em aberto) -- prazo Mai 10-25 2026
+-- ============================================================
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'NMP20250002', 'FUC20250015', 'MAT20250015',
+    TO_DATE('2026-04-26','YYYY-MM-DD'), TO_DATE('2026-05-10','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'MPC20250001', 'FUC20250003', 'MAT20230002',
+    TO_DATE('2026-04-29','YYYY-MM-DD'), TO_DATE('2026-05-13','YYYY-MM-DD'), 'Bom', 'N');
+
+INSERT INTO EMPRESTIMO (id_emprestimo, num_cartao, cod_funcionario, cod_material,
+    data_retirada, prazo_devolucao, estado_material_saida, multa_paga)
+VALUES (SEQ_EMPRESTIMO.NEXTVAL, 'SOF20250002', 'FUC20250009', 'MAT20260004',
+    TO_DATE('2026-05-11','YYYY-MM-DD'), TO_DATE('2026-05-25','YYYY-MM-DD'), 'Bom', 'N');
+
+ALTER TRIGGER trg_valida_emprestimo ENABLE;
+
+-- ============================================================
+-- 2E. AUDITORIA SEED -- registos representativos
+-- ============================================================
+INSERT INTO AUDITORIA_EMPRESTIMOS (id_auditoria, data_operacao, operacao, num_cartao,
+    cod_material, id_emprestimo, resultado, nos_afetados, observacoes)
+VALUES (SEQ_AUDITORIA_EMP.NEXTVAL, TO_DATE('2025-04-20','YYYY-MM-DD'),
+    'CRIAR_EMPRESTIMO', 'MPC20250001', 'MAT20230001', 1, 'SUCESSO',
+    'EmprestimosDB, BibliotecaNacionalDB',
+    'Leitor MPC20250001 (Maria Chissano) — livro "Guia de Saude Materno-Infantil"');
+
+INSERT INTO AUDITORIA_EMPRESTIMOS (id_auditoria, data_operacao, operacao, num_cartao,
+    cod_material, id_emprestimo, resultado, nos_afetados, observacoes)
+VALUES (SEQ_AUDITORIA_EMP.NEXTVAL, TO_DATE('2025-03-14','YYYY-MM-DD'),
+    'DEVOLVER_EMPRESTIMO', 'MPC20250002', 'MAT20220001', 2, 'SUCESSO',
+    'EmprestimosDB, BibliotecaNacionalDB',
+    'Leitor MPC20250002 (Pedro Cumbe) devolveu "Atlas de Mocambique Digital" — sem atraso');
+
+INSERT INTO AUDITORIA_EMPRESTIMOS (id_auditoria, data_operacao, operacao, num_cartao,
+    cod_material, id_emprestimo, resultado, nos_afetados, observacoes)
+VALUES (SEQ_AUDITORIA_EMP.NEXTVAL, TO_DATE('2025-02-20','YYYY-MM-DD'),
+    'SUSPENSAO_APLICADA', 'GZA20250001', 'MAT20240001', 3, 'SUCESSO',
+    'EmprestimosDB, BibliotecaNacionalDB',
+    'Leitor GZA20250001 (Rosa Temane) — atraso 5 dias, suspensao 7 dias aplicada');
+
+INSERT INTO AUDITORIA_EMPRESTIMOS (id_auditoria, data_operacao, operacao, num_cartao,
+    cod_material, id_emprestimo, resultado, nos_afetados, observacoes)
+VALUES (SEQ_AUDITORIA_EMP.NEXTVAL, TO_DATE('2026-01-15','YYYY-MM-DD'),
+    'CRIAR_EMPRESTIMO', 'QLM20250001', 'MAT20250010', 5, 'SUCESSO',
+    'EmprestimosDB, BibliotecaNacionalDB',
+    'Leitor QLM20250001 (Carolina Mussa) — livro "Historia Natural de Mocambique"');
 
 -- ============================================================
 -- 3. SUSPENSOES
@@ -376,3 +577,8 @@ VALUES ('NMP20250001', 'PROBIBNMP20250001', 11, TO_DATE('2025-09-15','YYYY-MM-DD
 -- FIM DO SCRIPT
 -- ============================================================
 COMMIT;
+
+-- Refresh obrigatorio apos intro: povoa os snapshots internos do no
+-- (requer que NacionalDB, MateriaisDB e EventosDB estejam online e com dados)
+DECLARE n NUMBER; BEGIN DBMS_MVIEW.REFRESH_ALL_MVIEWS(n); END;
+/

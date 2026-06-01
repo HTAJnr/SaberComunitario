@@ -68,15 +68,17 @@ async function carregarDashboard() {
 
 async function refreshSnapshots() {
   const btn = document.getElementById('btn-refresh-snapshots');
+  const el = document.getElementById('dash-snapshots-lista');
   if (btn) { btn.disabled = true; btn.textContent = 'A actualizar...'; }
+  if (el) el.innerHTML = '<p style="color:var(--text-muted);font-size:12px">A actualizar...</p>';
   try {
     const r = await post('/api/manutencao/refresh-snapshots', {});
     toast(r.mensagem || 'Snapshots actualizados.', r.ok ? 'sucesso' : 'aviso');
-    if (r.ok) await carregarSnapshotsInfo();
   } catch (err) {
     toast('Erro ao actualizar snapshots: ' + (err.message || err), 'erro');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Actualizar Snapshots'; }
+    await carregarSnapshotsInfo();
   }
 }
 

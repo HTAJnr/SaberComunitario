@@ -202,6 +202,26 @@ VALUES (2, TO_DATE('2025-10-12','YYYY-MM-DD'), 'Aprovada',
     'MAT20250013', 'BIBNMP0001', 'BIBQLM0001',
     'FUC20250014', 'Pedido de BIBQLM0001 - interesse em literatura Macua para feira do livro 2026');
 
+-- Transferencia 3 - Pendente: BIBGZA0001 -> BIBNMP0001
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
+    cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+    cod_funcionario_solicitante, motivo)
+VALUES (3, TO_DATE('2026-05-10','YYYY-MM-DD'), 'Pendente',
+    'MAT20200002', 'BIBGZA0001', 'BIBNMP0001',
+    'FUC20250005', 'Reequilibrio de acervo: excesso de literatura agricola em Gaza, defice em Nampula');
+
+-- Transferencia 4 - Concluida: BIBQLM0001 -> BIBMPC0001
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
+    cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+    cod_funcionario_solicitante, motivo)
+VALUES (4, TO_DATE('2026-04-15','YYYY-MM-DD'), 'Concluida',
+    'MAT20260001', 'BIBQLM0001', 'BIBMPC0001',
+    'FUC20250011', 'Material de agricultura sustentavel requisitado por BIBMPC0001 para programa de adultos');
+
 ALTER TRIGGER trg_transferencia_insert ENABLE;
 
 COMMIT;
+
+-- Refresh obrigatorio apos intro: povoa os snapshots internos do no
+DECLARE n NUMBER; BEGIN DBMS_MVIEW.REFRESH_ALL_MVIEWS(n); END;
+/

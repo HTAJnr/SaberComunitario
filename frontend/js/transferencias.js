@@ -214,7 +214,7 @@ function abrirModalSolicitarTransf() {
   _transfMatRes = [];
   _transfMatBib = null;
 
-  document.getElementById('modal-transf-titulo').textContent = 'Solicitar Transferência';
+  document.getElementById('modal-transf-titulo').textContent = 'Transferir Material para Outra Biblioteca';
   document.getElementById('modal-transf-erro').classList.add('hidden');
 
   document.getElementById('modal-transf-conteudo').innerHTML = `
@@ -232,7 +232,7 @@ function abrirModalSolicitarTransf() {
       <div id="transf-mat-sel-label" style="font-size:12px;color:#3fb27a;margin-top:4px"></div>
     </div>
     <div style="margin-bottom:14px">
-      <label class="form-label">Biblioteca de destino</label>
+      <label class="form-label">Transferir para</label>
       <select id="transf-bib-dest" class="input-field">
         <option value="">A carregar…</option>
       </select>
@@ -243,12 +243,16 @@ function abrirModalSolicitarTransf() {
                 placeholder="Justificativa da transferência…"
                 style="resize:vertical"></textarea>
     </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:8px">
+      <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
+      O material será removido do acervo desta biblioteca após a conclusão da transferência.
+    </p>
   `;
 
   document.getElementById('modal-transf-footer').innerHTML = `
     <button class="btn-ghost" onclick="fecharModalTransf()">Cancelar</button>
     <button class="btn-primary" onclick="_confirmarSolicitarTransf()">
-      <i class="fa-solid fa-paper-plane" style="margin-right:5px"></i>Solicitar
+      <i class="fa-solid fa-truck-moving" style="margin-right:5px"></i>Transferir
     </button>
   `;
 

@@ -110,9 +110,15 @@ function _audLinha(r, idx) {
       ).join('')
     : '—';
 
+  const obsSnippet = r.OBSERVACOES
+    ? `<div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-weight:normal">
+         ${r.OBSERVACOES.length > 60 ? r.OBSERVACOES.slice(0, 60) + '…' : r.OBSERVACOES}
+       </div>`
+    : '';
+
   return `<tr>
     <td style="white-space:nowrap;font-size:12px">${dataFmt}</td>
-    <td style="font-weight:500;font-size:12px">${r.OPERACAO || '—'}</td>
+    <td style="font-weight:500;font-size:12px">${r.OPERACAO || '—'}${obsSnippet}</td>
     <td>${resBadge}</td>
     <td>${noOrigemPill}</td>
     <td style="max-width:200px">${nosAfetados}</td>

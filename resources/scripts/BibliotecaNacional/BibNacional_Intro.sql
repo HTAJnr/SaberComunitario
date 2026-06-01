@@ -606,3 +606,7 @@ VALUES (6, 'Livros de Historia de Mocambique', 'Livro', 10, 80.00, 'Historia loc
 -- FIM DO SCRIPT
 -- ============================================================
 COMMIT;
+
+-- Refresh obrigatorio apos intro: povoa os snapshots internos do no
+DECLARE n NUMBER; BEGIN DBMS_MVIEW.REFRESH_ALL_MVIEWS(n); END;
+/

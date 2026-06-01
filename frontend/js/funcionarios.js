@@ -612,7 +612,11 @@ async function abrirModalPermissoes(cod) {
     <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">
       Preview — Permissões deste nível
     </div>
-    <div id="perm-preview" style="overflow-x:auto"></div>`;
+    <div id="perm-preview" style="overflow-x:auto"></div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:8px">
+      <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
+      As alterações entram em vigor no próximo início de sessão do funcionário.
+    </p>`;
 
   _actualizarPreviewPerm();
 }

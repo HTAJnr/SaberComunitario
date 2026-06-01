@@ -9,6 +9,7 @@
 let utilizadorActual = null;
 let modalSalvarFn = null;
 let noActual = null; // { no_nome, db_user } — carregado via /api/no/info na inicialização
+let _prevNotifCount = 0;
 
 // ── Helpers de restrição por nó ───────────────
 function _noEh(nomeNo) {
@@ -233,6 +234,8 @@ async function mostrarApp() {
   configurarNavPorRole();
   _aplicarRestricoesNo();
   _carregarNotificacoes();
+  setInterval(_carregarNotificacoes, 60000);
+  setInterval(_animarSino, 8000);
   navegarPara(location.hash.slice(1) || 'dashboard');
 }
 
@@ -426,25 +429,30 @@ async function _carregarNotificacoes() {
       else badgeTrf.classList.add('hidden');
     }
 
-    if (emp > 0) pendentes.push({ label: `${emp} empréstimo${emp > 1 ? 's' : ''} vencido${emp > 1 ? 's' : ''}`, section: 'emprestimos' });
+    if (emp > 0) pendentes.push({ label: `${emp} empréstimo${emp > 1 ? 's' : ''} vencido${emp > 1 ? 's' : ''}`, section: 'emprestimos', onNav: `carregarEmprestimos('vencido')` });
     if (podeVerTransf && trf > 0) pendentes.push({ label: `${trf} transferência${trf > 1 ? 's' : ''} pendente${trf > 1 ? 's' : ''}`, section: 'transferencias' });
 
     const dot = document.getElementById('notif-dot');
     const lista = document.getElementById('notif-lista');
     const bell = document.querySelector('#notif-btn .fa-bell');
     if (dot) dot.classList.toggle('hidden', pendentes.length === 0);
-    if (bell && pendentes.length > 0) {
-      bell.classList.remove('bell-ringing');
-      void bell.offsetWidth; // força reflow para reiniciar animação
-      bell.classList.add('bell-ringing');
-    } else if (bell) {
-      bell.classList.remove('bell-ringing');
+
+    const novasNotifs = pendentes.length > _prevNotifCount;
+    if (novasNotifs && _prevNotifCount >= 0) {
+      const audio = new Audio('/audio/gentle-sound-on-notification.mp3');
+      audio.volume = 0.4;
+      audio.play().catch(() => {});
+    }
+    _prevNotifCount = pendentes.length;
+
+    if (bell) {
+      if (pendentes.length === 0) bell.classList.remove('bell-ringing');
     }
     if (lista) {
       lista.innerHTML = pendentes.length === 0
         ? `<div style="padding:14px;font-size:12px;color:var(--text-muted);text-align:center">Sem pendências</div>`
         : pendentes.map(p => `
-            <div class="ctx-menu-item" onclick="_toggleNotifPanel();navegarPara('${p.section}')"
+            <div class="ctx-menu-item" onclick="_toggleNotifPanel();navegarPara('${p.section}');${p.onNav ? p.onNav + ';' : ''}"
                  style="padding:10px 14px;font-size:12px;cursor:pointer;border-bottom:0.5px solid var(--border)">
               <i class="fa-solid fa-circle-dot" style="color:#ef4444;margin-right:8px;font-size:8px"></i>${p.label}
             </div>`).join('');
@@ -455,6 +463,15 @@ async function _carregarNotificacoes() {
 function _toggleNotifPanel() {
   const panel = document.getElementById('notif-panel');
   if (panel) panel.classList.toggle('hidden');
+}
+
+function _animarSino() {
+  if (_prevNotifCount === 0) return;
+  const bell = document.querySelector('#notif-btn .fa-bell');
+  if (!bell) return;
+  bell.classList.remove('bell-ringing');
+  void bell.offsetWidth;
+  bell.classList.add('bell-ringing');
 }
 
 document.addEventListener('click', (e) => {

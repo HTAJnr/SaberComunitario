@@ -354,6 +354,74 @@ VALUES (1, 'MPC20250002', 4, 'Boa discussao, poderia ter mais tempo de debate.',
     TO_DATE('2025-03-15','YYYY-MM-DD'));
 
 -- ============================================================
+-- 9. EVENTOS FUTUROS Jun-Jul 2026
+-- ============================================================
+
+-- Evento 7 - Planeado (BIBMPC0001, Domingo 2026-06-14)
+INSERT INTO EVENTO (id_evento, cod_biblioteca, cod_funcionario_responsavel,
+    titulo_evento, descricao_evento, local_evento,
+    publico_alvo, data_evento, capacidade, status_evento, recorrente)
+VALUES (SEQ_EVENTO.NEXTVAL, 'BIBMPC0001', 'FUC20250003',
+    'Semana da Leitura Infantil',
+    'Actividades de leitura e contacao de historias para criancas entre 4 e 12 anos',
+    'Sala Infantil, Biblioteca Polana',
+    'Todos', TO_DATE('2026-06-14','YYYY-MM-DD'), 40, 'Planeado', 'N');
+-- id_evento = 7
+
+INSERT INTO HORARIO_EVENTO (id_horario_ev, id_evento, dia_semana, data_ocorrencia, hora_inicio, hora_fim)
+VALUES (SEQ_HORARIO_EVENTO.NEXTVAL, 7, 'Domingo',
+    TO_DATE('2026-06-14','YYYY-MM-DD'), '09:00', '12:00');
+
+-- Evento 8 - Planeado (BIBSOF0001, Segunda 2026-06-22)
+INSERT INTO EVENTO (id_evento, cod_biblioteca, cod_funcionario_responsavel,
+    titulo_evento, descricao_evento, local_evento,
+    publico_alvo, data_evento, capacidade, status_evento, recorrente)
+VALUES (SEQ_EVENTO.NEXTVAL, 'BIBSOF0001', 'FUC20250008',
+    'Exposicao de Literatura Mocambicana',
+    'Mostra de obras de autores mocambicanos com sessoes de debate e leitura em voz alta',
+    'Sala de Reunioes, Biblioteca da Beira',
+    'Todos', TO_DATE('2026-06-22','YYYY-MM-DD'), 60, 'Planeado', 'N');
+-- id_evento = 8
+
+INSERT INTO HORARIO_EVENTO (id_horario_ev, id_evento, dia_semana, data_ocorrencia, hora_inicio, hora_fim)
+VALUES (SEQ_HORARIO_EVENTO.NEXTVAL, 8, 'Segunda-feira',
+    TO_DATE('2026-06-22','YYYY-MM-DD'), '10:00', '17:00');
+
+-- Evento 9 - Planeado (BIBGZA0001, Domingo 2026-07-05)
+INSERT INTO EVENTO (id_evento, cod_biblioteca, cod_funcionario_responsavel,
+    titulo_evento, descricao_evento, local_evento,
+    publico_alvo, data_evento, capacidade, status_evento, recorrente)
+VALUES (SEQ_EVENTO.NEXTVAL, 'BIBGZA0001', 'FUC20250005',
+    'Clube de Leitura - Paulo Coelho',
+    'Sessao de leitura e discussao de obras de Paulo Coelho',
+    'Jardim Exterior, Biblioteca Xai-Xai',
+    'Todos', TO_DATE('2026-07-05','YYYY-MM-DD'), 25, 'Planeado', 'N');
+-- id_evento = 9
+
+INSERT INTO HORARIO_EVENTO (id_horario_ev, id_evento, dia_semana, data_ocorrencia, hora_inicio, hora_fim)
+VALUES (SEQ_HORARIO_EVENTO.NEXTVAL, 9, 'Domingo',
+    TO_DATE('2026-07-05','YYYY-MM-DD'), '10:00', '12:30');
+
+-- Evento 10 - Planeado (BIBNMP0001, Segunda 2026-07-20)
+INSERT INTO EVENTO (id_evento, cod_biblioteca, cod_funcionario_responsavel,
+    titulo_evento, descricao_evento, local_evento,
+    publico_alvo, data_evento, capacidade, status_evento, recorrente)
+VALUES (SEQ_EVENTO.NEXTVAL, 'BIBNMP0001', 'FUC20250014',
+    'Feira do Livro Escolar',
+    'Feira de troca e venda de livros escolares com participacao de escolas da cidade',
+    'Area de Estudo, Biblioteca Nampula',
+    'Todos', TO_DATE('2026-07-20','YYYY-MM-DD'), 80, 'Planeado', 'N');
+-- id_evento = 10
+
+INSERT INTO HORARIO_EVENTO (id_horario_ev, id_evento, dia_semana, data_ocorrencia, hora_inicio, hora_fim)
+VALUES (SEQ_HORARIO_EVENTO.NEXTVAL, 10, 'Segunda-feira',
+    TO_DATE('2026-07-20','YYYY-MM-DD'), '08:00', '17:00');
+
+-- ============================================================
 -- FIM DO SCRIPT
 -- ============================================================
 COMMIT;
+
+-- Refresh obrigatorio apos intro: povoa os snapshots internos do no
+DECLARE n NUMBER; BEGIN DBMS_MVIEW.REFRESH_ALL_MVIEWS(n); END;
+/
