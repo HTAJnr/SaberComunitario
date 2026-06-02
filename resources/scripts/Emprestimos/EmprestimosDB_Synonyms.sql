@@ -168,3 +168,18 @@ CREATE OR REPLACE PUBLIC SYNONYM VW_EVENTOS_COMPLETOS
 CREATE OR REPLACE PUBLIC SYNONYM INSERE_PARTICIPACAO_EVENTO
     FOR USR_EVENTOSDB.INSERE_PARTICIPACAO_EVENTO@eventosdb;
 
+-- ============================================================
+-- FUNCIONARIO/FUNCAO_FUNCIONARIO apontam para tabela real no NacionalDB
+-- (necessario para INSERT/UPDATE de funcionarios de qualquer no)
+-- NOTA: auth passa a requerer NacionalDB online
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM funcionario
+    FOR usr_NACIONALDB.FUNCIONARIO@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM funcao_funcionario
+    FOR usr_NACIONALDB.FUNCAO_FUNCIONARIO@nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM SEQ_FUNCIONARIO
+    FOR usr_NACIONALDB.SEQ_FUNCIONARIO@nacionaldb;
+
+-- reemitir_certificado: procedure no NacionalDB, acessivel de qualquer no
+CREATE OR REPLACE PUBLIC SYNONYM reemitir_certificado
+    FOR usr_NACIONALDB.reemitir_certificado@nacionaldb;

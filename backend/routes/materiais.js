@@ -282,6 +282,13 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     }
   }
 
+  function parseDateStr(val) {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+    const d = new Date(val + 'T00:00:00');
+    return isNaN(d.getTime()) ? null : d;
+  }
+
   let conn;
   try {
     conn = await getConnection();
@@ -331,7 +338,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
         estado,
         motivo: motivo_indisponibilidade || null,
         origem: origem_material,
-        data_aq: dataAqFinal,
+        data_aq: parseDateStr(dataAqFinal),
         val_aq: valorAqFinal,
         loc_est: localizacao_estante || null,
         cod_cat: Number(cod_categoria),
@@ -364,7 +371,7 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
           cod: codMaterial,
           edicao,
           per: periodicidade,
-          data_pub: data_publicacao,
+          data_pub: parseDateStr(data_publicacao),
           issn: issn || null
         }
       );

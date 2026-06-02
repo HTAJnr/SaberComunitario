@@ -178,3 +178,18 @@ CREATE OR REPLACE PUBLIC SYNONYM VW_CERTIFICADOS_EMITIDOS FOR usr_NACIONALDB.vw_
 CREATE OR REPLACE PUBLIC SYNONYM FUNCIONARIO_HABILIDADE   FOR usr_NACIONALDB.funcionario_habilidade@link_nacionaldb;
 CREATE OR REPLACE PUBLIC SYNONYM HORARIO_FUNCIONARIO      FOR usr_NACIONALDB.horario_funcionario@link_nacionaldb;
 
+-- ============================================================
+-- FUNCIONARIO/FUNCAO_FUNCIONARIO apontam para tabela real no NacionalDB
+-- (necessario para INSERT/UPDATE de funcionarios de qualquer no)
+-- NOTA: auth passa a requerer NacionalDB online
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM funcionario
+    FOR usr_NACIONALDB.FUNCIONARIO@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM funcao_funcionario
+    FOR usr_NACIONALDB.FUNCAO_FUNCIONARIO@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM SEQ_FUNCIONARIO
+    FOR usr_NACIONALDB.SEQ_FUNCIONARIO@link_nacionaldb;
+
+-- reemitir_certificado: procedure no NacionalDB, acessivel de qualquer no
+CREATE OR REPLACE PUBLIC SYNONYM reemitir_certificado
+    FOR usr_NACIONALDB.reemitir_certificado@link_nacionaldb;

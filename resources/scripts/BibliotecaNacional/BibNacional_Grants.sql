@@ -207,6 +207,11 @@ GRANT SELECT ON snap_transferencias             TO app_eventosdb;
 GRANT SELECT ON SEQ_FUNCIONARIO          TO app_emprestimosdb;
 GRANT SELECT ON SEQ_FUNCIONARIO          TO app_eventosdb;
 GRANT SELECT ON SEQ_FUNCIONARIO          TO app_materiaisdb;
+
+-- reemitir_certificado: procedure chamada de qualquer no (modulo doacoes cross-node)
+GRANT EXECUTE ON reemitir_certificado    TO app_emprestimosdb;
+GRANT EXECUTE ON reemitir_certificado    TO app_eventosdb;
+GRANT EXECUTE ON reemitir_certificado    TO app_materiaisdb;
 GRANT SELECT ON SEQ_HORARIO_FUNC         TO app_emprestimosdb;
 GRANT SELECT ON SEQ_HORARIO_FUNC         TO app_eventosdb;
 GRANT SELECT ON SEQ_HORARIO_FUNC         TO app_materiaisdb;

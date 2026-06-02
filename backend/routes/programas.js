@@ -136,14 +136,14 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
          cod_programa, cod_biblioteca, nome_programa, descricao,
          publico_alvo, duracao_semanas, metodologia, resultados_esperados, estado_programa
        ) VALUES (
-         :cod, :bib, :nome, :desc,
+         :cod, :bib, :nome, :descricao,
          :publico, :duracao, :metodologia, :resultados, :estado
        )`,
       {
         cod:        codPrograma,
         bib:        codBib,
         nome:       nome_programa,
-        desc:       descricao || null,
+        descricao:  descricao || null,
         publico:    publico_alvo,
         duracao:    duracao_semanas || null,
         metodologia: metodologia || null,
@@ -155,12 +155,12 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
     for (const n of niveis) {
       await conn.execute(
         `INSERT INTO NIVEL_PROGRESSAO (id_nivel, cod_programa, nome_nivel, descricao, ordem)
-         VALUES (SEQ_NIVEL.NEXTVAL, :cod, :nome, :desc, :ordem)`,
+         VALUES (SEQ_NIVEL.NEXTVAL, :cod, :nome, :descricao, :ordem)`,
         {
-          cod:   codPrograma,
-          nome:  n.nome_nivel,
-          desc:  n.descricao || null,
-          ordem: n.ordem
+          cod:       codPrograma,
+          nome:      n.nome_nivel,
+          descricao: n.descricao || null,
+          ordem:     n.ordem
         }
       );
     }

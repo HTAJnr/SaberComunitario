@@ -310,8 +310,29 @@ router.post('/:id/certificado', exigirNivel('Administrador', 'Coordenador'), asy
       { id: parseInt(req.params.id) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
-    if (existeResult.rows[0].TOTAL > 0)
-      return res.status(409).json({ erro: 'Já existe um certificado para esta doação. Use a opção de reemissão.' });
+    if (existeResult.rows[0].TOTAL > 0) {
+      if (tipo_certificado !== 'Reemissao') {
+        return res.status(409).json({ erro: 'Já existe um certificado para esta doação. Use a opção de reemissão.' });
+      }
+      // Certificado já existe e tipo é Reemissão — chama procedure de reemissão
+      await conn.execute(
+        `BEGIN reemitir_certificado(:id_doacao, :motivo, :num_novo); END;`,
+        {
+          id_doacao: parseInt(req.params.id),
+          motivo: observacoes || 'Reemissão manual',
+          num_novo: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 30 }
+        }
+      );
+      await registar(conn, {
+        cod_func: req.session.cod_funcionario,
+        operacao: 'REEMITIR_CERTIFICADO',
+        objeto: 'DOACAO:' + req.params.id,
+        resultado: 'SUCESSO',
+        nos: req.session.cod_biblioteca || 'NACIONAL'
+      });
+      await conn.commit();
+      return res.json({ ok: true, reemitido: true });
+    }
 
     const seqResult = await conn.execute(
       `SELECT SEQ_CERTIFICADO.NEXTVAL AS SEQ FROM DUAL`,

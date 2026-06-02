@@ -153,3 +153,19 @@ CREATE OR REPLACE PUBLIC SYNONYM SEQ_TRANSFERENCIA            FOR usr_materiaisd
 CREATE OR REPLACE PUBLIC SYNONYM TRANSFERENCIA                FOR usr_materiaisdb.TRANSFERENCIA@link_materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM VW_MATERIAIS_COMPLETOS       FOR usr_materiaisdb.VW_MATERIAIS_COMPLETOS@link_materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM VW_TRANSFERENCIAS_DETALHADAS FOR usr_materiaisdb.VW_TRANSFERENCIAS_DETALHADAS@link_materiaisdb;
+
+-- ============================================================
+-- FUNCIONARIO/FUNCAO_FUNCIONARIO apontam para tabela real no NacionalDB
+-- (necessario para INSERT/UPDATE de funcionarios de qualquer no)
+-- NOTA: auth passa a requerer NacionalDB online
+-- ============================================================
+CREATE OR REPLACE PUBLIC SYNONYM FUNCIONARIO
+    FOR usr_NACIONALDB.FUNCIONARIO@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM FUNCAO_FUNCIONARIO
+    FOR usr_NACIONALDB.FUNCAO_FUNCIONARIO@link_nacionaldb;
+CREATE OR REPLACE PUBLIC SYNONYM SEQ_FUNCIONARIO
+    FOR usr_NACIONALDB.SEQ_FUNCIONARIO@link_nacionaldb;
+
+-- reemitir_certificado: procedure no NacionalDB, acessivel de qualquer no
+CREATE OR REPLACE PUBLIC SYNONYM reemitir_certificado
+    FOR usr_NACIONALDB.reemitir_certificado@link_nacionaldb;

@@ -304,11 +304,11 @@ async function _carregarBibliotecasTransf() {
   const sel = document.getElementById('transf-bib-dest');
   if (!sel) return;
   try {
-    const lista = await get('/api/bibliotecas');
+    const lista = await get('/api/funcionarios/bibliotecas');
     const excluir = new Set([utilizadorActual?.COD_BIBLIOTECA || '', _transfMatBib || ''].filter(Boolean));
     const outras  = lista.filter(b => !excluir.has(b.COD_BIBLIOTECA));
     sel.innerHTML = `<option value="">Seleccionar…</option>` +
-      outras.map(b => `<option value="${b.COD_BIBLIOTECA}">${b.NOME_BIBLIOTECA}</option>`).join('');
+      outras.map(b => `<option value="${b.COD_BIBLIOTECA}">${b.NOME || b.NOME_BIBLIOTECA}</option>`).join('');
   } catch {
     sel.innerHTML = '<option value="">Erro a carregar</option>';
   }

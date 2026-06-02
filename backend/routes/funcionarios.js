@@ -319,29 +319,33 @@ router.post('/', exigirNivel('Administrador', 'Coordenador'), async (req, res) =
     const email = gerarEmail(nome_funcionario);
 
     conn = await getConnection();
-    const result = await conn.execute(
+
+    // Pré-busca do NEXTVAL antes do INSERT (RETURNING INTO não funciona via dblink)
+    const seqR = await conn.execute(
+      `SELECT SEQ_FUNCIONARIO.NEXTVAL AS SEQ FROM DUAL`,
+      [], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    const codFuncionario = `FUC${new Date().getFullYear()}${String(seqR.rows[0].SEQ).padStart(4, '0')}`;
+
+    await conn.execute(
       `INSERT INTO FUNCIONARIO
          (COD_FUNCIONARIO, NOME_FUNCIONARIO, EMAIL, SENHA, CONTACTO, GENERO, DATA_NASC,
           ENDERECO, FORMACAO, EXPERIENCIA,
           ID_FUNCAO, COD_BIBLIOTECA, DATA_CONTRATACAO)
        VALUES
-         ('FUC' || TO_CHAR(SYSDATE,'YYYY') || LPAD(TO_CHAR(SEQ_FUNCIONARIO.NEXTVAL),4,'0'),
-          :nome, :email, :senha, :contacto, :genero, TO_DATE(:dnasc,'YYYY-MM-DD'),
+         (:cod, :nome, :email, :senha, :contacto, :genero, TO_DATE(:dnasc,'YYYY-MM-DD'),
           :endereco, :formacao, :experiencia,
-          :id_funcao, :cod_bib, NVL(TO_DATE(:dent,'YYYY-MM-DD'), SYSDATE))
-       RETURNING COD_FUNCIONARIO INTO :cod_out`,
+          :id_funcao, :cod_bib, NVL(TO_DATE(:dent,'YYYY-MM-DD'), SYSDATE))`,
       {
+        cod: codFuncionario,
         nome: nome_funcionario, email, senha: senhaHash,
         contacto: contacto || null, genero: genero || 'Masculino',
         dnasc: data_nasc || null,
         endereco: endereco || null, formacao: formacao || null, experiencia: experiencia || null,
         id_funcao: id_funcao || null, cod_bib: codBib,
-        dent: data_contratacao || null,
-        cod_out: { dir: oracledb.BIND_OUT, type: oracledb.STRING }
+        dent: data_contratacao || null
       }
     );
-
-    const codFuncionario = result.outBinds.cod_out[0];
 
     if (Array.isArray(habilidades) && habilidades.length > 0) {
       for (const h of habilidades) {

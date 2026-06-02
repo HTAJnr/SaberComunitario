@@ -147,8 +147,54 @@ END protege_ultimo_exemplar_insert;
 
 
 -- ============================================================
--- TRIGGER 4 � protege_ultimo_exemplar_update
+-- FUNCAO auxiliar para protege_ultimo_exemplar_update
+-- Usa PRAGMA AUTONOMOUS_TRANSACTION para evitar ORA-04091
+-- (tabela TRANSFERENCIA em mutacao durante UPDATE)
+-- ============================================================
+CREATE OR REPLACE FUNCTION conta_exemplares_disponiveis_upd(
+    p_isbn         IN VARCHAR2,
+    p_titulo       IN VARCHAR2,
+    p_cod_bib      IN VARCHAR2,
+    p_id_excluir   IN NUMBER
+) RETURN NUMBER IS
+    PRAGMA AUTONOMOUS_TRANSACTION;
+    v_count NUMBER := 0;
+BEGIN
+    IF p_isbn IS NOT NULL THEN
+        SELECT COUNT(m.cod_material) INTO v_count
+        FROM MATERIAL_BIBLIOGRAFICO m
+        WHERE m.ISBN = p_isbn
+          AND m.cod_biblioteca = p_cod_bib
+          AND m.cod_material NOT IN (
+              SELECT cod_material FROM emprestimo_activo)
+          AND m.cod_material NOT IN (
+              SELECT cod_material FROM TRANSFERENCIA
+               WHERE estado_transferencia IN ('Pendente', 'Aprovada')
+                 AND id_transferencia <> p_id_excluir);
+    ELSE
+        SELECT COUNT(m.cod_material) INTO v_count
+        FROM MATERIAL_BIBLIOGRAFICO m
+        WHERE normaliza_titulo(m.titulo) = normaliza_titulo(p_titulo)
+          AND m.cod_biblioteca = p_cod_bib
+          AND m.cod_material NOT IN (
+              SELECT cod_material FROM emprestimo_activo)
+          AND m.cod_material NOT IN (
+              SELECT cod_material FROM TRANSFERENCIA
+               WHERE estado_transferencia IN ('Pendente', 'Aprovada')
+                 AND id_transferencia <> p_id_excluir);
+    END IF;
+    ROLLBACK;
+    RETURN v_count;
+EXCEPTION WHEN OTHERS THEN
+    ROLLBACK;
+    RETURN 999;
+END conta_exemplares_disponiveis_upd;
+/
+
+-- ============================================================
+-- TRIGGER 4 — protege_ultimo_exemplar_update
 -- Bloqueia aprovacao se for o ultimo exemplar disponivel
+-- Usa funcao com AUTONOMOUS_TRANSACTION para evitar ORA-04091
 -- ============================================================
 CREATE OR REPLACE TRIGGER protege_ultimo_exemplar_update
 BEFORE UPDATE ON TRANSFERENCIA
@@ -167,29 +213,9 @@ BEGIN
     FROM MATERIAL_BIBLIOGRAFICO
     WHERE cod_material = :NEW.cod_material;
 
-    IF v_isbn IS NOT NULL THEN
-        SELECT COUNT(m.cod_material) INTO v_disponiveis
-        FROM MATERIAL_BIBLIOGRAFICO m
-        WHERE m.ISBN = v_isbn
-        AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-        AND m.cod_material NOT IN (
-            SELECT cod_material FROM emprestimo_activo)
-        AND m.cod_material NOT IN (
-            SELECT cod_material FROM TRANSFERENCIA
-            WHERE estado_transferencia IN ('Pendente', 'Aprovada')
-            AND id_transferencia <> :NEW.id_transferencia);
-    ELSE
-        SELECT COUNT(m.cod_material) INTO v_disponiveis
-        FROM MATERIAL_BIBLIOGRAFICO m
-        WHERE normaliza_titulo(m.titulo) = normaliza_titulo(v_titulo)
-        AND m.cod_biblioteca = :NEW.cod_biblioteca_origem
-        AND m.cod_material NOT IN (
-            SELECT cod_material FROM emprestimo_activo)
-        AND m.cod_material NOT IN (
-            SELECT cod_material FROM TRANSFERENCIA
-            WHERE estado_transferencia IN ('Pendente', 'Aprovada')
-            AND id_transferencia <> :NEW.id_transferencia);
-    END IF;
+    v_disponiveis := conta_exemplares_disponiveis_upd(
+        v_isbn, v_titulo, :NEW.cod_biblioteca_origem, :NEW.id_transferencia
+    );
 
     IF v_disponiveis <= 1 THEN
         RAISE_APPLICATION_ERROR(-20016,
