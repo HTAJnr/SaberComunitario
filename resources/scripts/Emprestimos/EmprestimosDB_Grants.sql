@@ -87,17 +87,26 @@ END;
 -- ============================================================
 
 -- ── Yasin (app_materiaisdb) ─────────────────────────────────
--- RN06: verifica emprestimo activo antes de transferencia
-GRANT SELECT ON EMPRESTIMO             TO app_materiaisdb;
-GRANT SELECT ON vw_emprestimos_activos TO app_materiaisdb;
-GRANT SELECT ON frag_emp_activos_op    TO app_materiaisdb;
--- DML: endpoints de emprestimos/programas (mesmo backend nos 4 nos)
+-- Emprestimos e suspensoes
+GRANT SELECT ON EMPRESTIMO               TO app_materiaisdb;
+GRANT INSERT, UPDATE ON EMPRESTIMO       TO app_materiaisdb;
 GRANT SELECT ON SUSPENSAO                TO app_materiaisdb;
 GRANT UPDATE ON SUSPENSAO                TO app_materiaisdb;
-GRANT INSERT ON EMPRESTIMO               TO app_materiaisdb;
-GRANT UPDATE ON EMPRESTIMO               TO app_materiaisdb;
+-- Vistas de emprestimos (paridade com app_eventosdb)
+GRANT SELECT ON vw_emprestimos_activos   TO app_materiaisdb;
+GRANT SELECT ON vw_emprestimos_ativos    TO app_materiaisdb;
+GRANT SELECT ON vw_historico_emprestimos TO app_materiaisdb;
+GRANT SELECT ON vw_suspensoes_activas    TO app_materiaisdb;
+GRANT SELECT ON frag_emp_activos_op      TO app_materiaisdb;
+-- Programas — SELECT em falta (INSERT/UPDATE adicionados mais abaixo)
+GRANT SELECT ON PROGRAMA_ALFABETIZACAO   TO app_materiaisdb;
 GRANT SELECT ON PARTICIPACAO_PROGRAMA    TO app_materiaisdb;
-GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_materiaisdb;
+GRANT INSERT, UPDATE, DELETE ON PARTICIPACAO_PROGRAMA TO app_materiaisdb;
+GRANT SELECT ON NIVEL_PROGRESSAO         TO app_materiaisdb;
+GRANT SELECT ON PROGRAMA_MATERIAL        TO app_materiaisdb;
+GRANT SELECT ON PROGRAMA_FUNCIONARIO     TO app_materiaisdb;
+-- Auditoria
+GRANT SELECT ON VW_AUDITORIA             TO app_materiaisdb;
 
 -- ── Helder (app_nacionaldb) ─────────────────────────────────
 -- Emprestimos e suspensoes para vistas globais
@@ -162,11 +171,10 @@ GRANT SELECT ON PROGRAMA_FUNCIONARIO     TO app_eventosdb;
 BEGIN EXECUTE IMMEDIATE 'GRANT SELECT ON usr_emprestimosdb.repl_funcionarios TO app_eventosdb'; EXCEPTION WHEN OTHERS THEN NULL; END;
 /
 GRANT SELECT ON VW_AUDITORIA             TO app_eventosdb;
--- DML: mesmos endpoints de emprestimos/programas que app_nacionaldb
-GRANT UPDATE ON SUSPENSAO                    TO app_eventosdb;
-GRANT INSERT ON EMPRESTIMO                   TO app_eventosdb;
-GRANT UPDATE ON EMPRESTIMO                   TO app_eventosdb;
-GRANT INSERT, UPDATE ON PARTICIPACAO_PROGRAMA TO app_eventosdb;
+-- DML: emprestimos, suspensoes, participacoes, programas
+GRANT INSERT, UPDATE ON EMPRESTIMO               TO app_eventosdb;
+GRANT UPDATE ON SUSPENSAO                        TO app_eventosdb;
+GRANT INSERT, UPDATE, DELETE ON PARTICIPACAO_PROGRAMA TO app_eventosdb;
 -- Transparencia: sequencia + procedure necessarias para qualquer no logado
 GRANT SELECT  ON SEQ_EMPRESTIMO              TO app_eventosdb;
 GRANT EXECUTE ON processar_devolucao         TO app_eventosdb;
@@ -177,13 +185,12 @@ GRANT SELECT ON SEQ_NIVEL                      TO app_eventosdb;
 GRANT INSERT ON PROGRAMA_MATERIAL              TO app_eventosdb;
 GRANT INSERT ON PROGRAMA_FUNCIONARIO           TO app_eventosdb;
 
--- ── Yasin (app_materiaisdb) — acrescentar ao que ja existe ────
--- Transparencia: sequencia + procedure para paridade com outros nos
+-- ── Yasin (app_materiaisdb) — sequencia + procedure (restantes grants ja na seccao acima)
 GRANT SELECT  ON SEQ_EMPRESTIMO              TO app_materiaisdb;
 GRANT EXECUTE ON processar_devolucao         TO app_materiaisdb;
+GRANT SELECT ON SEQ_NIVEL                    TO app_materiaisdb;
 -- Criar/editar programas de qualquer no (transparencia)
 GRANT INSERT, UPDATE ON PROGRAMA_ALFABETIZACAO TO app_materiaisdb;
 GRANT INSERT ON NIVEL_PROGRESSAO               TO app_materiaisdb;
-GRANT SELECT ON SEQ_NIVEL                      TO app_materiaisdb;
 GRANT INSERT ON PROGRAMA_MATERIAL              TO app_materiaisdb;
 GRANT INSERT ON PROGRAMA_FUNCIONARIO           TO app_materiaisdb;

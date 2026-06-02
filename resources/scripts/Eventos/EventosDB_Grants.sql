@@ -91,7 +91,7 @@ END;
 
 -- ── Yannis (app_emprestimosdb) ──────────────────────────────
 -- UPDATE necessario para editar a propria biblioteca (transparencia de localizacao)
-GRANT SELECT, UPDATE ON BIBLIOTECA       TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE ON BIBLIOTECA TO app_emprestimosdb;
 GRANT SELECT ON EVENTO                   TO app_emprestimosdb;
 GRANT SELECT ON PARTICIPACAO_EVENTO      TO app_emprestimosdb;
 GRANT SELECT ON HORARIO_BIBLIOTECA       TO app_emprestimosdb;
@@ -104,14 +104,18 @@ GRANT SELECT ON v_horarios_bibliotecas   TO app_emprestimosdb;
 GRANT INSERT, UPDATE, DELETE ON EVENTO   TO app_emprestimosdb;
 GRANT SELECT, INSERT ON HORARIO_EVENTO   TO app_emprestimosdb;
 GRANT INSERT ON EVENTO_RECURSO           TO app_emprestimosdb;
-GRANT UPDATE ON PARTICIPACAO_EVENTO      TO app_emprestimosdb;
+-- INSERT para procedure insere_participacao_evento; DELETE para remover participante
+GRANT INSERT, UPDATE, DELETE ON PARTICIPACAO_EVENTO TO app_emprestimosdb;
+-- INSERT para submeter avaliacao de evento de qualquer no
+GRANT INSERT, DELETE ON AVALIACAO_EVENTO TO app_emprestimosdb;
+GRANT SELECT ON SEQ_AVALIACAO            TO app_emprestimosdb;
 GRANT SELECT ON BIBLIOTECA_RESPONSAVEL   TO app_emprestimosdb;
 GRANT SELECT ON SEQ_EVENTO               TO app_emprestimosdb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_emprestimosdb;
 
 -- ── Yasin (app_materiaisdb) ─────────────────────────────────
 -- UPDATE necessario para editar a propria biblioteca (transparencia de localizacao)
-GRANT SELECT, UPDATE ON BIBLIOTECA       TO app_materiaisdb;
+GRANT SELECT, INSERT, UPDATE ON BIBLIOTECA TO app_materiaisdb;
 GRANT SELECT ON EVENTO                   TO app_materiaisdb;
 GRANT SELECT ON PARTICIPACAO_EVENTO      TO app_materiaisdb;
 GRANT SELECT ON HORARIO_BIBLIOTECA       TO app_materiaisdb;
@@ -124,15 +128,18 @@ GRANT SELECT ON vw_eventos_completos     TO app_materiaisdb;
 GRANT INSERT, UPDATE, DELETE ON EVENTO   TO app_materiaisdb;
 GRANT SELECT, INSERT ON HORARIO_EVENTO   TO app_materiaisdb;
 GRANT INSERT ON EVENTO_RECURSO           TO app_materiaisdb;
-GRANT UPDATE ON PARTICIPACAO_EVENTO      TO app_materiaisdb;
+-- INSERT para procedure insere_participacao_evento; DELETE para remover participante
+GRANT INSERT, UPDATE, DELETE ON PARTICIPACAO_EVENTO TO app_materiaisdb;
+-- INSERT para submeter avaliacao de evento de qualquer no
+GRANT INSERT, DELETE ON AVALIACAO_EVENTO TO app_materiaisdb;
+GRANT SELECT ON SEQ_AVALIACAO            TO app_materiaisdb;
 GRANT SELECT ON BIBLIOTECA_RESPONSAVEL   TO app_materiaisdb;
 GRANT SELECT ON SEQ_EVENTO               TO app_materiaisdb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_materiaisdb;
 
 -- ── Helder (app_nacionaldb) ─────────────────────────────────
 -- Supervisao e gestao cross-node
--- UPDATE necessario para editar a propria biblioteca (transparencia de localizacao)
-GRANT SELECT, UPDATE ON BIBLIOTECA       TO app_nacionaldb;
+GRANT SELECT, INSERT, UPDATE ON BIBLIOTECA TO app_nacionaldb;
 GRANT SELECT ON BIBLIOTECA_RESPONSAVEL   TO app_nacionaldb;
 GRANT SELECT ON EVENTO                   TO app_nacionaldb;
 GRANT SELECT ON PARTICIPACAO_EVENTO      TO app_nacionaldb;
@@ -148,10 +155,11 @@ GRANT SELECT ON vw_bibliotecas_operacionais   TO app_nacionaldb;
 GRANT SELECT ON vw_horarios_biblioteca_semana TO app_nacionaldb;
 GRANT SELECT ON vw_participacoes_eventos      TO app_nacionaldb;
 -- DML para prc_apagar_leitor e gestao de participacoes
-GRANT DELETE ON PARTICIPACAO_EVENTO      TO app_nacionaldb;
-GRANT DELETE ON AVALIACAO_EVENTO         TO app_nacionaldb;
+GRANT INSERT, UPDATE, DELETE ON PARTICIPACAO_EVENTO TO app_nacionaldb;
+-- INSERT para submeter avaliacao de evento; DELETE para prc_apagar_leitor
+GRANT INSERT, DELETE ON AVALIACAO_EVENTO TO app_nacionaldb;
 GRANT INSERT ON AUDITORIA_EVENTOS        TO app_nacionaldb;
--- NacionalDB usa seq_avaliacao directamente para INSERT em AVALIACAO_EVENTO
+-- SEQ_AVALIACAO: usada inline em INSERT INTO AVALIACAO_EVENTO
 GRANT SELECT ON SEQ_AVALIACAO            TO app_nacionaldb;
 -- Procedimento de participacao chamado via dblink
 GRANT EXECUTE ON INSERE_PARTICIPACAO_EVENTO TO app_nacionaldb;
@@ -159,6 +167,5 @@ GRANT EXECUTE ON INSERE_PARTICIPACAO_EVENTO TO app_nacionaldb;
 GRANT INSERT, UPDATE, DELETE ON EVENTO   TO app_nacionaldb;
 GRANT INSERT ON HORARIO_EVENTO           TO app_nacionaldb;
 GRANT INSERT ON EVENTO_RECURSO           TO app_nacionaldb;
-GRANT UPDATE ON PARTICIPACAO_EVENTO      TO app_nacionaldb;
 GRANT SELECT ON SEQ_EVENTO               TO app_nacionaldb;
 GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_nacionaldb;

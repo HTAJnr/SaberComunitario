@@ -88,26 +88,25 @@ GRANT SELECT                         ON SEQ_CERTIFICADO   TO app_emprestimosdb;
 GRANT SELECT                         ON PERMISSAO_CARGO   TO app_emprestimosdb;
 GRANT SELECT                         ON SEQ_PERMISSAO     TO app_emprestimosdb;
 
--- RN01: trigger verifica status_leitor antes de criar emprestimo
-GRANT SELECT ON LEITOR                          TO app_emprestimosdb;
+-- Leitores — DML cross-node (criar/editar de qualquer no)
+GRANT SELECT, INSERT ON LEITOR                  TO app_emprestimosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_emprestimosdb;
 GRANT SELECT ON vw_leitores_completos           TO app_emprestimosdb;
-
--- RN03: trigger de devolucao actualiza status_leitor
+-- RN03: trigger de devolucao actualiza status_leitor (UPDATE ja existia)
 GRANT UPDATE ON LEITOR                          TO app_emprestimosdb;
+-- Subtipos de leitor — DML para criar/editar de qualquer no
+GRANT SELECT, INSERT, UPDATE ON ADULTO          TO app_emprestimosdb;
+GRANT SELECT, INSERT, DELETE ON ADULTO_INTERESSE TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE ON PROFESSOR       TO app_emprestimosdb;
+GRANT SELECT, INSERT, DELETE ON PROFESSOR_DISCIPLINA TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE ON CRIANCA         TO app_emprestimosdb;
 
--- RN01/RN04.1: verificar tipo de leitor
-GRANT SELECT ON ADULTO                          TO app_emprestimosdb;
-GRANT SELECT ON ADULTO_INTERESSE                TO app_emprestimosdb;
-GRANT SELECT ON PROFESSOR                       TO app_emprestimosdb;
-GRANT SELECT ON PROFESSOR_DISCIPLINA            TO app_emprestimosdb;
-GRANT SELECT ON CRIANCA                         TO app_emprestimosdb;
-
--- Verificacao de nivel de acesso cross-node
+-- Funcionarios — DML cross-node (criar/editar/desactivar de qualquer no)
+-- DELETE de funcionario e soft-delete (UPDATE DATA_DEMISSAO) — coberto pelo UPDATE
 GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_emprestimosdb;
-GRANT SELECT ON FUNCIONARIO                     TO app_emprestimosdb;
-GRANT SELECT ON FUNCIONARIO_HABILIDADE          TO app_emprestimosdb;
-GRANT SELECT ON HORARIO_FUNCIONARIO             TO app_emprestimosdb;
+GRANT SELECT, INSERT, UPDATE ON FUNCIONARIO     TO app_emprestimosdb;
+GRANT SELECT, INSERT, DELETE ON FUNCIONARIO_HABILIDADE TO app_emprestimosdb;
+GRANT SELECT, INSERT, DELETE ON HORARIO_FUNCIONARIO    TO app_emprestimosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_emprestimosdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_emprestimosdb;
 
@@ -134,22 +133,23 @@ GRANT SELECT                         ON SEQ_CERTIFICADO   TO app_materiaisdb;
 GRANT SELECT                         ON PERMISSAO_CARGO   TO app_materiaisdb;
 GRANT SELECT                         ON SEQ_PERMISSAO     TO app_materiaisdb;
 
--- RN09: e-books exigem leitor adulto
-GRANT SELECT ON LEITOR                          TO app_materiaisdb;
-GRANT SELECT ON ADULTO                          TO app_materiaisdb;
-GRANT SELECT ON ADULTO_INTERESSE                TO app_materiaisdb;
-GRANT SELECT ON PROFESSOR                       TO app_materiaisdb;
-GRANT SELECT ON PROFESSOR_DISCIPLINA            TO app_materiaisdb;
-GRANT SELECT ON CRIANCA                         TO app_materiaisdb;
+-- Leitores — DML cross-node (criar/editar de qualquer no)
+GRANT SELECT, INSERT, UPDATE ON LEITOR          TO app_materiaisdb;
 GRANT SELECT ON vw_leitor_publico               TO app_materiaisdb;
 GRANT SELECT ON vw_leitores_completos           TO app_materiaisdb;
+-- Subtipos de leitor — DML para criar/editar de qualquer no
+GRANT SELECT, INSERT, UPDATE ON ADULTO          TO app_materiaisdb;
+GRANT SELECT, INSERT, DELETE ON ADULTO_INTERESSE TO app_materiaisdb;
+GRANT SELECT, INSERT, UPDATE ON PROFESSOR       TO app_materiaisdb;
+GRANT SELECT, INSERT, DELETE ON PROFESSOR_DISCIPLINA TO app_materiaisdb;
+GRANT SELECT, INSERT, UPDATE ON CRIANCA         TO app_materiaisdb;
 
--- Replicacao de funcionarios
-GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;
-GRANT SELECT ON FUNCIONARIO                     TO app_materiaisdb;
-GRANT SELECT ON FUNCIONARIO_HABILIDADE          TO app_materiaisdb;
-GRANT SELECT ON HORARIO_FUNCIONARIO             TO app_materiaisdb;
+-- Funcionarios — DML cross-node (criar/editar/desactivar de qualquer no)
 GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_materiaisdb;
+GRANT SELECT, INSERT, UPDATE ON FUNCIONARIO     TO app_materiaisdb;
+GRANT SELECT, INSERT, DELETE ON FUNCIONARIO_HABILIDADE TO app_materiaisdb;
+GRANT SELECT, INSERT, DELETE ON HORARIO_FUNCIONARIO    TO app_materiaisdb;
+GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;
 
 -- Dashboard e snapshots
 GRANT SELECT ON vw_metricas_sistema             TO app_materiaisdb;
@@ -174,21 +174,22 @@ GRANT SELECT                         ON SEQ_CERTIFICADO   TO app_eventosdb;
 GRANT SELECT                         ON PERMISSAO_CARGO   TO app_eventosdb;
 GRANT SELECT                         ON SEQ_PERMISSAO     TO app_eventosdb;
 
--- Verificacao de leitores antes de inscrever em eventos
-GRANT SELECT ON LEITOR                          TO app_eventosdb;
+-- Leitores — DML cross-node (criar/editar de qualquer no)
+GRANT SELECT, INSERT, UPDATE ON LEITOR          TO app_eventosdb;
 GRANT SELECT ON vw_leitor_publico               TO app_eventosdb;
 GRANT SELECT ON vw_leitores_completos           TO app_eventosdb;
-GRANT SELECT ON ADULTO                          TO app_eventosdb;
-GRANT SELECT ON ADULTO_INTERESSE                TO app_eventosdb;
-GRANT SELECT ON CRIANCA                         TO app_eventosdb;
-GRANT SELECT ON PROFESSOR                       TO app_eventosdb;
-GRANT SELECT ON PROFESSOR_DISCIPLINA            TO app_eventosdb;
+-- Subtipos de leitor — DML para criar/editar de qualquer no
+GRANT SELECT, INSERT, UPDATE ON ADULTO          TO app_eventosdb;
+GRANT SELECT, INSERT, DELETE ON ADULTO_INTERESSE TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE ON PROFESSOR       TO app_eventosdb;
+GRANT SELECT, INSERT, DELETE ON PROFESSOR_DISCIPLINA TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE ON CRIANCA         TO app_eventosdb;
 
--- Verificacao de funcionarios (responsavel de evento/biblioteca)
-GRANT SELECT ON FUNCIONARIO                     TO app_eventosdb;
-GRANT SELECT ON FUNCIONARIO_HABILIDADE          TO app_eventosdb;
-GRANT SELECT ON HORARIO_FUNCIONARIO             TO app_eventosdb;
+-- Funcionarios — DML cross-node (criar/editar/desactivar de qualquer no)
 GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_eventosdb;
+GRANT SELECT, INSERT, UPDATE ON FUNCIONARIO     TO app_eventosdb;
+GRANT SELECT, INSERT, DELETE ON FUNCIONARIO_HABILIDADE TO app_eventosdb;
+GRANT SELECT, INSERT, DELETE ON HORARIO_FUNCIONARIO    TO app_eventosdb;
 GRANT SELECT ON vw_func_activos_operacional     TO app_eventosdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_eventosdb;
 
