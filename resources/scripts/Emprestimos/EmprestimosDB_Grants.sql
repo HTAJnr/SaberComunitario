@@ -79,6 +79,8 @@ EXCEPTION WHEN OTHERS THEN
   DBMS_OUTPUT.PUT_LINE('AVISO: snapshots ainda nao criados — re-correr apos EmprestimosDB_Snapshots.sql. ORA: ' || SQLERRM);
 END;
 /
+-- View de relatório de programas — necessária para acesso local ao nó
+GRANT SELECT ON vw_relatorio_programas TO app_emprestimosdb;
 
 
 -- ============================================================
