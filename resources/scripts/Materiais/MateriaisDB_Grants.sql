@@ -39,10 +39,12 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON EBOOK                   TO app_materiais
 GRANT SELECT, INSERT, UPDATE, DELETE ON PERIODICO               TO app_materiaisdb;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TRANSFERENCIA           TO app_materiaisdb;
 GRANT SELECT, INSERT, UPDATE, DELETE ON AUDITORIA_MATERIAIS     TO app_materiaisdb;
-GRANT SELECT  ON VW_MAT_DISPONIVEL        TO app_materiaisdb;
-GRANT SELECT  ON VW_MAT_GLOBAL            TO app_materiaisdb;
-GRANT SELECT  ON VW_MAT_CATALOGO_PUBLICO  TO app_materiaisdb;
-GRANT SELECT  ON VW_AUDITORIA             TO app_materiaisdb;
+GRANT SELECT  ON VW_MAT_DISPONIVEL           TO app_materiaisdb;
+GRANT SELECT  ON VW_MAT_GLOBAL               TO app_materiaisdb;
+GRANT SELECT  ON VW_MAT_CATALOGO_PUBLICO     TO app_materiaisdb;
+GRANT SELECT  ON VW_AUDITORIA                TO app_materiaisdb;
+GRANT SELECT  ON VW_MATERIAIS_COMPLETOS      TO app_materiaisdb;
+GRANT SELECT  ON VW_TRANSFERENCIAS_DETALHADAS TO app_materiaisdb;
 GRANT EXECUTE ON atualizar_estado_material TO app_materiaisdb;
 GRANT EXECUTE ON registar_auditoria_mat    TO app_materiaisdb;
 GRANT SELECT  ON SEQ_AUDITORIA_MAT         TO app_materiaisdb;
