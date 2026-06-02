@@ -184,10 +184,22 @@ VALUES ('MAT20260004', 'Ano 1, No 1', 'Trimestral', TO_DATE('2026-03-31','YYYY-M
 
 -- ============================================================
 -- 6. TRANSFERENCIA
--- Trigger desactivado temporariamente
+-- trg_transferencia_insert desactivado: bypass da verificacao de
+--   emprestimo activo (dblink EmprestimosDB pode nao ter dados ainda).
+-- protege_ultimo_exemplar_insert desactivado: seed usa exemplares
+--   unicos por biblioteca; a restricao aplica-se apenas em runtime.
+-- trg_valida_transferencia permanece activo: valida material em
+--   cod_biblioteca_origem e funcionarios via repl_funcionarios.
+-- NOTA: fluxo de estados (Pendente->Aprovada->Concluida) nao e
+--   percorrido no seed — inserts directos com estado final.
+--   O trigger trg_transferencia_fluxo so dispara em UPDATE, por isso
+--   materials de transferencias Concluidas NAO sao movidos pelo
+--   trigger; a sua cod_biblioteca permanece na origem neste seed.
 -- ============================================================
 ALTER TRIGGER trg_transferencia_insert DISABLE;
+ALTER TRIGGER protege_ultimo_exemplar_insert DISABLE;
 
+-- T1 - Pendente: BIBMPC0001 -> BIBGZA0001 (Sul->Sul, Abr 2025)
 INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
     cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
     cod_funcionario_solicitante, motivo)
@@ -195,6 +207,7 @@ VALUES (1, TO_DATE('2025-04-25','YYYY-MM-DD'), 'Pendente',
     'MAT20190004', 'BIBMPC0001', 'BIBGZA0001',
     'FUC20250002', 'Solicitacao de BCX - alta procura de Mia Couto na regiao de Gaza');
 
+-- T2 - Aprovada: BIBNMP0001 -> BIBQLM0001 (Norte->Centro, Out 2025)
 INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
     cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
     cod_funcionario_solicitante, motivo)
@@ -202,7 +215,7 @@ VALUES (2, TO_DATE('2025-10-12','YYYY-MM-DD'), 'Aprovada',
     'MAT20250013', 'BIBNMP0001', 'BIBQLM0001',
     'FUC20250014', 'Pedido de BIBQLM0001 - interesse em literatura Macua para feira do livro 2026');
 
--- Transferencia 3 - Pendente: BIBGZA0001 -> BIBNMP0001
+-- T3 - Pendente: BIBGZA0001 -> BIBNMP0001 (Sul->Norte, Mai 2026)
 INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
     cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
     cod_funcionario_solicitante, motivo)
@@ -210,15 +223,77 @@ VALUES (3, TO_DATE('2026-05-10','YYYY-MM-DD'), 'Pendente',
     'MAT20200002', 'BIBGZA0001', 'BIBNMP0001',
     'FUC20250005', 'Reequilibrio de acervo: excesso de literatura agricola em Gaza, defice em Nampula');
 
--- Transferencia 4 - Concluida: BIBQLM0001 -> BIBMPC0001
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
-    cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+-- T4 - Concluida: BIBQLM0001 -> BIBMPC0001 (Centro->Sul, Abr/Mai 2026)
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, data_aprovacao_destino, data_conclusao,
+    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+    cod_funcionario_solicitante, cod_funcionario_aprovador, motivo)
+VALUES (4, TO_DATE('2026-04-15','YYYY-MM-DD'), TO_DATE('2026-04-22','YYYY-MM-DD'), TO_DATE('2026-05-02','YYYY-MM-DD'),
+    'Concluida', 'MAT20260001', 'BIBQLM0001', 'BIBMPC0001',
+    'FUC20250011', 'FUC20250002',
+    'Material de agricultura sustentavel requisitado por BIBMPC0001 para programa de adultos');
+
+-- T5 - Concluida: BIBSOF0001 -> BIBNMP0001 (Centro->Norte, Jul/Ago 2025)
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, data_aprovacao_destino, data_conclusao,
+    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+    cod_funcionario_solicitante, cod_funcionario_aprovador, motivo)
+VALUES (5, TO_DATE('2025-07-10','YYYY-MM-DD'), TO_DATE('2025-07-25','YYYY-MM-DD'), TO_DATE('2025-08-05','YYYY-MM-DD'),
+    'Concluida', 'MAT20220001', 'BIBSOF0001', 'BIBNMP0001',
+    'FUC20250008', 'FUC20250014',
+    'Pedido de Nampula para apoio a programa de educacao geografica e ambiental');
+
+-- T6 - Concluida: BIBGZA0001 -> BIBMPC0001 (Sul->Sul, Set/Out 2025)
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, data_aprovacao_destino, data_conclusao,
+    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+    cod_funcionario_solicitante, cod_funcionario_aprovador, motivo)
+VALUES (6, TO_DATE('2025-09-03','YYYY-MM-DD'), TO_DATE('2025-09-15','YYYY-MM-DD'), TO_DATE('2025-10-08','YYYY-MM-DD'),
+    'Concluida', 'MAT20240007', 'BIBGZA0001', 'BIBMPC0001',
+    'FUC20250005', 'FUC20250002',
+    'Material cientifico da UEM mais relevante para publico academico e de saude de Maputo');
+
+-- T7 - Rejeitada: BIBNMP0001 -> BIBQLM0001 (Norte->Centro, Mar 2026)
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao,
+    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
     cod_funcionario_solicitante, motivo)
-VALUES (4, TO_DATE('2026-04-15','YYYY-MM-DD'), 'Concluida',
-    'MAT20260001', 'BIBQLM0001', 'BIBMPC0001',
-    'FUC20250011', 'Material de agricultura sustentavel requisitado por BIBMPC0001 para programa de adultos');
+VALUES (7, TO_DATE('2026-03-15','YYYY-MM-DD'),
+    'Rejeitada', 'MAT20260004', 'BIBNMP0001', 'BIBQLM0001',
+    'FUC20250014',
+    'Pedido recusado: BIBQLM0001 sem capacidade para novos periodicos ate Q4 2026');
+
+-- T8 - Pendente: BIBMPC0001 -> BIBNMP0001 (Sul->Norte, Mai 2026)
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao,
+    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+    cod_funcionario_solicitante, motivo)
+VALUES (8, TO_DATE('2026-05-05','YYYY-MM-DD'),
+    'Pendente', 'MAT20240002', 'BIBMPC0001', 'BIBNMP0001',
+    'FUC20250002',
+    'Reforco de materiais de saude para programa comunitario em Nampula');
+
+-- T9 - Pendente: BIBSOF0001 -> BIBGZA0001 (Centro->Sul, Mai 2026)
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao,
+    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+    cod_funcionario_solicitante, motivo)
+VALUES (9, TO_DATE('2026-05-20','YYYY-MM-DD'),
+    'Pendente', 'MAT20210002', 'BIBSOF0001', 'BIBGZA0001',
+    'FUC20250008',
+    'BIBGZA0001 solicita reforco de contos infantis para programa de leitura de Junho 2026');
+
+-- T10 - Pendente: BIBNMP0001 -> BIBQLM0001 (Norte->Centro, Mai 2026)
+INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao,
+    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
+    cod_funcionario_solicitante, motivo)
+VALUES (10, TO_DATE('2026-05-28','YYYY-MM-DD'),
+    'Pendente', 'MAT20260003', 'BIBNMP0001', 'BIBQLM0001',
+    'FUC20250014',
+    'BIBQLM0001 organiza encontro sobre desenvolvimento rural na Zambezia em Julho 2026');
 
 ALTER TRIGGER trg_transferencia_insert ENABLE;
+ALTER TRIGGER protege_ultimo_exemplar_insert ENABLE;
+
+-- Avancar SEQ_TRANSFERENCIA para alem dos IDs inseridos explicitamente
+-- (previne conflito de PK quando a aplicacao criar a proxima transferencia)
+ALTER SEQUENCE SEQ_TRANSFERENCIA INCREMENT BY 10;
+SELECT SEQ_TRANSFERENCIA.NEXTVAL FROM DUAL;
+ALTER SEQUENCE SEQ_TRANSFERENCIA INCREMENT BY 1;
 
 COMMIT;
 

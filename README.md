@@ -255,6 +255,19 @@ Este utilizador é simulado em memória e não efectua qualquer query à base de
 
 ---
 
+## Cenários de teste
+
+O ficheiro [`resources/docs/TESTES_SISTEMA.md`](resources/docs/TESTES_SISTEMA.md) contém o plano completo de testes do sistema, organizado por nó Oracle (pode ser executado em paralelo por cada elemento do grupo).
+
+Inclui:
+- Tabela de utilizadores e credenciais de seed para cada nível de acesso e região
+- Testes de sucesso e falha para todos os módulos (leitores, empréstimos, materiais, transferências, eventos, doações, programas, permissões)
+- Testes de negócio críticos — triggers, suspensões automáticas, certificados, protecção de último exemplar
+- Secção de verificação cross-node (propagação de dados entre os 4 nós via snapshots e dblinks)
+- Checklist final e tabela das 12 regras de negócio cobertas
+
+---
+
 ## Dependências do backend
 
 | Pacote | Versão | Função |

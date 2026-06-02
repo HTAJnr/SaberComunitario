@@ -4,6 +4,7 @@
 
 let _wizardStep = 1, _wizardDados = {}, _wizardInteresses = [], _wizardDisciplinas = [];
 let _drawerNumCartao = null, _drawerLeitor = null, _drawerTabActual = 'perfil';
+let _bibsCarregadas = false;
 
 function _calcularIdade(dataStr) {
   if (!dataStr) return null;
@@ -27,7 +28,8 @@ async function carregarLeitores() {
 
   if (isAdmin && selBib) {
     selBib.style.display = '';
-    if (selBib.options.length === 1) {
+    if (!_bibsCarregadas) {
+      _bibsCarregadas = true;
       try {
         const bibs = await get('/api/funcionarios/bibliotecas');
         bibs.forEach(b => {
@@ -35,7 +37,7 @@ async function carregarLeitores() {
           o.value = b.COD_BIBLIOTECA; o.textContent = b.NOME;
           selBib.appendChild(o);
         });
-      } catch (_) {}
+      } catch (_) { _bibsCarregadas = false; }
     }
   }
 

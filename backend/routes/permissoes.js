@@ -10,7 +10,7 @@ const { registar } = require('../middleware/auditoria');
 const NIVEIS_VALIDOS = ['Administrador','Coordenador','Bibliotecario','Assistente'];
 
 // ── GET /cargos — lista cargos com contagem de funcionários ──
-router.get('/cargos', autenticar, async (req, res) => {
+router.get('/cargos', exigirNivel('Administrador'), async (req, res) => {
   let conn;
   try {
     conn = await getConnection();
@@ -186,7 +186,7 @@ router.delete('/cargos/:id', exigirNivel('Administrador'), async (req, res) => {
 });
 
 // ── GET /cargos/:id/matriz — ler matriz de permissões do cargo ──
-router.get('/cargos/:id/matriz', autenticar, async (req, res) => {
+router.get('/cargos/:id/matriz', exigirNivel('Administrador'), async (req, res) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return res.status(400).json({ erro: 'id inválido.' });
   let conn;
