@@ -22,6 +22,16 @@ async function safeCount(conn, sql, params) {
   }
 }
 
+// Tenta a query live (dados sempre frescos); se o nó fonte estiver offline, cai no snapshot.
+async function safeCountLive(conn, liveSql, snapSql, params) {
+  try {
+    const r = await conn.execute(liveSql, params || [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+    return r.rows[0]?.TOTAL ?? 0;
+  } catch {
+    return safeCount(conn, snapSql, params);
+  }
+}
+
 // ── Endpoints legados (mantidos para compatibilidade) ─────────────────────────
 
 router.get('/metricas', autenticar, async (req, res) => {
@@ -160,8 +170,9 @@ router.get('/rede', exigirNivel('Administrador'), async (req, res) => {
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
-    // Usa snap_emp_activos (local) em vez de link live ao EmprestimosDB
-    const empVencidos = await safeCount(conn,
+    const empVencidos = await safeCountLive(conn,
+      `SELECT COUNT(*) AS TOTAL FROM EMPRESTIMO
+       WHERE DATA_DEVOLUCAO IS NULL AND TRUNC(SYSDATE) > TRUNC(PRAZO_DEVOLUCAO)`,
       `SELECT COUNT(*) AS TOTAL FROM snap_emp_activos
        WHERE TRUNC(SYSDATE) > TRUNC(PRAZO_DEVOLUCAO)`, []);
 
@@ -171,8 +182,9 @@ router.get('/rede', exigirNivel('Administrador'), async (req, res) => {
        WHERE ESTADO_MATERIAL_RETORNO = 'Perdido'
          AND TRUNC(DATA_DEVOLUCAO, 'MM') = TRUNC(SYSDATE, 'MM')`, []);
 
-    // Usa snap_transferencias (local) em vez de link live ao MateriaisDB
-    const transfPendentes = await safeCount(conn,
+    const transfPendentes = await safeCountLive(conn,
+      `SELECT COUNT(*) AS TOTAL FROM TRANSFERENCIA
+       WHERE ESTADO_TRANSFERENCIA = 'Pendente'`,
       `SELECT COUNT(*) AS TOTAL FROM snap_transferencias
        WHERE ESTADO_TRANSFERENCIA = 'Pendente'`, []);
 
@@ -212,25 +224,33 @@ router.get('/biblioteca', autenticar, async (req, res) => {
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
-    // Empréstimos vencidos — snapshot local (resiliente a EmprestimosDB offline)
-    const vencResult = await conn.execute(
+    // Empréstimos vencidos — live com fallback ao snapshot se EmprestimosDB offline
+    const empVencidos = await safeCountLive(conn,
+      `SELECT COUNT(*) AS TOTAL
+       FROM EMPRESTIMO E, snap_material_basico M
+       WHERE E.COD_MATERIAL = M.COD_MATERIAL
+         AND M.COD_BIBLIOTECA = :bib
+         AND E.DATA_DEVOLUCAO IS NULL
+         AND TRUNC(SYSDATE) > TRUNC(E.PRAZO_DEVOLUCAO)`,
       `SELECT COUNT(*) AS TOTAL
        FROM snap_emp_activos E, snap_material_basico M
        WHERE E.COD_MATERIAL = M.COD_MATERIAL
          AND M.COD_BIBLIOTECA = :bib
          AND TRUNC(SYSDATE) > TRUNC(E.PRAZO_DEVOLUCAO)`,
-      { bib: codBib },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      { bib: codBib }
     );
 
-    // Transferências pendentes — snapshot local (resiliente a MateriaisDB offline)
-    const transfResult = await conn.execute(
+    // Transferências pendentes — live com fallback ao snapshot se MateriaisDB offline
+    const transfPendentes = await safeCountLive(conn,
+      `SELECT COUNT(*) AS TOTAL
+       FROM TRANSFERENCIA
+       WHERE ESTADO_TRANSFERENCIA = 'Pendente'
+         AND (COD_BIBLIOTECA_ORIGEM = :bib OR COD_BIBLIOTECA_DESTINO = :bib2)`,
       `SELECT COUNT(*) AS TOTAL
        FROM snap_transferencias
        WHERE ESTADO_TRANSFERENCIA = 'Pendente'
          AND (COD_BIBLIOTECA_ORIGEM = :bib OR COD_BIBLIOTECA_DESTINO = :bib2)`,
-      { bib: codBib, bib2: codBib },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      { bib: codBib, bib2: codBib }
     );
 
     // Eventos do mês — snapshot local (resiliente a EventosDB offline)
@@ -298,14 +318,14 @@ router.get('/biblioteca', autenticar, async (req, res) => {
     const m = metResult.rows[0] || {};
     res.json({
       emprestimos_ativos:       m.EMPRESTIMOS_ATIVOS       || 0,
-      emprestimos_vencidos:     vencResult.rows[0]?.TOTAL  || 0,
+      emprestimos_vencidos:     empVencidos,
       devolucoes_hoje:          m.DEVOLUCOES_HOJE           || 0,
       materiais_disponiveis:    m.MATERIAIS_DISPONIVEIS     || 0,
       materiais_emprestados:    m.EMPRESTIMOS_ATIVOS        || 0,
       multas_por_cobrar:        m.MULTAS_PENDENTES          || 0,
       eventos_este_mes:         eventosResult.rows[0]?.TOTAL  || 0,
       doacoes_este_mes:         doacoesResult.rows[0]?.TOTAL  || 0,
-      transferencias_pendentes: transfResult.rows[0]?.TOTAL   || 0,
+      transferencias_pendentes: transfPendentes,
       emprestimos_semana,
       top_materiais: topResult.rows.map(r => ({
         titulo:            r.TITULO,

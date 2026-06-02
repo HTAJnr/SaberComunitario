@@ -63,17 +63,12 @@ async function carregarBibliotecas() {
       toast('Erro a carregar bibliotecas: ' + err.message, 'erro');
     }
   } else {
-    const cod = utilizadorActual?.COD_BIBLIOTECA;
-    if (!cod) {
-      const card = document.getElementById('bib-card-conteudo');
-      if (card) card.innerHTML = emptyState('🏛️', 'Sem biblioteca associada', 'A sua conta não está ligada a nenhuma biblioteca.');
-      return;
-    }
     try {
-      const d = await get(`/api/bibliotecas/${cod}`);
+      const d = await get('/api/bibliotecas/minha');
       _renderizarCardBiblioteca(d);
     } catch (err) {
-      toast('Erro a carregar dados da biblioteca: ' + err.message, 'erro');
+      const card = document.getElementById('bib-card-conteudo');
+      if (card) card.innerHTML = emptyState('🏛️', 'Sem biblioteca associada', err.message);
     }
   }
 }

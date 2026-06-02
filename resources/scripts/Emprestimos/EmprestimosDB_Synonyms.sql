@@ -56,6 +56,20 @@ CREATE OR REPLACE PUBLIC SYNONYM categoria
     FOR categoria@materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM transferencia
     FOR transferencia@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_transferencias_detalhadas
+    FOR usr_materiaisdb.vw_transferencias_detalhadas@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_mat_disponivel
+    FOR usr_materiaisdb.vw_mat_disponivel@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_mat_catalogo_publico
+    FOR usr_materiaisdb.vw_mat_catalogo_publico@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_materiais_completos
+    FOR usr_materiaisdb.vw_materiais_completos@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM seq_transferencia
+    FOR usr_materiaisdb.seq_transferencia@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM seq_material
+    FOR usr_materiaisdb.seq_material@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM seq_categoria
+    FOR usr_materiaisdb.seq_categoria@materiaisdb;
 
 -- SINONIMOS PUBLICOS � Objectos locais (usr_emprestimosdb)
 -- Vistas e objectos acedidos via dblink por outros nos (substituem os auto-referenciais)
