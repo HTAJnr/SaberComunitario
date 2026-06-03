@@ -18,8 +18,18 @@
     </div>
   </div>
 
+  <!-- Tabs da secção -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button id="tab-prog-lista" class="tab-btn tab-active" onclick="_switchTabProg('lista')">
+      <i class="fa-solid fa-list" style="margin-right:4px"></i>Lista
+    </button>
+    <button id="tab-prog-relatorio" class="tab-btn" onclick="_switchTabProg('relatorio')" style="display:none">
+      <i class="fa-solid fa-chart-bar" style="margin-right:4px"></i>Relatório Nacional
+    </button>
+  </div>
+
   <!-- Tabela 08-A -->
-  <div class="panel">
+  <div id="prog-painel-lista" class="panel">
     <table class="tbl">
       <thead>
         <tr>
@@ -34,6 +44,11 @@
       </thead>
       <tbody id="tabela-programas"></tbody>
     </table>
+  </div>
+
+  <!-- Painel Relatório Nacional -->
+  <div id="prog-painel-relatorio" class="panel" style="display:none">
+    <div id="prog-relatorio-conteudo"></div>
   </div>
 
   <!-- Context menu -->

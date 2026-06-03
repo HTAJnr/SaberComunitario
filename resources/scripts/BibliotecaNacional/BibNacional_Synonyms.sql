@@ -122,11 +122,14 @@ CREATE OR REPLACE PUBLIC SYNONYM programa_funcionario       FOR programa_funcion
 CREATE OR REPLACE PUBLIC SYNONYM participacao_programa      FOR participacao_programa@emprestimosdb;
 CREATE OR REPLACE PUBLIC SYNONYM seq_nivel                  FOR seq_nivel@emprestimosdb;
 CREATE OR REPLACE PUBLIC SYNONYM vw_emprestimos_ativos      FOR vw_emprestimos_ativos@emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_emprestimos_activos     FOR usr_emprestimosdb.vw_emprestimos_activos@emprestimosdb;
+CREATE OR REPLACE PUBLIC SYNONYM vw_suspensoes_activas      FOR usr_emprestimosdb.vw_suspensoes_activas@emprestimosdb;
 CREATE OR REPLACE PUBLIC SYNONYM vw_historico_emprestimos   FOR vw_historico_emprestimos@emprestimosdb;
 CREATE OR REPLACE PUBLIC SYNONYM processar_devolucao        FOR processar_devolucao@emprestimosdb;
 CREATE OR REPLACE PUBLIC SYNONYM repl_funcionarios          FOR repl_funcionarios@emprestimosdb;
 
 -- ── MateriaisDB (Yasin) ─────────────────────────────────────
+CREATE OR REPLACE PUBLIC SYNONYM vw_mat_disponivel            FOR usr_materiaisdb.vw_mat_disponivel@materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM material_bibliografico       FOR material_bibliografico@materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM categoria                    FOR categoria@materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM livro_fisico                 FOR livro_fisico@materiaisdb;

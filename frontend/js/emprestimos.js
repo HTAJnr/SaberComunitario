@@ -692,6 +692,7 @@ async function confirmarDevolucao() {
     if (res.suspensao)        msg += ` Suspensão de ${res.suspensao.dias} dias aplicada.`;
     toast(msg);
     carregarEmprestimos(tabEmprestimosActual);
+    if (typeof _carregarNotificacoes === 'function') _carregarNotificacoes();
     if (_drawerEmpId === empId) abrirDrawerEmp(empId);
   } catch (err) {
     mostrarErroEmp(err.message);

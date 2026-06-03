@@ -98,7 +98,7 @@ Na VM do MateriaisDB, correr como `usr_materiaisdb` (não como sysdba):
 sqlplus usr_materiaisdb/"YM20240260" @/root/TP/MateriaisDB_Snapshots.sql
 ```
 
-Substitui os placeholders pelas MVs reais e recria os sinónimos públicos cross-node.
+Substitui os placeholders pelas MVs reais, recria os sinónimos públicos cross-node e povoa automaticamente as TRANSFERENCIAS (triggers desactivados durante o seed para evitar dependência do EmprestimosDB).
 
 O script `*_Main.sql` de cada nó instala tudo pela ordem correcta: tablespaces → utilizadores → roles → database links → placeholders → sinónimos → tabelas → sequências → vistas → funções → procedures → triggers → índices → grants → dados iniciais → auditoria.
 

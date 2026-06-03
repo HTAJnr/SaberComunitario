@@ -15,6 +15,7 @@ let _partCod       = null;
 let _partCartao    = null;
 let _progMatLista  = []; // [{COD_MATERIAL, TITULO}]
 let _progFuncLista = []; // [{COD_FUNCIONARIO, NOME_FUNCIONARIO}]
+let _progTabActual = 'lista';
 
 // ── Helpers de apresentação ────────────────────
 
@@ -52,7 +53,67 @@ function _badgeEstadoPart(estado) {
 
 // ── 08-A Lista ─────────────────────────────────
 
+function _switchTabProg(tab) {
+  _progTabActual = tab;
+  ['lista', 'relatorio'].forEach(t => {
+    document.getElementById(`tab-prog-${t}`)?.classList.toggle('tab-active', t === tab);
+  });
+  document.getElementById('prog-painel-lista').style.display     = tab === 'lista'     ? '' : 'none';
+  document.getElementById('prog-painel-relatorio').style.display = tab === 'relatorio' ? '' : 'none';
+  document.getElementById('btn-novo-prog-wrap').style.display    = tab === 'lista'     ? '' : 'none';
+  if (tab === 'relatorio') _carregarRelatorioNacional();
+}
+
+async function _carregarRelatorioNacional() {
+  const conteudo = document.getElementById('prog-relatorio-conteudo');
+  conteudo.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:24px">A carregar…</p>';
+  try {
+    const rows = await get('/api/programas/relatorio-nacional');
+    if (!Array.isArray(rows) || !rows.length) {
+      conteudo.innerHTML = emptyState('fa-chart-bar', 'Nenhum dado disponível', 'Esta vista requer ligação ao NacionalDB');
+      return;
+    }
+    conteudo.innerHTML = `
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Biblioteca</th>
+            <th>Programa</th>
+            <th>Público-alvo</th>
+            <th style="text-align:center">Dur.</th>
+            <th>Estado</th>
+            <th style="text-align:center">Total</th>
+            <th style="text-align:center">Activos</th>
+            <th style="text-align:center">Concluídos</th>
+            <th style="text-align:center">Desistiram</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `<tr>
+            <td style="font-size:11px;font-family:monospace;color:var(--text-muted)">${r.COD_BIBLIOTECA || '—'}</td>
+            <td style="font-weight:500">${r.NOME_PROGRAMA || '—'}</td>
+            <td>${_badgePublico(r.PUBLICO_ALVO)}</td>
+            <td style="text-align:center;color:var(--text-muted)">${r.DURACAO_SEMANAS ? r.DURACAO_SEMANAS + ' sem.' : '—'}</td>
+            <td>${_badgeEstadoProg(r.ESTADO_PROGRAMA)}</td>
+            <td style="text-align:center">${r.TOTAL_PARTICIPANTES ?? 0}</td>
+            <td style="text-align:center">${r.PARTICIPANTES_ACTIVOS ?? 0}</td>
+            <td style="text-align:center">${r.PARTICIPANTES_CONCLUIDOS ?? 0}</td>
+            <td style="text-align:center">${r.PARTICIPANTES_DESISTIRAM ?? 0}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    conteudo.innerHTML = `<p style="text-align:center;color:#f85149;font-size:12px;padding:24px">Erro: ${err.message}</p>`;
+  }
+}
+
 async function carregarProgramas() {
+  const nivel = utilizadorActual?.NIVEL_ACESSO || '';
+  const podeGerir = ['Administrador', 'Coordenador'].includes(nivel);
+  const tabRelatorio = document.getElementById('tab-prog-relatorio');
+  if (tabRelatorio) tabRelatorio.style.display = nivel === 'Administrador' ? '' : 'none';
+
   try {
     const rows = await get('/api/programas');
     _progRows = Array.isArray(rows) ? rows : [];
@@ -61,8 +122,6 @@ async function carregarProgramas() {
     toast('Erro a carregar programas: ' + err.message, 'erro');
   }
 
-  const nivel = utilizadorActual?.NIVEL_ACESSO || '';
-  const podeGerir = ['Administrador', 'Coordenador'].includes(nivel);
   const wrap = document.getElementById('btn-novo-prog-wrap');
   if (wrap) wrap.style.display = podeGerir ? '' : 'none';
 }

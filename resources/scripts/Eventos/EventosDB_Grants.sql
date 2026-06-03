@@ -92,11 +92,14 @@ END;
 -- ── Yannis (app_emprestimosdb) ──────────────────────────────
 -- UPDATE necessario para editar a propria biblioteca (transparencia de localizacao)
 GRANT SELECT, INSERT, UPDATE ON BIBLIOTECA TO app_emprestimosdb;
-GRANT SELECT ON EVENTO                   TO app_emprestimosdb;
-GRANT SELECT ON PARTICIPACAO_EVENTO      TO app_emprestimosdb;
-GRANT SELECT ON HORARIO_BIBLIOTECA       TO app_emprestimosdb;
-GRANT SELECT ON vw_eventos_proximos      TO app_emprestimosdb;
-GRANT SELECT ON vw_eventos_completos     TO app_emprestimosdb;
+GRANT SELECT ON EVENTO                        TO app_emprestimosdb;
+GRANT SELECT ON PARTICIPACAO_EVENTO           TO app_emprestimosdb;
+GRANT SELECT ON HORARIO_BIBLIOTECA            TO app_emprestimosdb;
+GRANT SELECT ON vw_eventos_proximos           TO app_emprestimosdb;
+GRANT SELECT ON vw_eventos_completos          TO app_emprestimosdb;
+GRANT SELECT ON vw_bibliotecas_operacionais   TO app_emprestimosdb;
+GRANT SELECT ON vw_horarios_biblioteca_semana TO app_emprestimosdb;
+GRANT SELECT ON vw_participacoes_eventos      TO app_emprestimosdb;
 GRANT SELECT ON v_bibliotecas_activas    TO app_emprestimosdb;
 GRANT SELECT ON v_programacao_eventos    TO app_emprestimosdb;
 GRANT SELECT ON v_horarios_bibliotecas   TO app_emprestimosdb;
@@ -116,14 +119,17 @@ GRANT SELECT ON SEQ_HORARIO_EVENTO       TO app_emprestimosdb;
 -- ── Yasin (app_materiaisdb) ─────────────────────────────────
 -- UPDATE necessario para editar a propria biblioteca (transparencia de localizacao)
 GRANT SELECT, INSERT, UPDATE ON BIBLIOTECA TO app_materiaisdb;
-GRANT SELECT ON EVENTO                   TO app_materiaisdb;
-GRANT SELECT ON PARTICIPACAO_EVENTO      TO app_materiaisdb;
-GRANT SELECT ON HORARIO_BIBLIOTECA       TO app_materiaisdb;
-GRANT SELECT ON v_bibliotecas_activas    TO app_materiaisdb;
-GRANT SELECT ON v_horarios_bibliotecas   TO app_materiaisdb;
-GRANT SELECT ON v_programacao_eventos    TO app_materiaisdb;
-GRANT SELECT ON vw_eventos_proximos      TO app_materiaisdb;
-GRANT SELECT ON vw_eventos_completos     TO app_materiaisdb;
+GRANT SELECT ON EVENTO                        TO app_materiaisdb;
+GRANT SELECT ON PARTICIPACAO_EVENTO           TO app_materiaisdb;
+GRANT SELECT ON HORARIO_BIBLIOTECA            TO app_materiaisdb;
+GRANT SELECT ON v_bibliotecas_activas         TO app_materiaisdb;
+GRANT SELECT ON v_horarios_bibliotecas        TO app_materiaisdb;
+GRANT SELECT ON v_programacao_eventos         TO app_materiaisdb;
+GRANT SELECT ON vw_eventos_proximos           TO app_materiaisdb;
+GRANT SELECT ON vw_eventos_completos          TO app_materiaisdb;
+GRANT SELECT ON vw_bibliotecas_operacionais   TO app_materiaisdb;
+GRANT SELECT ON vw_horarios_biblioteca_semana TO app_materiaisdb;
+GRANT SELECT ON vw_participacoes_eventos      TO app_materiaisdb;
 -- Transparencia: DML e sequencias para criar/editar eventos de qualquer no
 GRANT INSERT, UPDATE, DELETE ON EVENTO   TO app_materiaisdb;
 GRANT SELECT, INSERT ON HORARIO_EVENTO   TO app_materiaisdb;

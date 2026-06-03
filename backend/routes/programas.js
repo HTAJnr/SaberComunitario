@@ -192,6 +192,33 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
   }
 });
 
+// GET /api/programas/relatorio-nacional — MV mv_relatorio_programas (NacionalDB only, Admin)
+router.get('/relatorio-nacional', autenticar, exigirNivel('Administrador'), async (req, res) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT cod_programa, cod_biblioteca, nome_programa, publico_alvo,
+              duracao_semanas, estado_programa,
+              total_participantes, participantes_activos,
+              participantes_concluidos, participantes_desistiram
+       FROM mv_relatorio_programas
+       ORDER BY cod_biblioteca, nome_programa`,
+      [],
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+    res.json(result.rows);
+  } catch (err) {
+    if (err.message?.includes('ORA-00942') || err.message?.includes('ORA-04043')) {
+      return res.json([]);
+    }
+    console.error('\x1b[31m[PROGRAMAS /relatorio-nacional]\x1b[0m', err.message);
+    res.status(500).json({ erro: err.message });
+  } finally {
+    if (conn) await conn.close();
+  }
+});
+
 // GET /api/programas/:cod — detalhe completo
 router.get('/:cod', autenticar, async (req, res) => {
   let conn;

@@ -149,6 +149,7 @@ GRANT SELECT ON FUNCAO_FUNCIONARIO              TO app_materiaisdb;
 GRANT SELECT, INSERT, UPDATE ON FUNCIONARIO     TO app_materiaisdb;
 GRANT SELECT, INSERT, DELETE ON FUNCIONARIO_HABILIDADE TO app_materiaisdb;
 GRANT SELECT, INSERT, DELETE ON HORARIO_FUNCIONARIO    TO app_materiaisdb;
+GRANT SELECT ON vw_func_activos_operacional     TO app_materiaisdb;
 GRANT SELECT ON vw_replica_funcionarios         TO app_materiaisdb;
 
 -- Dashboard e snapshots
@@ -270,11 +271,12 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ITEM_DOACAO             TO app_NACIONALD
 GRANT SELECT, INSERT                 ON CERTIFICADO_DOACAO      TO app_NACIONALDB;
 
 -- Snapshots (MVs locais): grants directos
-GRANT SELECT ON biblioteca_snap      TO app_NACIONALDB;
-GRANT SELECT ON snap_material_basico TO app_NACIONALDB;
-GRANT SELECT ON snap_emp_activos     TO app_NACIONALDB;
-GRANT SELECT ON snap_eventos         TO app_NACIONALDB;
-GRANT SELECT ON snap_transferencias  TO app_NACIONALDB;
+GRANT SELECT ON biblioteca_snap        TO app_NACIONALDB;
+GRANT SELECT ON snap_material_basico   TO app_NACIONALDB;
+GRANT SELECT ON snap_emp_activos       TO app_NACIONALDB;
+GRANT SELECT ON snap_eventos           TO app_NACIONALDB;
+GRANT SELECT ON snap_transferencias    TO app_NACIONALDB;
+GRANT SELECT ON mv_relatorio_programas TO app_NACIONALDB;
 
 -- Vistas: grants directos
 GRANT SELECT ON vw_doacoes_detalhadas           TO app_NACIONALDB;

@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- MateriaisDB_Intro.sql -- Dados iniciais do no MateriaisDB
 -- Sistema de Gestao de Bibliotecas Comunitarias Distribuido
 -- Executar como: usr_materiaisdb
@@ -39,65 +39,65 @@ VALUES (8, 'Agricultura e Ambiente', 'Adulto', 'Basico');
 -- 2. MATERIAIS BIBLIOGRAFICOS -- BIBMPC0001 (Maputo)
 -- ============================================================
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20190001', 'Vozes Anoitecidas', 'Mia Couto', 'Caminho', 1986, '978-972-21-0279-8', 'Portugues', 134, 'Bom', 'Comprado', TO_DATE('2019-03-01','YYYY-MM-DD'), 450.00, 'A1-01', 1, 'BIBMPC0001', NULL);
+VALUES ('MAT20190001', 'Vozes Anoitecidas', 'Mia Couto', 'Caminho', 1986, '978-972-21-0279-8', 'Portugues', 134, 'Bom', 'Comprado', TO_DATE('01/03/2019','DD/MM/YYYY'), 450.00, 'A1-01', 1, 'BIBMPC0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20190002', 'Neighbours', 'Lilia Momple', 'Associacao dos Escritores Mocambicanos', 1995, '978-972-8279-01-5', 'Portugues', 120, 'Bom', 'Comprado', TO_DATE('2019-03-01','YYYY-MM-DD'), 380.00, 'A1-02', 1, 'BIBMPC0001', NULL);
+VALUES ('MAT20190002', 'Neighbours', 'Lilia Momple', 'Associacao dos Escritores Mocambicanos', 1995, '978-972-8279-01-5', 'Portugues', 120, 'Bom', 'Comprado', TO_DATE('01/03/2019','DD/MM/YYYY'), 380.00, 'A1-02', 1, 'BIBMPC0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20200001', 'Matematica 10a Classe', 'INDE', 'INDE Mocambique', 2015, NULL, 'Portugues', 240, 'Degradado', 'Comprado', TO_DATE('2020-01-10','YYYY-MM-DD'), 320.00, 'B2-05', 4, 'BIBMPC0001', NULL);
+VALUES ('MAT20200001', 'Matematica 10a Classe', 'INDE', 'INDE Mocambique', 2015, NULL, 'Portugues', 240, 'Degradado', 'Comprado', TO_DATE('10/01/2020','DD/MM/YYYY'), 320.00, 'B2-05', 4, 'BIBMPC0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20240001', 'O Leao e o Coelho Astuto', 'Autor Coletivo', 'Editora Escolar', 2018, NULL, 'Portugues', 48, 'Bom', 'Doado', TO_DATE('2024-02-10','YYYY-MM-DD'), 'C3-01', 5, 'BIBMPC0001', 1);
+VALUES ('MAT20240001', 'O Leao e o Coelho Astuto', 'Autor Coletivo', 'Editora Escolar', 2018, NULL, 'Portugues', 48, 'Bom', 'Doado', TO_DATE('10/02/2024','DD/MM/YYYY'), 'C3-01', 5, 'BIBMPC0001', 1);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20240002', 'Saude para Todos', 'Ministerio da Saude', 'MISAU', 2020, NULL, 'Portugues', 96, 'Bom', 'Doado', TO_DATE('2024-02-10','YYYY-MM-DD'), 'D4-02', 6, 'BIBMPC0001', 1);
+VALUES ('MAT20240002', 'Saude para Todos', 'Ministerio da Saude', 'MISAU', 2020, NULL, 'Portugues', 96, 'Bom', 'Doado', TO_DATE('10/02/2024','DD/MM/YYYY'), 'D4-02', 6, 'BIBMPC0001', 1);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20190003', 'Terra Sonambula', 'Mia Couto', 'Caminho', 1992, '978-972-21-0814-1', 'Portugues', 215, 'Bom', 'Comprado', TO_DATE('2019-06-01','YYYY-MM-DD'), 520.00, 'A1-03', 1, 'BIBMPC0001', NULL);
+VALUES ('MAT20190003', 'Terra Sonambula', 'Mia Couto', 'Caminho', 1992, '978-972-21-0814-1', 'Portugues', 215, 'Bom', 'Comprado', TO_DATE('01/06/2019','DD/MM/YYYY'), 520.00, 'A1-03', 1, 'BIBMPC0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20190004', 'Terra Sonambula', 'Mia Couto', 'Caminho', 1992, '978-972-21-0814-1', 'Portugues', 215, 'Bom', 'Comprado', TO_DATE('2019-06-01','YYYY-MM-DD'), 520.00, 'A1-04', 1, 'BIBMPC0001', NULL);
+VALUES ('MAT20190004', 'Terra Sonambula', 'Mia Couto', 'Caminho', 1992, '978-972-21-0814-1', 'Portugues', 215, 'Bom', 'Comprado', TO_DATE('01/06/2019','DD/MM/YYYY'), 520.00, 'A1-04', 1, 'BIBMPC0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20240003', 'O Olho de Hertzog', 'Paulina Chiziane', 'Ndjira', 2020, '978-989-802-345-2', 'Portugues', 188, 'Bom', 'Doado', TO_DATE('2024-05-20','YYYY-MM-DD'), 'A2-01', 1, 'BIBMPC0001', 3);
+VALUES ('MAT20240003', 'O Olho de Hertzog', 'Paulina Chiziane', 'Ndjira', 2020, '978-989-802-345-2', 'Portugues', 188, 'Bom', 'Doado', TO_DATE('20/05/2024','DD/MM/YYYY'), 'A2-01', 1, 'BIBMPC0001', 3);
 
 -- ============================================================
 -- 2. MATERIAIS BIBLIOGRAFICOS -- BIBGZA0001 (Xai-Xai)
 -- ============================================================
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20240004', 'Ciencias Naturais 7a Classe', 'INDE', 'INDE Mocambique', 2016, NULL, 'Portugues', 180, 'Bom', 'Doado', TO_DATE('2024-02-10','YYYY-MM-DD'), 'B1-01', 3, 'BIBGZA0001', 2);
+VALUES ('MAT20240004', 'Ciencias Naturais 7a Classe', 'INDE', 'INDE Mocambique', 2016, NULL, 'Portugues', 180, 'Bom', 'Doado', TO_DATE('10/02/2024','DD/MM/YYYY'), 'B1-01', 3, 'BIBGZA0001', 2);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20200002', 'Agricultura Familiar em Mocambique', 'FAO', 'FAO', 2019, NULL, 'Portugues', 120, 'Bom', 'Comprado', TO_DATE('2020-05-12','YYYY-MM-DD'), 280.00, 'C2-01', 8, 'BIBGZA0001', NULL);
+VALUES ('MAT20200002', 'Agricultura Familiar em Mocambique', 'FAO', 'FAO', 2019, NULL, 'Portugues', 120, 'Bom', 'Comprado', TO_DATE('12/05/2020','DD/MM/YYYY'), 280.00, 'C2-01', 8, 'BIBGZA0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20210001', 'A Balada de Amor ao Vento', 'Paulina Chiziane', 'Ndjira', 1990, '978-972-8148-10-0', 'Portugues', 168, 'Bom', 'Comprado', TO_DATE('2021-03-15','YYYY-MM-DD'), 400.00, 'A1-01', 1, 'BIBGZA0001', NULL);
+VALUES ('MAT20210001', 'A Balada de Amor ao Vento', 'Paulina Chiziane', 'Ndjira', 1990, '978-972-8148-10-0', 'Portugues', 168, 'Bom', 'Comprado', TO_DATE('15/03/2021','DD/MM/YYYY'), 400.00, 'A1-01', 1, 'BIBGZA0001', NULL);
 
 -- ============================================================
 -- 2. MATERIAIS BIBLIOGRAFICOS -- BIBSOF0001 (Beira)
 -- ============================================================
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20240005', 'Introducao a Informatica', 'Varios Autores', 'Escolar Editora', 2021, NULL, 'Portugues', 210, 'Bom', 'Doado', TO_DATE('2024-09-01','YYYY-MM-DD'), 'D1-01', 7, 'BIBSOF0001', 4);
+VALUES ('MAT20240005', 'Introducao a Informatica', 'Varios Autores', 'Escolar Editora', 2021, NULL, 'Portugues', 210, 'Bom', 'Doado', TO_DATE('01/09/2024','DD/MM/YYYY'), 'D1-01', 7, 'BIBSOF0001', 4);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20240006', 'Historia de Mocambique Vol.1', 'Malyn Newitt', 'Publicacoes Europa-America', 1997, '978-972-1-04148-9', 'Portugues', 352, 'Degradado', 'Doado', TO_DATE('2024-09-01','YYYY-MM-DD'), 'B1-01', 2, 'BIBSOF0001', 4);
+VALUES ('MAT20240006', 'Historia de Mocambique Vol.1', 'Malyn Newitt', 'Publicacoes Europa-America', 1997, '978-972-1-04148-9', 'Portugues', 352, 'Degradado', 'Doado', TO_DATE('01/09/2024','DD/MM/YYYY'), 'B1-01', 2, 'BIBSOF0001', 4);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20210002', 'Contos do Nasreddin', 'Tradicao Oral', 'Ndjira', 2010, NULL, 'Portugues', 96, 'Bom', 'Comprado', TO_DATE('2021-07-20','YYYY-MM-DD'), 200.00, 'C3-01', 5, 'BIBSOF0001', NULL);
+VALUES ('MAT20210002', 'Contos do Nasreddin', 'Tradicao Oral', 'Ndjira', 2010, NULL, 'Portugues', 96, 'Bom', 'Comprado', TO_DATE('20/07/2021','DD/MM/YYYY'), 200.00, 'C3-01', 5, 'BIBSOF0001', NULL);
 
 -- ============================================================
 -- 2. MATERIAIS BIBLIOGRAFICOS -- BIBQLM0001 (Quelimane)
 -- ============================================================
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20250010', 'Historia Natural de Mocambique', 'Colin Poole', 'Wildlife Conservation Society', 2014, '978-0-615-94513-0', 'Portugues', 305, 'Bom', 'Comprado', TO_DATE('2025-03-15','YYYY-MM-DD'), 550.00, 'B1-01', 2, 'BIBQLM0001', NULL);
+VALUES ('MAT20250010', 'Historia Natural de Mocambique', 'Colin Poole', 'Wildlife Conservation Society', 2014, '978-0-615-94513-0', 'Portugues', 305, 'Bom', 'Comprado', TO_DATE('15/03/2025','DD/MM/YYYY'), 550.00, 'B1-01', 2, 'BIBQLM0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20250011', 'Contos do Rio Licungo', 'Varios Autores', 'Arquivo do Patrimonio', 2022, NULL, 'Portugues', 112, 'Bom', 'Comprado', TO_DATE('2025-04-02','YYYY-MM-DD'), 300.00, 'A1-01', 1, 'BIBQLM0001', NULL);
+VALUES ('MAT20250011', 'Contos do Rio Licungo', 'Varios Autores', 'Arquivo do Patrimonio', 2022, NULL, 'Portugues', 112, 'Bom', 'Comprado', TO_DATE('02/04/2025','DD/MM/YYYY'), 300.00, 'A1-01', 1, 'BIBQLM0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20250012', 'Dicionarios de Portugues', 'Porto Editora', 'Porto Editora', 2020, NULL, 'Portugues', 480, 'Bom', 'Doado', TO_DATE('2025-06-10','YYYY-MM-DD'), 'D1-01', 1, 'BIBQLM0001', 6);
+VALUES ('MAT20250012', 'Dicionarios de Portugues', 'Porto Editora', 'Porto Editora', 2020, NULL, 'Portugues', 480, 'Bom', 'Doado', TO_DATE('10/06/2025','DD/MM/YYYY'), 'D1-01', 1, 'BIBQLM0001', 6);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20260001', 'Agricultura Sustentavel na Zambezia', 'FAO Mocambique', 'FAO', 2024, NULL, 'Portugues', 88, 'Bom', 'Comprado', TO_DATE('2026-01-20','YYYY-MM-DD'), 180.00, 'C2-01', 8, 'BIBQLM0001', NULL);
+VALUES ('MAT20260001', 'Agricultura Sustentavel na Zambezia', 'FAO Mocambique', 'FAO', 2024, NULL, 'Portugues', 88, 'Bom', 'Comprado', TO_DATE('20/01/2026','DD/MM/YYYY'), 180.00, 'C2-01', 8, 'BIBQLM0001', NULL);
 
 -- ============================================================
 -- 2. MATERIAIS BIBLIOGRAFICOS -- BIBNMP0001 (Nampula)
 -- ============================================================
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20250013', 'Literatura Macua - Antologia', 'Varios Autores', 'ARPAC', 2021, NULL, 'Portugues', 145, 'Bom', 'Comprado', TO_DATE('2025-05-10','YYYY-MM-DD'), 350.00, 'A1-01', 1, 'BIBNMP0001', NULL);
+VALUES ('MAT20250013', 'Literatura Macua - Antologia', 'Varios Autores', 'ARPAC', 2021, NULL, 'Portugues', 145, 'Bom', 'Comprado', TO_DATE('10/05/2025','DD/MM/YYYY'), 350.00, 'A1-01', 1, 'BIBNMP0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20250014', 'Historia de Mocambique Vol.2', 'Malyn Newitt', 'Publicacoes Europa-America', 1997, '978-972-1-04149-6', 'Portugues', 328, 'Bom', 'Doado', TO_DATE('2026-02-20','YYYY-MM-DD'), 'B1-01', 2, 'BIBNMP0001', 7);
+VALUES ('MAT20250014', 'Historia de Mocambique Vol.2', 'Malyn Newitt', 'Publicacoes Europa-America', 1997, '978-972-1-04149-6', 'Portugues', 328, 'Bom', 'Doado', TO_DATE('20/02/2026','DD/MM/YYYY'), 'B1-01', 2, 'BIBNMP0001', 7);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20260002', 'Matematica Basica para Adultos', 'INDE', 'INDE Mocambique', 2023, NULL, 'Portugues', 160, 'Bom', 'Comprado', TO_DATE('2026-03-05','YYYY-MM-DD'), 260.00, 'B2-01', 4, 'BIBNMP0001', NULL);
+VALUES ('MAT20260002', 'Matematica Basica para Adultos', 'INDE', 'INDE Mocambique', 2023, NULL, 'Portugues', 160, 'Bom', 'Comprado', TO_DATE('05/03/2026','DD/MM/YYYY'), 260.00, 'B2-01', 4, 'BIBNMP0001', NULL);
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20250015', 'Saude Comunitaria em Mocambique', 'Ministerio da Saude', 'MISAU', 2022, NULL, 'Portugues', 72, 'Bom', 'Comprado', TO_DATE('2025-08-01','YYYY-MM-DD'), 150.00, 'D4-01', 6, 'BIBNMP0001', NULL);
+VALUES ('MAT20250015', 'Saude Comunitaria em Mocambique', 'Ministerio da Saude', 'MISAU', 2022, NULL, 'Portugues', 72, 'Bom', 'Comprado', TO_DATE('01/08/2025','DD/MM/YYYY'), 150.00, 'D4-01', 6, 'BIBNMP0001', NULL);
 
 -- ============================================================
 -- 3. LIVROS FISICOS
@@ -135,30 +135,30 @@ INSERT INTO LIVRO_FISICO VALUES ('MAT20250015');
 -- ============================================================
 -- Maputo
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20230001', 'Guia de Saude Materno-Infantil', 'Ministerio da Saude', 'MISAU', 2022, NULL, 'Portugues', 80, 'Bom', 'Comprado', TO_DATE('2023-01-05','YYYY-MM-DD'), 0.00, 6, 'BIBMPC0001', NULL);
+VALUES ('MAT20230001', 'Guia de Saude Materno-Infantil', 'Ministerio da Saude', 'MISAU', 2022, NULL, 'Portugues', 80, 'Bom', 'Comprado', TO_DATE('05/01/2023','DD/MM/YYYY'), 0.00, 6, 'BIBMPC0001', NULL);
 INSERT INTO EBOOK (cod_material, formato, tamanho_arquivo, url_acesso)
 VALUES ('MAT20230001', 'PDF', 4.20, 'https://biblioteca.sabercom.mz/ebooks/saude-materno.pdf');
 
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20230002', 'Programacao em Python para Iniciantes', 'Joao Ferreira', 'FCA', 2021, '978-972-722-810-5', 'Portugues', 320, 'Bom', 'Comprado', TO_DATE('2023-06-01','YYYY-MM-DD'), 150.00, 7, 'BIBMPC0001', NULL);
+VALUES ('MAT20230002', 'Programacao em Python para Iniciantes', 'Joao Ferreira', 'FCA', 2021, '978-972-722-810-5', 'Portugues', 320, 'Bom', 'Comprado', TO_DATE('01/06/2023','DD/MM/YYYY'), 150.00, 7, 'BIBMPC0001', NULL);
 INSERT INTO EBOOK (cod_material, formato, tamanho_arquivo, url_acesso)
 VALUES ('MAT20230002', 'EPUB', 2.80, 'https://biblioteca.sabercom.mz/ebooks/python-iniciantes.epub');
 
 -- Beira
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20220001', 'Atlas de Mocambique Digital', 'Instituto Nacional de Estatistica', 'INE', 2020, NULL, 'Portugues', 150, 'Bom', 'Comprado', TO_DATE('2022-11-10','YYYY-MM-DD'), 0.00, 2, 'BIBSOF0001', NULL);
+VALUES ('MAT20220001', 'Atlas de Mocambique Digital', 'Instituto Nacional de Estatistica', 'INE', 2020, NULL, 'Portugues', 150, 'Bom', 'Comprado', TO_DATE('10/11/2022','DD/MM/YYYY'), 0.00, 2, 'BIBSOF0001', NULL);
 INSERT INTO EBOOK (cod_material, formato, tamanho_arquivo, url_acesso)
 VALUES ('MAT20220001', 'PDF', 18.50, 'https://biblioteca.sabercom.mz/ebooks/atlas-moz.pdf');
 
 -- Quelimane
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20230010', 'Guia de Saude para Pescadores', 'Ministerio da Saude', 'MISAU', 2023, NULL, 'Portugues', 64, 'Bom', 'Comprado', TO_DATE('2024-07-10','YYYY-MM-DD'), 0.00, 6, 'BIBQLM0001', NULL);
+VALUES ('MAT20230010', 'Guia de Saude para Pescadores', 'Ministerio da Saude', 'MISAU', 2023, NULL, 'Portugues', 64, 'Bom', 'Comprado', TO_DATE('10/07/2024','DD/MM/YYYY'), 0.00, 6, 'BIBQLM0001', NULL);
 INSERT INTO EBOOK (cod_material, formato, tamanho_arquivo, url_acesso)
 VALUES ('MAT20230010', 'PDF', 3.10, 'https://biblioteca.sabercom.mz/ebooks/saude-pescadores.pdf');
 
 -- Nampula
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20260003', 'Tecnologia e Desenvolvimento Rural', 'FIDA Mocambique', 'FIDA', 2025, NULL, 'Portugues', 96, 'Bom', 'Comprado', TO_DATE('2026-01-15','YYYY-MM-DD'), 0.00, 7, 'BIBNMP0001', NULL);
+VALUES ('MAT20260003', 'Tecnologia e Desenvolvimento Rural', 'FIDA Mocambique', 'FIDA', 2025, NULL, 'Portugues', 96, 'Bom', 'Comprado', TO_DATE('15/01/2026','DD/MM/YYYY'), 0.00, 7, 'BIBNMP0001', NULL);
 INSERT INTO EBOOK (cod_material, formato, tamanho_arquivo, url_acesso)
 VALUES ('MAT20260003', 'PDF', 5.40, 'https://biblioteca.sabercom.mz/ebooks/tecnologia-rural.pdf');
 
@@ -167,133 +167,20 @@ VALUES ('MAT20260003', 'PDF', 5.40, 'https://biblioteca.sabercom.mz/ebooks/tecno
 -- ============================================================
 -- Xai-Xai
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20240007', 'Revista de Ciencias da Saude de Mocambique', 'Universidade Eduardo Mondlane', 'UEM', 2024, NULL, 'Portugues', 64, 'Bom', 'Comprado', TO_DATE('2024-07-01','YYYY-MM-DD'), 120.00, 'P1-01', 6, 'BIBGZA0001', NULL);
+VALUES ('MAT20240007', 'Revista de Ciencias da Saude de Mocambique', 'Universidade Eduardo Mondlane', 'UEM', 2024, NULL, 'Portugues', 64, 'Bom', 'Comprado', TO_DATE('01/07/2024','DD/MM/YYYY'), 120.00, 'P1-01', 6, 'BIBGZA0001', NULL);
 INSERT INTO PERIODICO (cod_material, edicao, periodicidade, data_publicacao, ISSN)
-VALUES ('MAT20240007', 'Vol. 12, No 2', 'Trimestral', TO_DATE('2024-06-30','YYYY-MM-DD'), '2220-2234');
+VALUES ('MAT20240007', 'Vol. 12, No 2', 'Trimestral', TO_DATE('30/06/2024','DD/MM/YYYY'), '2220-2234');
 
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20250001', 'Boletim de Agricultura Sustentavel', 'Ministerio da Agricultura', 'MINAG', 2025, NULL, 'Portugues', 32, 'Bom', 'Comprado', TO_DATE('2025-01-10','YYYY-MM-DD'), 80.00, 'P1-02', 8, 'BIBGZA0001', NULL);
+VALUES ('MAT20250001', 'Boletim de Agricultura Sustentavel', 'Ministerio da Agricultura', 'MINAG', 2025, NULL, 'Portugues', 32, 'Bom', 'Comprado', TO_DATE('10/01/2025','DD/MM/YYYY'), 80.00, 'P1-02', 8, 'BIBGZA0001', NULL);
 INSERT INTO PERIODICO (cod_material, edicao, periodicidade, data_publicacao, ISSN)
-VALUES ('MAT20250001', 'Ano 3, No 1', 'Mensal', TO_DATE('2025-01-01','YYYY-MM-DD'), NULL);
+VALUES ('MAT20250001', 'Ano 3, No 1', 'Mensal', TO_DATE('01/01/2025','DD/MM/YYYY'), NULL);
 
 -- Nampula
 INSERT INTO MATERIAL_BIBLIOGRAFICO (cod_material, titulo, autor, editora, ano_publicacao, ISBN, idioma, num_paginas, estado_material_conservacao, origem_material, data_aquisicao, valor_aquisicao, localizacao_estante, cod_categoria, cod_biblioteca, id_itemDoado)
-VALUES ('MAT20260004', 'Boletin de Educacao - Nampula', 'DPEC Nampula', 'DPEC', 2026, NULL, 'Portugues', 28, 'Bom', 'Comprado', TO_DATE('2026-04-01','YYYY-MM-DD'), 60.00, 'P1-01', 1, 'BIBNMP0001', NULL);
+VALUES ('MAT20260004', 'Boletin de Educacao - Nampula', 'DPEC Nampula', 'DPEC', 2026, NULL, 'Portugues', 28, 'Bom', 'Comprado', TO_DATE('01/04/2026','DD/MM/YYYY'), 60.00, 'P1-01', 1, 'BIBNMP0001', NULL);
 INSERT INTO PERIODICO (cod_material, edicao, periodicidade, data_publicacao, ISSN)
-VALUES ('MAT20260004', 'Ano 1, No 1', 'Trimestral', TO_DATE('2026-03-31','YYYY-MM-DD'), NULL);
-
--- ============================================================
--- 6. TRANSFERENCIA
--- trg_transferencia_insert desactivado: bypass da verificacao de
---   emprestimo activo (dblink EmprestimosDB pode nao ter dados ainda).
--- protege_ultimo_exemplar_insert desactivado: seed usa exemplares
---   unicos por biblioteca; a restricao aplica-se apenas em runtime.
--- trg_valida_transferencia permanece activo: valida material em
---   cod_biblioteca_origem e funcionarios via repl_funcionarios.
--- NOTA: fluxo de estados (Pendente->Aprovada->Concluida) nao e
---   percorrido no seed — inserts directos com estado final.
---   O trigger trg_transferencia_fluxo so dispara em UPDATE, por isso
---   materials de transferencias Concluidas NAO sao movidos pelo
---   trigger; a sua cod_biblioteca permanece na origem neste seed.
--- ============================================================
-ALTER TRIGGER trg_transferencia_insert DISABLE;
-ALTER TRIGGER protege_ultimo_exemplar_insert DISABLE;
-
--- T1 - Pendente: BIBMPC0001 -> BIBGZA0001 (Sul->Sul, Abr 2025)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
-    cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, motivo)
-VALUES (1, TO_DATE('2025-04-25','YYYY-MM-DD'), 'Pendente',
-    'MAT20190004', 'BIBMPC0001', 'BIBGZA0001',
-    'FUC20250002', 'Solicitacao de BCX - alta procura de Mia Couto na regiao de Gaza');
-
--- T2 - Aprovada: BIBNMP0001 -> BIBQLM0001 (Norte->Centro, Out 2025)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
-    cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, motivo)
-VALUES (2, TO_DATE('2025-10-12','YYYY-MM-DD'), 'Aprovada',
-    'MAT20250013', 'BIBNMP0001', 'BIBQLM0001',
-    'FUC20250014', 'Pedido de BIBQLM0001 - interesse em literatura Macua para feira do livro 2026');
-
--- T3 - Pendente: BIBGZA0001 -> BIBNMP0001 (Sul->Norte, Mai 2026)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, estado_transferencia,
-    cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, motivo)
-VALUES (3, TO_DATE('2026-05-10','YYYY-MM-DD'), 'Pendente',
-    'MAT20200002', 'BIBGZA0001', 'BIBNMP0001',
-    'FUC20250005', 'Reequilibrio de acervo: excesso de literatura agricola em Gaza, defice em Nampula');
-
--- T4 - Concluida: BIBQLM0001 -> BIBMPC0001 (Centro->Sul, Abr/Mai 2026)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, data_aprovacao_destino, data_conclusao,
-    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, cod_funcionario_aprovador, motivo)
-VALUES (4, TO_DATE('2026-04-15','YYYY-MM-DD'), TO_DATE('2026-04-22','YYYY-MM-DD'), TO_DATE('2026-05-02','YYYY-MM-DD'),
-    'Concluida', 'MAT20260001', 'BIBQLM0001', 'BIBMPC0001',
-    'FUC20250011', 'FUC20250002',
-    'Material de agricultura sustentavel requisitado por BIBMPC0001 para programa de adultos');
-
--- T5 - Concluida: BIBSOF0001 -> BIBNMP0001 (Centro->Norte, Jul/Ago 2025)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, data_aprovacao_destino, data_conclusao,
-    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, cod_funcionario_aprovador, motivo)
-VALUES (5, TO_DATE('2025-07-10','YYYY-MM-DD'), TO_DATE('2025-07-25','YYYY-MM-DD'), TO_DATE('2025-08-05','YYYY-MM-DD'),
-    'Concluida', 'MAT20220001', 'BIBSOF0001', 'BIBNMP0001',
-    'FUC20250008', 'FUC20250014',
-    'Pedido de Nampula para apoio a programa de educacao geografica e ambiental');
-
--- T6 - Concluida: BIBGZA0001 -> BIBMPC0001 (Sul->Sul, Set/Out 2025)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao, data_aprovacao_destino, data_conclusao,
-    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, cod_funcionario_aprovador, motivo)
-VALUES (6, TO_DATE('2025-09-03','YYYY-MM-DD'), TO_DATE('2025-09-15','YYYY-MM-DD'), TO_DATE('2025-10-08','YYYY-MM-DD'),
-    'Concluida', 'MAT20240007', 'BIBGZA0001', 'BIBMPC0001',
-    'FUC20250005', 'FUC20250002',
-    'Material cientifico da UEM mais relevante para publico academico e de saude de Maputo');
-
--- T7 - Rejeitada: BIBNMP0001 -> BIBQLM0001 (Norte->Centro, Mar 2026)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao,
-    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, motivo)
-VALUES (7, TO_DATE('2026-03-15','YYYY-MM-DD'),
-    'Rejeitada', 'MAT20260004', 'BIBNMP0001', 'BIBQLM0001',
-    'FUC20250014',
-    'Pedido recusado: BIBQLM0001 sem capacidade para novos periodicos ate Q4 2026');
-
--- T8 - Pendente: BIBMPC0001 -> BIBNMP0001 (Sul->Norte, Mai 2026)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao,
-    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, motivo)
-VALUES (8, TO_DATE('2026-05-05','YYYY-MM-DD'),
-    'Pendente', 'MAT20240002', 'BIBMPC0001', 'BIBNMP0001',
-    'FUC20250002',
-    'Reforco de materiais de saude para programa comunitario em Nampula');
-
--- T9 - Pendente: BIBSOF0001 -> BIBGZA0001 (Centro->Sul, Mai 2026)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao,
-    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, motivo)
-VALUES (9, TO_DATE('2026-05-20','YYYY-MM-DD'),
-    'Pendente', 'MAT20210002', 'BIBSOF0001', 'BIBGZA0001',
-    'FUC20250008',
-    'BIBGZA0001 solicita reforco de contos infantis para programa de leitura de Junho 2026');
-
--- T10 - Pendente: BIBNMP0001 -> BIBQLM0001 (Norte->Centro, Mai 2026)
-INSERT INTO TRANSFERENCIA (id_transferencia, data_solicitacao,
-    estado_transferencia, cod_material, cod_biblioteca_origem, cod_biblioteca_destino,
-    cod_funcionario_solicitante, motivo)
-VALUES (10, TO_DATE('2026-05-28','YYYY-MM-DD'),
-    'Pendente', 'MAT20260003', 'BIBNMP0001', 'BIBQLM0001',
-    'FUC20250014',
-    'BIBQLM0001 organiza encontro sobre desenvolvimento rural na Zambezia em Julho 2026');
-
-ALTER TRIGGER trg_transferencia_insert ENABLE;
-ALTER TRIGGER protege_ultimo_exemplar_insert ENABLE;
-
--- Avancar SEQ_TRANSFERENCIA para alem dos IDs inseridos explicitamente
--- (previne conflito de PK quando a aplicacao criar a proxima transferencia)
-ALTER SEQUENCE SEQ_TRANSFERENCIA INCREMENT BY 10;
-SELECT SEQ_TRANSFERENCIA.NEXTVAL FROM DUAL;
-ALTER SEQUENCE SEQ_TRANSFERENCIA INCREMENT BY 1;
+VALUES ('MAT20260004', 'Ano 1, No 1', 'Trimestral', TO_DATE('31/03/2026','DD/MM/YYYY'), NULL);
 
 COMMIT;
 

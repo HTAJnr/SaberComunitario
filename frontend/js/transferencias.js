@@ -348,6 +348,7 @@ function aprovarTransf(id) {
       await api(`/api/transferencias/${id}/aprovar`, { method: 'PATCH', body: {} });
       toast('Transferência aprovada.', 'sucesso');
       carregarTransferencias(tabTransfActual);
+      if (typeof _carregarNotificacoes === 'function') _carregarNotificacoes();
     } catch (err) {
       toast('Erro: ' + err.message, 'erro');
     }
@@ -389,6 +390,7 @@ async function _confirmarRejeitarTransf(id) {
     toast('Transferência rejeitada.', 'sucesso');
     fecharModalTransf();
     carregarTransferencias(tabTransfActual);
+    if (typeof _carregarNotificacoes === 'function') _carregarNotificacoes();
   } catch (err) {
     _mostrarErroModalTransf(err.message);
   }
@@ -404,6 +406,7 @@ function concluirTransf(id) {
         await api(`/api/transferencias/${id}/concluir`, { method: 'PATCH', body: {} });
         toast('Transferência concluída. Material movido.', 'sucesso');
         carregarTransferencias(tabTransfActual);
+        if (typeof _carregarNotificacoes === 'function') _carregarNotificacoes();
       } catch (err) {
         toast('Erro: ' + err.message, 'erro');
       }
