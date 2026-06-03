@@ -52,6 +52,12 @@ CREATE OR REPLACE PUBLIC SYNONYM SEQ_PERMISSAO      FOR usr_NACIONALDB.SEQ_PERMI
 -- SINONIMOS PUBLICOS - MateriaisDB (Yasin)
 CREATE OR REPLACE PUBLIC SYNONYM material_bibliografico
     FOR material_bibliografico@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM livro_fisico
+    FOR usr_materiaisdb.livro_fisico@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM ebook
+    FOR usr_materiaisdb.ebook@materiaisdb;
+CREATE OR REPLACE PUBLIC SYNONYM periodico
+    FOR usr_materiaisdb.periodico@materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM categoria
     FOR categoria@materiaisdb;
 CREATE OR REPLACE PUBLIC SYNONYM transferencia
