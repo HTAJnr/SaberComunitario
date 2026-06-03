@@ -151,7 +151,7 @@ END protege_ultimo_exemplar_insert;
 -- Usa PRAGMA AUTONOMOUS_TRANSACTION para evitar ORA-04091
 -- (tabela TRANSFERENCIA em mutacao durante UPDATE)
 -- ============================================================
-CREATE OR REPLACE FUNCTION conta_exemplares_disponiveis_upd(
+CREATE OR REPLACE FUNCTION conta_exemplares_disp_upd(
     p_isbn         IN VARCHAR2,
     p_titulo       IN VARCHAR2,
     p_cod_bib      IN VARCHAR2,
@@ -188,7 +188,7 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
     ROLLBACK;
     RETURN 999;
-END conta_exemplares_disponiveis_upd;
+END conta_exemplares_disp_upd;
 /
 
 -- ============================================================
@@ -213,7 +213,7 @@ BEGIN
     FROM MATERIAL_BIBLIOGRAFICO
     WHERE cod_material = :NEW.cod_material;
 
-    v_disponiveis := conta_exemplares_disponiveis_upd(
+    v_disponiveis := conta_exemplares_disp_upd(
         v_isbn, v_titulo, :NEW.cod_biblioteca_origem, :NEW.id_transferencia
     );
 
