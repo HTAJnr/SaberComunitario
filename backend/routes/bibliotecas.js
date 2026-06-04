@@ -1,6 +1,6 @@
 const express = require('express');
 const router  = express.Router();
-const { getConnection, oracledb } = require('../db');
+const { getConnectionEventos: getConnection, oracledb, isOfflineError } = require('../db');
 const { exigirNivel, autenticar } = require('../middleware/permissoes');
 
 const PROVINCIAS_VALIDAS = [

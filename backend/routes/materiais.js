@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getConnection, oracledb } = require('../db');
+const { getConnectionMateriais: getConnection, oracledb, isOfflineError } = require('../db');
 const { autenticar, exigirNivel } = require('../middleware/permissoes');
 
 const TIPOS_VALIDOS = ['Livro', 'Ebook', 'Periodico'];

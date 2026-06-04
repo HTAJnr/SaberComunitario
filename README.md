@@ -11,16 +11,18 @@ Node.js + Express + Oracle 10g XE · Frontend vanilla HTML/JS · Base de dados d
 
 ## Arquitectura do sistema
 
-O sistema é composto por quatro nós Oracle independentes, cada um a correr numa VM CentOS 6.8, e por uma aplicação web que acede ao nó principal via driver `oracledb`.
+O sistema é composto por quatro nós Oracle independentes, cada um a correr numa VM CentOS 6.8, e por uma aplicação web Node.js que mantém **quatro ligações separadas** — uma por nó — e roteia cada pedido ao nó responsável pelo domínio.
 
-| Nó | Schema | VM | Módulo |
-|---|---|---|---|
-| BibliotecaNacionalDB | `usr_NACIONALDB` | VM Hélder | Leitores, funcionários, bibliotecas |
-| MateriaisDB | `usr_materiaisdb` | VM Yasin | Materiais, transferências, doações |
-| EmpréstimosDB | `usr_emprestimosdb` | VM Yannis | Empréstimos, multas, programas |
-| EventosBibliotecasDB | `usr_eventosdb` | VM Gerson | Eventos, participações, horários |
+| Nó | Schema | VM | Módulo | Rota API |
+|---|---|---|---|---|
+| BibliotecaNacionalDB | `usr_NACIONALDB` | VM Hélder | Leitores, funcionários, doações | `/api/leitores`, `/api/funcionarios`, `/api/doacoes` |
+| MateriaisDB | `usr_materiaisdb` | VM Yasin | Materiais, transferências | `/api/materiais`, `/api/transferencias` |
+| EmpréstimosDB | `usr_emprestimosdb` | VM Yannis | Empréstimos, programas, suspensões | `/api/emprestimos`, `/api/programas`, `/api/suspensoes` |
+| EventosBibliotecasDB | `usr_eventosdb` | VM Gerson | Eventos, bibliotecas | `/api/eventos`, `/api/bibliotecas` |
 
-Os nós comunicam entre si através de **Database Links** Oracle e partilham dados via **Snapshots** (Materialized Views) e **Sinónimos públicos**.
+**Tolerância a falhas:** se um nó cair, apenas as rotas do seu domínio ficam indisponíveis (HTTP 503). Os restantes três nós continuam a funcionar de forma independente. Leituras de dados remotos usam **Snapshots** (Materialized Views) locais que refrescam a cada hora.
+
+Os nós comunicam entre si através de **Database Links** Oracle e partilham dados via **Snapshots** e **Sinónimos públicos**.
 
 ---
 
@@ -163,19 +165,16 @@ sudo ldconfig
 
 ### Configurar o ficheiro `.env`
 
-Copiar `backend/.env.example` para `backend/.env` e preencher:
+Copiar `backend/.env.example` para `backend/.env` e preencher os 4 grupos de credenciais — um por nó Oracle:
 
-| Variável | Descrição | Exemplo |
+| Prefixo | Nó | Variáveis |
 |---|---|---|
-| `DB_HOST` | IP da VM Oracle | `172.20.10.11` |
-| `DB_PORT` | Porta Oracle | `1521` |
-| `DB_SERVICE` | Nome do serviço | `XE` |
-| `DB_USER` | Utilizador de aplicação (nunca o `usr_`) | `app_NACIONALDB` |
-| `DB_PASSWORD` | Palavra-passe | `HTAJnr#22041` |
-| `INSTANT_CLIENT_PATH` | Caminho do Instant Client | `C:/instantclient_21_20` |
-| `PORT` | Porta da aplicação | `3000` |
-| `NLS_LANG` | Charset (não alterar) | `AMERICAN_AMERICA.AL32UTF8` |
-| `NODE_NAME` | Nome do nó para auditoria cross-node | `BibliotecaNacionalDB` |
+| `NACIONAL_` | BibliotecaNacionalDB | `NACIONAL_HOST`, `NACIONAL_PORT`, `NACIONAL_SERVICE`, `NACIONAL_USER`, `NACIONAL_PASSWORD` |
+| `MATERIAIS_` | MateriaisDB | `MATERIAIS_HOST`, `MATERIAIS_PORT`, `MATERIAIS_SERVICE`, `MATERIAIS_USER`, `MATERIAIS_PASSWORD` |
+| `EMPRESTIMOS_` | EmpréstimosDB | `EMPRESTIMOS_HOST`, … |
+| `EVENTOS_` | EventosBibliotecasDB | `EVENTOS_HOST`, … |
+
+Se apenas um nó estiver configurado (ex: só `NACIONAL_*`), as outras ligações tentam usar as variáveis `DB_*` genéricas como fallback — útil em desenvolvimento ou quando um nó ainda não está disponível.
 
 ### Arrancar a aplicação
 

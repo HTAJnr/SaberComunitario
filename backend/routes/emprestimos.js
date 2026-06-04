@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getConnection, oracledb } = require('../db');
+const { getConnectionEmprestimos: getConnection, oracledb, isOfflineError } = require('../db');
 const { autenticar } = require('../middleware/permissoes');
 const { registar } = require('../middleware/auditoria');
 

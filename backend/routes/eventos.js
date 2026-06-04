@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getConnection, oracledb } = require('../db');
+const { getConnectionEventos: getConnection, oracledb, isOfflineError } = require('../db');
 const { autenticar, exigirNivel } = require('../middleware/permissoes');
 const { registar } = require('../middleware/auditoria');
 
@@ -161,7 +161,8 @@ router.post('/', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'), a
       operacao: 'CRIAR',
       objeto: 'EVENTO:' + idEvento,
       resultado: 'SUCESSO',
-      nos: req.session.cod_biblioteca || 'NACIONAL'
+      nos: req.session.cod_biblioteca || 'NACIONAL',
+      no: 'EVENTOS'
     });
     await conn.commit();
     res.status(201).json({ ok: true, id_evento: idEvento });
@@ -206,7 +207,8 @@ router.put('/:id', exigirNivel('Administrador', 'Coordenador', 'Bibliotecario'),
       operacao: 'EDITAR',
       objeto: 'EVENTO:' + req.params.id,
       resultado: 'SUCESSO',
-      nos: req.session.cod_biblioteca || 'NACIONAL'
+      nos: req.session.cod_biblioteca || 'NACIONAL',
+      no: 'EVENTOS'
     });
     await conn.commit();
     res.json({ ok: true });
@@ -244,7 +246,8 @@ router.patch('/:id/status', exigirNivel('Administrador', 'Coordenador', 'Bibliot
       operacao: status_evento === 'Cancelado' ? 'CANCELAR' : 'ALTERAR_STATUS',
       objeto: 'EVENTO:' + req.params.id,
       resultado: 'SUCESSO',
-      nos: req.session.cod_biblioteca || 'NACIONAL'
+      nos: req.session.cod_biblioteca || 'NACIONAL',
+      no: 'EVENTOS'
     });
     await conn.commit();
     res.json({ ok: true });

@@ -1,6 +1,6 @@
 const express = require('express');
 const router  = express.Router();
-const { getConnection, oracledb } = require('../db');
+const { getConnectionMateriais: getConnection, oracledb, isOfflineError } = require('../db');
 const { exigirNivel } = require('../middleware/permissoes');
 
 // GET /api/transferencias?biblioteca=X&direcao=enviadas|recebidas|todas&estado=X

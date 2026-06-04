@@ -16,44 +16,57 @@ try {
   }
 }
 
-function buildConnectString() {
-  return `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_SERVICE}`;
+// ── Detecta erros de nó remoto offline (dblink ou ligação primária) ────────
+// ORA-12154: TNS não resolve  ORA-12541: sem listener  ORA-12170: timeout
+// ORA-02068: erro a seguir de dblink  ORA-03114/03135: ligação perdida
+function isOfflineError(err) {
+  const msg = (err && err.message) ? err.message : '';
+  return /ORA-(12154|12541|12170|01033|02068|03114|03135|01017|28001)/.test(msg)
+      || /NJS-(500|503|506)/.test(msg);
 }
 
-async function getConnection() {
-  const config = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    connectString: buildConnectString(),
-  };
-  if (process.env.DB_PRIVILEGE === 'SYSDBA') {
-    config.privilege = oracledb.SYSDBA;
-  }
+// ── Fábrica interna — lê prefixo do .env (ex: NACIONAL, MATERIAIS) ─────────
+function buildConfig(prefix) {
+  const host     = process.env[`${prefix}_HOST`]     || process.env.DB_HOST;
+  const port     = process.env[`${prefix}_PORT`]     || process.env.DB_PORT     || '1521';
+  const service  = process.env[`${prefix}_SERVICE`]  || process.env.DB_SERVICE  || 'XE';
+  const user     = process.env[`${prefix}_USER`]     || process.env.DB_USER;
+  const password = process.env[`${prefix}_PASSWORD`] || process.env.DB_PASSWORD;
+  return { user, password, connectString: `${host}:${port}/${service}` };
+}
+
+async function _connect(prefix) {
+  const config = buildConfig(prefix);
   try {
-    const conn = await oracledb.getConnection(config);
-    return conn;
+    return await oracledb.getConnection(config);
   } catch (err) {
-    console.error('\x1b[31m[DB] FALHA NA CONEXÃO ORACLE\x1b[0m');
-    console.error(`     Host:    ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_SERVICE}`);
-    console.error(`     User:    ${process.env.DB_USER}`);
+    const label = prefix || 'BD';
+    console.error(`\x1b[31m[DB] FALHA NA CONEXÃO — ${label}\x1b[0m`);
+    console.error(`     Host:    ${config.connectString}`);
+    console.error(`     User:    ${config.user}`);
     console.error(`     Detalhe: ${err.message}`);
     throw err;
   }
 }
 
+// ── 4 funções de ligação — uma por nó ─────────────────────────────────────
+async function getConnectionNacional()    { return _connect('NACIONAL');    }
+async function getConnectionMateriais()   { return _connect('MATERIAIS');   }
+async function getConnectionEmprestimos() { return _connect('EMPRESTIMOS'); }
+async function getConnectionEventos()     { return _connect('EVENTOS');     }
+
+// Alias de compatibilidade: auth, dashboard e auditoria ligam ao NacionalDB
+async function getConnection() { return getConnectionNacional(); }
+
+// ── Utilitários de diagnóstico ─────────────────────────────────────────────
 async function testConnection() {
   let conn;
   try {
-    conn = await getConnection();
+    conn = await getConnectionNacional();
     const result = await conn.execute('SELECT SYSDATE, BANNER FROM V$VERSION WHERE ROWNUM = 1');
     const [sysdate, banner] = result.rows[0];
-    return {
-      ok: true,
-      timestamp: sysdate,
-      version: banner,
-      host: process.env.DB_HOST,
-      service: process.env.DB_SERVICE,
-    };
+    const cfg = buildConfig('NACIONAL');
+    return { ok: true, timestamp: sysdate, version: banner, host: cfg.connectString };
   } finally {
     if (conn) await conn.close();
   }
@@ -62,8 +75,7 @@ async function testConnection() {
 async function listUserTables() {
   let conn;
   try {
-    conn = await getConnection();
-    // ALL_TABLES porque SYS vê tudo; USER_TABLES mostraria só as do schema actual
+    conn = await getConnectionNacional();
     const result = await conn.execute(
       `SELECT owner, table_name
          FROM all_tables
@@ -76,7 +88,7 @@ async function listUserTables() {
   }
 }
 
-// ── Identidade do nó ──────────────────────────────────────────
+// ── Identidade do nó ──────────────────────────────────────────────────────
 const _NO_MAP = {
   'APP_NACIONALDB':    'BibliotecaNacionalDB',
   'APP_EMPRESTIMOSDB': 'EmpréstimosProgramasDB',
@@ -93,15 +105,15 @@ let _noOrigemCached = null;
 async function inicializarNoOrigem() {
   let conn;
   try {
-    conn = await getConnection();
+    conn = await getConnectionNacional();
     const r = await conn.execute('SELECT USER FROM DUAL', [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
     const dbUser = (r.rows[0].USER || '').toUpperCase();
     _noOrigemCached = _NO_MAP[dbUser] || process.env.NODE_NAME || 'BibliotecaNacionalDB';
-    console.log(`\x1b[36m[DB]\x1b[0m              Nó: ${_noOrigemCached} (${dbUser})`);
+    console.log(`\x1b[36m[DB]\x1b[0m NacionalDB:    ${_noOrigemCached} (${dbUser})`);
   } catch (err) {
     _noOrigemCached = process.env.NODE_NAME || 'BibliotecaNacionalDB';
-    console.warn(`\x1b[33m[DB] AVISO\x1b[0m        Identidade do nó não verificada: ${err.message}`);
-    console.warn(`                  Fallback: ${_noOrigemCached}`);
+    console.warn(`\x1b[33m[DB] AVISO\x1b[0m NacionalDB offline no arranque: ${err.message}`);
+    console.warn(`           Os outros nós podem ainda funcionar.`);
   } finally {
     if (conn) await conn.close();
   }
@@ -111,4 +123,16 @@ function getNoOrigem() {
   return _noOrigemCached || process.env.NODE_NAME || 'BibliotecaNacionalDB';
 }
 
-module.exports = { getConnection, testConnection, listUserTables, inicializarNoOrigem, getNoOrigem, oracledb };
+module.exports = {
+  getConnection,
+  getConnectionNacional,
+  getConnectionMateriais,
+  getConnectionEmprestimos,
+  getConnectionEventos,
+  isOfflineError,
+  testConnection,
+  listUserTables,
+  inicializarNoOrigem,
+  getNoOrigem,
+  oracledb,
+};

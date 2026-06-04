@@ -1,4 +1,4 @@
-const { getConnection } = require('../db');
+const { getConnectionNacional } = require('../db');
 
 // Detectar nó activo via NODE_NAME do .env (ex: "EventosDB", "EmprestimosDB", "MateriaisDB", "NACIONAL")
 const _raw = (process.env.NODE_NAME || '').toUpperCase();
@@ -38,9 +38,11 @@ const _AUDIT = {
   },
 };
 
-async function registar(conn, { cod_func, operacao, objeto, resultado, motivo = null, nos = 'NACIONAL' }) {
+// no: chave explícita do nó ('NACIONAL'|'EVENTOS'|'EMPRESTIMOS'|'MATERIAIS').
+// Se omitido, usa _NODE detectado via NODE_NAME do .env (retrocompatibilidade).
+async function registar(conn, { cod_func, operacao, objeto, resultado, motivo = null, nos = 'NACIONAL', no = null }) {
   const nosStr = Array.isArray(nos) ? nos.join(', ') : nos;
-  const cfg = _AUDIT[_NODE] || _AUDIT.NACIONAL;
+  const cfg = _AUDIT[no || _NODE] || _AUDIT.NACIONAL;
   try {
     await conn.execute(cfg.sql, cfg.binds({ cod_func, operacao, objeto, resultado, motivo, nos: nosStr }));
   } catch (e) {
@@ -48,9 +50,10 @@ async function registar(conn, { cod_func, operacao, objeto, resultado, motivo = 
   }
 }
 
-// Abre a própria ligação — usar quando não há conn disponível (middlewares, background tasks)
+// Auditoria centralizada no NacionalDB — usa a sua própria ligação.
+// Falha silenciosa se o NacionalDB estiver offline (não bloqueia a rota que chamou).
 function registarBackground({ cod_func, operacao, objeto, resultado, motivo = null, nos = 'NACIONAL' }) {
-  getConnection().then(async conn => {
+  getConnectionNacional().then(async conn => {
     try {
       await registar(conn, { cod_func, operacao, objeto, resultado, motivo, nos });
       await conn.commit();

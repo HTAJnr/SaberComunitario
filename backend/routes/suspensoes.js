@@ -1,6 +1,6 @@
 const express = require('express');
 const router  = express.Router();
-const { getConnection, oracledb } = require('../db');
+const { getConnectionEmprestimos: getConnection, oracledb, isOfflineError } = require('../db');
 const { exigirNivel } = require('../middleware/permissoes');
 
 // PATCH /api/suspensoes/:id/reduzir  (RN03.2 — só Coordenador ou Administrador)
